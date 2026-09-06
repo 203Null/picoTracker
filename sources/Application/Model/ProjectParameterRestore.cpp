@@ -74,6 +74,17 @@ bool ParseProjectVersionHundredthsForRestore(const char *text, int &result) {
   else if (fractionDigits == 1)
     fraction *= 10;
 
+  // Legacy factory projects also use semantic patch versions (e.g. 2.0.2).
+  // Restore migrations use major/minor hundredths; the patch does not change
+  // that compatibility domain, but must still be a nonempty numeric token.
+  if (*cursor == '.') {
+    ++cursor;
+    if (*cursor < '0' || *cursor > '9')
+      return false;
+    while (*cursor >= '0' && *cursor <= '9')
+      ++cursor;
+  }
+
   if (*cursor != '\0') {
     if (*cursor++ != '-' || *cursor == '\0')
       return false;

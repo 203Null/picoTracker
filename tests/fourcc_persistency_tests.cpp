@@ -739,6 +739,13 @@ TEST_CASE("Project version restore accepts release suffixes without float UB") {
   CHECK(std::string_view(nullperator_project::Schema) == "1");
   CHECK(ParseProjectVersionHundredthsForRestore("2.3-Beta3", version));
   CHECK(version == 230);
+  CHECK(ParseProjectVersionHundredthsForRestore("2.0.2", version));
+  CHECK(version == 200);
+  CHECK(ParseProjectVersionHundredthsForRestore("2.3.1-Beta3", version));
+  CHECK(version == 230);
+  CHECK_FALSE(ParseProjectVersionHundredthsForRestore("2.0.", version));
+  CHECK_FALSE(ParseProjectVersionHundredthsForRestore("2.0.x", version));
+  CHECK_FALSE(ParseProjectVersionHundredthsForRestore("2.0.2.1", version));
   CHECK(ParseProjectVersionHundredthsForRestore("2.30", version));
   CHECK(version == 230);
   CHECK(ParseProjectVersionHundredthsForRestore("2", version));
