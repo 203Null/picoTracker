@@ -11,5 +11,7 @@
 namespace nullperator_product {
 
 inline constexpr char Version[] = "0.1";
+// UI branding must not be used as the serialized project version.
+inline constexpr char DisplayVersion[] = "NullPerator 0.1";
 
 } // namespace nullperator_product
