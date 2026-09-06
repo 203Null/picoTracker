@@ -55,11 +55,14 @@ export function createAudioStore(bridge, options = {}) {
       void unlockAudio().catch(() => {})
     }
     target.addEventListener('pointerdown', recover, true)
+    // Touch/pen activation can arrive on release rather than pointerdown.
+    target.addEventListener('pointerup', recover, true)
     target.addEventListener('keydown', recover, true)
     const detach = () => {
       if (!attached) return
       attached = false
       target.removeEventListener?.('pointerdown', recover, true)
+      target.removeEventListener?.('pointerup', recover, true)
       target.removeEventListener?.('keydown', recover, true)
       if (detachGestureRecovery === detach) detachGestureRecovery = null
     }

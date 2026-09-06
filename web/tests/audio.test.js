@@ -72,13 +72,14 @@ describe('browser audio state', () => {
     await new Promise((resolve) => setTimeout(resolve, 0))
     state = 4
     await audio.refresh()
-    listeners.get('pointerdown')({ isTrusted: true, repeat: false })
+    listeners.get('pointerup')({ isTrusted: true, repeat: false })
     await vi.waitFor(() => expect(bridge.unlockAudio).toHaveBeenCalledTimes(3))
 
     listeners.get('keydown')({ isTrusted: true, repeat: true })
     expect(bridge.unlockAudio).toHaveBeenCalledTimes(3)
     await audio.stop()
     expect(listeners.has('pointerdown')).toBe(false)
+    expect(listeners.has('pointerup')).toBe(false)
     expect(listeners.has('keydown')).toBe(false)
   })
 

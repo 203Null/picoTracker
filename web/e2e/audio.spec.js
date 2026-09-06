@@ -12,7 +12,7 @@ async function loadLockedRuntime(page) {
   return diagnostics
 }
 
-test('AudioWorklet is the default and presents a user-facing sound gate', async ({ page }) => {
+test('first play key unlocks AudioWorklet without blocking tracker input', async ({ page }) => {
   test.setTimeout(45_000)
   const browserDiagnostics = []
   page.on('console', (message) => browserDiagnostics.push(`console ${message.type()}: ${message.text()}`))
@@ -34,21 +34,20 @@ test('AudioWorklet is the default and presents a user-facing sound gate', async 
     const capability = await diagnostics.getAttribute('data-audio-capability')
     expect(capability).toBe('available')
     await expect(page.locator('[data-audio-state="locked"]')).toBeVisible()
-    const gate = page.getByRole('dialog', { name: 'Enable sound' })
-    await expect(gate).toBeVisible()
-    await expect.poll(() => gate.evaluate((element) => element.matches(':modal'))).toBe(true)
-    const enableSound = gate.getByRole('button', { name: 'Enable sound' })
-    await expect(enableSound).toBeFocused()
-    await expect(page.locator('.operator-device')).toHaveAttribute('inert', '')
+    await expect(page.getByRole('dialog', { name: 'Enable sound' })).toHaveCount(0)
+    await expect(page.locator('.audio-hint')).toBeVisible()
+    await expect(page.locator('.operator-device')).not.toHaveAttribute('inert', '')
     if (!workletMode) return
 
-    await enableSound.click()
+    await page.keyboard.press('x')
+    await expect(page.locator('#picotracker-canvas')).toHaveAttribute('data-last-action', '7')
     try {
       await expect(page.locator('[data-audio-state="running"]')).toBeVisible({ timeout: setupWatchdogTimeoutMs })
     } catch (error) {
       const snapshot = await diagnostics.evaluate((element) => ({ ...element.dataset })).catch(() => ({}))
       throw new Error(`${error.message}\nAudio diagnostics: ${JSON.stringify(snapshot)}\nBrowser diagnostics: ${browserDiagnostics.join(' | ')}`)
     }
+    await expect(page.locator('.audio-hint')).toHaveCount(0)
     await expect(page.locator('#picotracker-canvas')).toBeFocused()
     const callbacks = page.locator('[data-audio-worklet-callbacks]')
     await expect(callbacks).not.toHaveAttribute('data-audio-worklet-callbacks', '0')

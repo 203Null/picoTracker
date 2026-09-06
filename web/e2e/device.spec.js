@@ -10,7 +10,6 @@ test('@visual boots the C++ UI at 240x240 logical pixels', async ({ page }) => {
   await expect(page.locator('#picotracker-canvas')).toHaveAttribute('height', '240')
   await expect(page.locator('#picotracker-canvas')).toHaveAttribute('data-frame-content', 'rendered')
   await page.waitForTimeout(250)
-  await page.locator('.audio-gate').evaluate((element) => { element.style.display = 'none' })
   await expect(page.locator('#picotracker-canvas')).toHaveScreenshot('device-boot.png')
 })
 

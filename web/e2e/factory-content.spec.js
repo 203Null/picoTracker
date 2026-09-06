@@ -282,7 +282,7 @@ test('real oneCycAc project imports, trims, plays, and survives reload plus runt
   await page.getByRole('button', { name: 'Tracker', exact: true }).click()
   const audioDiagnostics = page.locator('.audio-diagnostics')
   if (workletMode) {
-    await page.getByRole('dialog', { name: 'Enable sound' }).getByRole('button', { name: 'Enable sound' }).click()
+    await page.locator('#picotracker-canvas').click()
     await expect(page.locator('[data-audio-state="running"]')).toBeVisible({ timeout: 12_000 })
     await expect(audioDiagnostics).toHaveAttribute('data-audio-capability', 'available')
   } else {

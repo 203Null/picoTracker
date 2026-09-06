@@ -14,10 +14,6 @@
   let panel
   let scene
   let device
-  let unlockDialog
-  let unlockButton
-  let audioRestoreTarget = null
-  let audioPromptRevision = 0
   let actionMask = 0
   let actionGeneration = 0
   let lastAction = -1
@@ -81,54 +77,9 @@
   async function unlockAudio() {
     try { await runtime.audio?.unlockAudio?.() } catch {}
   }
-  function restoreAudioPromptFocus(target) {
-    if (target && target !== document.body && target.isConnected
-      && !target.matches?.(':disabled') && !target.closest?.('[inert],[hidden]')) {
-      target.focus?.({ preventScroll: true })
-      if (document.activeElement === target) return
-    }
-    focusCanvas()
-  }
-  async function synchronizeAudioPrompt(blocked, target, button) {
-    const revision = ++audioPromptRevision
-    if (blocked && target) {
-      if (!target.open) {
-        audioRestoreTarget = document.activeElement
-        target.showModal()
-      }
-      await tick()
-      if (revision === audioPromptRevision && audioBlocked && unlockDialog === target && target.open) {
-        button?.focus({ preventScroll: true })
-      }
-      return
-    }
-    if (blocked) return
-    const restoreTarget = audioRestoreTarget
-    audioRestoreTarget = null
-    if (target?.open) target.close()
-    if (!restoreTarget) return
-    await tick()
-    if (revision === audioPromptRevision && !audioBlocked) restoreAudioPromptFocus(restoreTarget)
-  }
-  function trapAudioPromptFocus(event) {
-    if (event.key !== 'Tab') return
-    event.preventDefault()
-    unlockButton?.focus({ preventScroll: true })
-  }
-  // Chromium can move focus to the document when a modal backdrop is clicked.
-  function containAudioPromptFocus(event) {
-    if (unlockDialog?.contains(event.relatedTarget)) return
-    queueMicrotask(() => {
-      if (!audioBlocked || !unlockDialog?.open
-        || unlockDialog.contains(document.activeElement)) return
-      unlockButton?.focus({ preventScroll: true })
-    })
-  }
-
   function isTrackerActive(event) {
     if (!active) return false
     if (runtime.state !== 'ready') return false
-    if (audioBlocked) return false
     if (!panel || panel.getClientRects().length === 0) return false
     // DevicePanel remains mounted behind compact modal navigation. `inert`
     // prevents focus and pointer input, but our window-level keyboard mapping
@@ -233,9 +184,8 @@
     : showVirtualControls
   $: refreshFitLayout(scene, shouldShowControls)
   $: deviceScale = scaleFor(displayScale, compact, fitScale)
-  $: if (runtime.state !== 'ready' || audioBlocked) { input.releaseAll(); actionMask = 0; actionGeneration = 0; lastAction = -1 }
-  $: if (active && runtime.state === 'ready' && !audioBlocked) wakeControllerInput()
-  $: synchronizeAudioPrompt(audioBlocked, unlockDialog, unlockButton)
+  $: if (runtime.state !== 'ready') { input.releaseAll(); actionMask = 0; actionGeneration = 0; lastAction = -1 }
+  $: if (active && runtime.state === 'ready') wakeControllerInput()
   $: resetModeScroll(compact, scene)
   $: if (nativeHostActive && runtime.battery) applyNativeBattery()
 
@@ -277,11 +227,6 @@
     }
   })
   onDestroy(() => {
-    audioPromptRevision += 1
-    const restoreTarget = audioRestoreTarget
-    audioRestoreTarget = null
-    if (unlockDialog?.open) unlockDialog.close()
-    if (restoreTarget) queueMicrotask(() => restoreAudioPromptFocus(restoreTarget))
     detachInput()
     input.releaseAll()
   })
@@ -292,7 +237,7 @@
   onfocusout={(event) => { if (!panel?.contains(event.relatedTarget)) input.releaseAll() }}>
   <h1 class="sr-only">NullPerator Player</h1>
   <div class="device-scene" bind:this={scene}>
-    <div class="operator-device" class:controls-hidden={!shouldShowControls && !nativeHostActive} bind:this={device} inert={audioBlocked} data-display-scale={displayScale} style={`--device-scale:${deviceScale}`}>
+    <div class="operator-device" class:controls-hidden={!shouldShowControls && !nativeHostActive} bind:this={device} data-display-scale={displayScale} style={`--device-scale:${deviceScale}`}>
       <div class="operator-screen-housing">
         <div class="screen-bezel">
           <canvas id="canvas" aria-hidden="true" tabindex="-1"></canvas>
@@ -307,14 +252,12 @@
         <VirtualControls {input} {heldActions} disabled={runtime.state !== 'ready'} compact={nativeHostActive ? false : compact} {nativeHostActive} />
       {/if}
     </div>
-    {#if !nativeHostActive}<dialog bind:this={unlockDialog} class="audio-gate audio-unlock" aria-labelledby="audio-unlock-title"
-      oncancel={(event) => event.preventDefault()} onkeydown={trapAudioPromptFocus}
-      onfocusout={containAudioPromptFocus}>
-      <p class="eyebrow">Audio</p>
-      <h2 id="audio-unlock-title">Enable sound</h2>
-      <p>Your browser needs one click before NullPerator can play audio.</p>
-      <button bind:this={unlockButton} type="button" onclick={unlockAudio}>Enable sound</button>
-    </dialog>{/if}
+    {#if audioBlocked}
+      <div class="audio-hint" role="status">
+        <span>Press a key or tap a control to enable sound.</span>
+        <button type="button" onclick={unlockAudio}>Enable sound</button>
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -338,14 +281,9 @@
   canvas[data-tracker-display]:focus-visible { box-shadow:0 0 0 1px var(--accent); }
   #canvas { display:none; }
   .screen-glass { position:absolute; inset:11px; pointer-events:none; }
-  .audio-gate { position:fixed; inset:0; box-sizing:border-box; width:min(300px,calc(100% - 32px)); height:max-content; max-height:calc(100dvh - 32px); margin:auto; overflow:auto; }
-  .audio-gate::backdrop { background:rgba(8,9,12,.72); }
-  .audio-unlock { padding:16px; border:1px solid var(--border-strong); border-radius:var(--radius-overlay); color:var(--text); background:var(--panel); box-shadow:0 18px 48px rgba(0,0,0,.45); }
-  .audio-unlock .eyebrow { margin:0 0 5px; color:var(--accent); font:600 9px/1 var(--mono); letter-spacing:.14em; text-transform:uppercase; }
-  .audio-unlock h2 { margin:0; font-size:15px; }
-  .audio-unlock p:not(.eyebrow) { margin:7px 0 13px; color:var(--muted); font-size:11px; line-height:1.45; }
-  .audio-unlock button { width:100%; min-height:44px; padding:0 12px; border:1px solid var(--accent-border); border-radius:var(--radius-control); color:var(--text-accent); background:var(--accent-fill); font-weight:700; cursor:pointer; }
-  .audio-unlock button:hover { border-color:rgba(76,201,240,.72); background:rgba(76,201,240,.18); }
+  .audio-hint { position:absolute; bottom:8px; left:8px; right:8px; display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:6px 12px; color:var(--muted); font-size:11px; }
+  .audio-hint button { padding:6px 10px; border:1px solid var(--accent-border); border-radius:var(--radius-control); color:var(--text-accent); background:var(--panel); cursor:pointer; }
+
   @media(max-height:760px){ .device-scene{align-items:flex-start} }
   @media(max-width:720px){ .device-scene{padding:12px}.device-input-host:not(.compact) .operator-device{zoom:.86!important} }
   @media(max-width:360px){
