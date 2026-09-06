@@ -321,9 +321,9 @@ TEST_CASE("UI2 grid cell cut is independent of modifier press order") {
 TEST_CASE("UI2 bare Enter resolves once on release after its Cut window") {
   CheckPlainEnterReleaseGate(Ui2SongController(1, 2, 3));
   CheckPlainEnterReleaseGate(Ui2ChainController(2, 1, 3, 0));
-  CheckPlainEnterReleaseGate(Ui2PhraseController(2, 1, 3, 2));
+  CheckPlainEnterReleaseGate(Ui2PhraseController(2, 1, 3, 3));
   CheckPlainEnterReleaseGate(
-      Ui2TableController(Ui2TrackerPage::PhraseTable, 2, 1, 3, 0));
+      Ui2TableController(Ui2TrackerPage::PhraseTable, 2, 1, 3, 1));
 
   Ui2PhraseController phraseNote(2, 1, 3, 0);
   CHECK(phraseNote.Handle(TrackerAction::Enter, false).Empty());
@@ -352,7 +352,7 @@ TEST_CASE("UI2 Enter direction resolves once and repeats only adjustment") {
   CheckDeferredEnterDirectionLifecycle(Ui2SongController(1, 2, 3));
   CheckDeferredEnterDirectionLifecycle(Ui2ChainController(2, 1, 3, 0));
   CheckDeferredEnterDirectionLifecycle(
-      Ui2TableController(Ui2TrackerPage::PhraseTable, 2, 1, 3, 0));
+      Ui2TableController(Ui2TrackerPage::PhraseTable, 2, 1, 3, 1));
 
   Ui2SongController live(1, 2, 3, true);
   CHECK(live.Handle(TrackerAction::Enter, true).Empty());
@@ -1027,4 +1027,27 @@ TEST_CASE("UI2 grid controllers own fixed-capacity trivial state") {
   CHECK(sizeof(Ui2ChainController) <= 16U);
   CHECK(sizeof(Ui2PhraseController) <= 16U);
   CHECK(sizeof(Ui2TableController) <= 16U);
+}
+
+TEST_CASE("FX selector preserves the command on open and release") {
+  const auto check = [](auto controller) {
+    CHECK_FALSE(controller.FxSelectorActive());
+    CHECK(controller.Handle(TrackerAction::Enter, true).Empty());
+    CHECK(controller.FxSelectorActive());
+    CHECK(controller.Handle(TrackerAction::Enter, false).Empty());
+    CHECK_FALSE(controller.FxSelectorActive());
+    controller.Handle(TrackerAction::Enter, true);
+    const auto move = controller.Handle(TrackerAction::Down, true);
+    REQUIRE(move.count == 1U);
+    CHECK(move[0].type == Ui2TrackerCommandType::AdjustCell);
+    CHECK(controller.FxSelectorActive());
+    controller.Handle(TrackerAction::Down, false);
+    const auto release = controller.Handle(TrackerAction::Enter, false);
+    REQUIRE(release.count == 1U);
+    CHECK(release[0].type == Ui2TrackerCommandType::CommitValueEdits);
+    CHECK_FALSE(controller.FxSelectorActive());
+  };
+  check(Ui2PhraseController(2, 1, 3, 2));
+  check(Ui2TableController(Ui2TrackerPage::PhraseTable, 2, 1, 3, 0));
+  check(Ui2TableController(Ui2TrackerPage::InstrumentTable, 2, 1, 3, 4));
 }

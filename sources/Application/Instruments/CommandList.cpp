@@ -135,3 +135,18 @@ FourCC CommandList::GetPrevAlpha(FourCC current) {
   }
   return current;
 };
+
+FourCC CommandList::MoveGrid(FourCC current, int dx, int dy, bool table) {
+  constexpr int count = sizeof(_all) / sizeof(_all[0]);
+  int index = 0;
+  for (int i = 0; i < count; ++i) if (_all[i] == current) index = i;
+  int col = index % 5 + dx, row = index / 5 + dy;
+  if (col < 0 || col >= 5 || row < 0 || row >= (count + 4) / 5) return current;
+  int next = row * 5 + col;
+  if (next >= count) return current;
+  if (table && _all[next] == FourCC::InstrumentCommandTable) {
+    next += dy != 0 ? dy * 5 : dx;
+    if (next < 0 || next >= count || (dy == 0 && next / 5 != row)) return current;
+  }
+  return _all[next];
+}

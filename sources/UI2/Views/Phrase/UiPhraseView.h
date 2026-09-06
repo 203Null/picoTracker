@@ -47,6 +47,7 @@ struct UiPhraseViewData {
   bool cursorInkVisible = true;
   bool topMetaInkVisible = true;
   bool bottomTrackInkVisible = true;
+  bool fxSelector = false;
   bool enterDigitFocus = false;
   bool numberFocus = false;
   bool adjustmentFocus = false;

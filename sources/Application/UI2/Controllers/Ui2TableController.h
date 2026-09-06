@@ -47,6 +47,12 @@ public:
     return !selection_.active && input_.Held(TrackerAction::Option);
   }
   [[nodiscard]] constexpr bool TrackFocus() const { return NumberFocus(); }
+  [[nodiscard]] constexpr bool FxSelectorActive() const {
+    return (grid_.Column() % 2U == 0U) && !selection_.active && !NumberFocus() &&
+           input_.Held(TrackerAction::Enter) && !input_.Held(TrackerAction::Shift) &&
+           !input_.Held(TrackerAction::Option);
+  }
+
   [[nodiscard]] constexpr bool EnterDigitFocus() const {
     return !NumberFocus() && !selection_.active && IsParameterColumn() &&
            input_.Held(TrackerAction::Enter);
@@ -76,7 +82,7 @@ public:
           output.Push(Command(Ui2TrackerCommandType::CommitValueEdits));
           valueEditDirty_ = false;
           deferredEnter_.Cancel();
-        } else if (deferredEnter_.Take()) {
+        } else if (deferredEnter_.Take() && IsParameterColumn()) {
           output.Push(Command(Ui2TrackerCommandType::PasteLast));
         }
       }
@@ -138,7 +144,7 @@ public:
 
     if (input_.Held(TrackerAction::Enter)) {
       if (direction != Ui2TrackerEditDirection::None) {
-        if (deferredEnter_.Take())
+        if (deferredEnter_.Take() && IsParameterColumn())
           output.Push(Command(Ui2TrackerCommandType::PasteLast));
         HandleEnterDirection(direction, output);
       } else if (action == TrackerAction::Enter &&

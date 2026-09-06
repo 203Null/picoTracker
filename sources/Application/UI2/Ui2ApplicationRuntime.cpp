@@ -581,6 +581,7 @@ UiApplicationRuntime::ViewDataFor(const PhraseFrameState &state) {
   data.cursorInkVisible = state.cursorInkVisible;
   data.topMetaInkVisible = state.topMetaInkVisible;
   data.bottomTrackInkVisible = state.bottomTrackInkVisible;
+  data.fxSelector = state.fxSelector;
   data.enterDigitFocus = state.enterDigitFocus;
   data.numberFocus = state.numberFocus;
   data.adjustmentFocus = state.adjustmentFocus;
@@ -642,7 +643,7 @@ UiApplicationRuntime::PresentPhrase(IUiApplicationStateSource &source,
     bottomTrackTargetValid_ = false;
     const UiPhraseViewData capture = ViewDataFor(current);
     const RectI16 target = UiPhraseView::CursorTargetRect(capture);
-    if (!cursorTargetValid_) {
+    if (!cursorTargetValid_ || current.fxSelector != previous.fxSelector) {
       cursors_.Snap(UiCursorRole::Content, target, nowMs);
       cursorTarget_ = target;
       cursorTargetValid_ = true;
@@ -737,6 +738,7 @@ UiApplicationRuntime::ViewDataFor(const TableFrameState &state) {
   data.cursorInkVisible = state.cursorInkVisible;
   data.topMetaInkVisible = state.topMetaInkVisible;
   data.bottomTrackInkVisible = state.bottomTrackInkVisible;
+  data.fxSelector = state.fxSelector;
   data.enterDigitFocus = state.enterDigitFocus;
   data.numberFocus = state.numberFocus;
   data.adjustmentFocus = state.adjustmentFocus;
@@ -801,7 +803,7 @@ UiApplicationRuntime::PresentTable(IUiApplicationStateSource &source,
     bottomTrackTargetValid_ = false;
     const UiTableViewData capture = ViewDataFor(current);
     const RectI16 target = UiTableView::CursorTargetRect(capture);
-    if (!cursorTargetValid_) {
+    if (!cursorTargetValid_ || current.fxSelector != previous.fxSelector) {
       cursors_.Snap(UiCursorRole::Content, target, nowMs);
       cursorTarget_ = target;
       cursorTargetValid_ = true;

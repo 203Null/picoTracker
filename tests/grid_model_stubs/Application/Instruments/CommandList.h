@@ -5,6 +5,7 @@
 
 class CommandList {
 public:
+  static FourCC MoveGrid(FourCC current, int, int, bool) { return current; }
   static FourCC GetNext(FourCC current) { return current; }
   static FourCC GetPrev(FourCC current) { return current; }
   static FourCC GetNextAlpha(FourCC current) { return current; }

@@ -344,6 +344,7 @@ Ui2NativeApplicationStateSource::CapturePhrase(UiPhraseFrameState &state) {
   state.editDigit = controller.ParameterDigit();
   state.selectedTrack = controller.SelectedTrack();
   state.numberFocus = controller.NumberFocus();
+  state.fxSelector = controller.FxSelectorActive();
   state.enterDigitFocus = controller.EnterDigitFocus();
   state.adjustmentFocus =
       !state.numberFocus && !state.enterDigitFocus &&
@@ -425,7 +426,7 @@ Ui2NativeApplicationStateSource::CapturePhrase(UiPhraseFrameState &state) {
   } else {
     const FourCC command = controller.Column() <= 3U ? phrase.cmd1_[selected]
                                                      : phrase.cmd2_[selected];
-    if (command != FourCC::InstrumentCommandNone) {
+    if (command != FourCC::InstrumentCommandNone || state.fxSelector) {
       state.context = UiPhraseContext::Fx;
       CaptureHelp(command, state.contextLead, state.contextTail,
                   state.contextDescription);
@@ -446,6 +447,7 @@ Ui2NativeApplicationStateSource::CaptureTable(UiTableFrameState &state) {
   state.editDigit = controller.ParameterDigit();
   state.selectedTrack = controller.SelectedTrack();
   state.numberFocus = controller.NumberFocus();
+  state.fxSelector = controller.FxSelectorActive();
   state.enterDigitFocus = controller.EnterDigitFocus();
   // Table command and value cells always keep the command-specific help.
   // ENTER-held value editing is represented by the in-cell digit cursor.
@@ -509,7 +511,7 @@ Ui2NativeApplicationStateSource::CaptureTable(UiTableFrameState &state) {
   const FourCC command = group == 0U   ? table.cmd1_[controller.Row()]
                          : group == 1U ? table.cmd2_[controller.Row()]
                                        : table.cmd3_[controller.Row()];
-  if (command != FourCC::InstrumentCommandNone) {
+  if (command != FourCC::InstrumentCommandNone || state.fxSelector) {
     state.context = UiPhraseContext::Fx;
     CaptureHelp(command, state.contextLead, state.contextTail,
                 state.contextDescription);

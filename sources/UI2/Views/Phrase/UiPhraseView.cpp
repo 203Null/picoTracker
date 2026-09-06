@@ -7,6 +7,7 @@
 #include "UI2/Views/Phrase/UiPhraseView.h"
 
 #include "UI2/Render/UiFrameRenderer.h"
+#include "UI2/Views/Tracker/UiFxSelector.h"
 #include "UI2/Text/UiFont5x7.h"
 #include "UI2/Views/Tracker/UiTrackerGridMetrics.h"
 
@@ -96,6 +97,7 @@ RectI16 UiPhraseView::CursorTargetRect(const UiPhraseViewData &data) {
   if (data.editRow >= 16U || data.editColumn >= kColumnX.size())
     return {};
   const std::string_view value = data.rows[data.editRow][data.editColumn];
+  if (data.fxSelector) return FxSelectorCursorRect(value);
   if (data.enterDigitFocus && IsParameterColumn(data.editColumn) &&
       !value.empty()) {
     const std::uint8_t digit = std::min<std::uint8_t>(
@@ -150,7 +152,8 @@ RectI16 UiPhraseView::PlaybackTickRect(std::uint8_t row) {
 
 bool UiPhraseView::RequiresFullInvalidation(const UiPhraseViewData &previous,
                                             const UiPhraseViewData &current) {
-  return previous.rowOffset != current.rowOffset ||
+  return previous.fxSelector || current.fxSelector ||
+         previous.rowOffset != current.rowOffset ||
          previous.numberFocus != current.numberFocus;
 }
 
@@ -159,6 +162,13 @@ void UiPhraseView::RenderDelta(const UiPhraseViewData &previous,
                                const UiFrameScene &currentScene,
                                UiIndexedSurface &surface,
                                const UiPalette &palette) {
+  if (previous.fxSelector && current.fxSelector &&
+      previous.rows[previous.editRow][previous.editColumn] ==
+          current.rows[current.editRow][current.editColumn] &&
+      previous.power == current.power && previous.elapsed == current.elapsed &&
+      previous.cursorVisualRect == current.cursorVisualRect &&
+      previous.cursorInkVisible == current.cursorInkVisible)
+    return;
   if (RequiresFullInvalidation(previous, current)) {
     UiFrameRenderer::RenderStatic(currentScene, surface, palette);
     return;
@@ -258,6 +268,10 @@ void UiPhraseView::RenderDelta(const UiPhraseViewData &previous,
 
 UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
                                   UiFrameScene &scene) {
+  if (data.fxSelector)
+    return BuildFxSelector(data.rows[data.editRow][data.editColumn], false,
+                           data.cursorBottom, data.power, data.elapsed, scene,
+                           data.cursorVisualRect, data.cursorVisualOverride, data.cursorInkVisible);
   scene.Clear();
   scene.topHeight = 34;
   scene.bottomTop = 208;

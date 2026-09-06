@@ -56,30 +56,11 @@ std::int16_t DirectionDelta(Ui2TrackerEditDirection direction,
 
 FourCC AdjustCommand(FourCC current, Ui2TrackerEditDirection direction,
                      bool table) {
-  FourCC result = current;
-  switch (direction) {
-  case Ui2TrackerEditDirection::Left:
-    result = CommandList::GetPrev(current);
-    break;
-  case Ui2TrackerEditDirection::Right:
-    result = CommandList::GetNext(current);
-    break;
-  case Ui2TrackerEditDirection::Down:
-    result = CommandList::GetPrevAlpha(current);
-    break;
-  case Ui2TrackerEditDirection::Up:
-    result = CommandList::GetNextAlpha(current);
-    break;
-  case Ui2TrackerEditDirection::None:
-    break;
-  }
-  if (table && result == FourCC::InstrumentCommandTable) {
-    result = direction == Ui2TrackerEditDirection::Left ||
-                     direction == Ui2TrackerEditDirection::Down
-                 ? CommandList::GetPrev(result)
-                 : CommandList::GetNext(result);
-  }
-  return result;
+  const int dx = direction == Ui2TrackerEditDirection::Left ? -1 :
+                 direction == Ui2TrackerEditDirection::Right ? 1 : 0;
+  const int dy = direction == Ui2TrackerEditDirection::Up ? -1 :
+                 direction == Ui2TrackerEditDirection::Down ? 1 : 0;
+  return CommandList::MoveGrid(current, dx, dy, table);
 }
 
 struct GridBounds {

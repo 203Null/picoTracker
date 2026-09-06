@@ -613,12 +613,13 @@ TEST_CASE("UI2 cell Cut orders preserve value round trips on every grid") {
       constexpr int base = 2 * STEPS_PER_PHRASE;
       phrase.cmd1_[base + 5] = FourCC::InstrumentCommandVolume;
       phrase.param1_[base + 5] = 0x55U;
-      ui2::Ui2PhraseController controller(2, 0, 5, 2);
+      phrase.cmd1_[base + 6] = FourCC::InstrumentCommandVolume;
+      ui2::Ui2PhraseController controller(2, 0, 5, 3);
 
       const auto batch = cut(controller, port, enterFirst);
       REQUIRE(batch.count == 1U);
       CHECK(batch[0].type == Ui2TrackerCommandType::CutCell);
-      CHECK(phrase.cmd1_[base + 5] == FourCC::InstrumentCommandNone);
+      CHECK(phrase.cmd1_[base + 5] == FourCC::InstrumentCommandVolume);
       CHECK(phrase.param1_[base + 5] == 0U);
       releaseCut(controller, port, enterFirst);
       pasteNextRow(controller, port);
@@ -637,12 +638,13 @@ TEST_CASE("UI2 cell Cut orders preserve value round trips on every grid") {
         Table &table = TableHolder::GetInstance()->GetTable(0);
         table.cmd1_[5] = FourCC::InstrumentCommandVolume;
         table.param1_[5] = 0x55U;
-        ui2::Ui2TableController controller(page, 0, 0, 5, 0);
+        table.cmd1_[6] = FourCC::InstrumentCommandVolume;
+        ui2::Ui2TableController controller(page, 0, 0, 5, 1);
 
         const auto batch = cut(controller, port, enterFirst);
         REQUIRE(batch.count == 1U);
         CHECK(batch[0].type == Ui2TrackerCommandType::CutCell);
-        CHECK(table.cmd1_[5] == FourCC::InstrumentCommandNone);
+        CHECK(table.cmd1_[5] == FourCC::InstrumentCommandVolume);
         CHECK(table.param1_[5] == 0U);
         releaseCut(controller, port, enterFirst);
         pasteNextRow(controller, port);

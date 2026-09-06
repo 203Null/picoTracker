@@ -5154,3 +5154,61 @@ TEST_CASE("UI2 Dialog idle frame stays clean") {
   ui2::UiDialogView::RenderDelta(dialog, dialog, scene, surface, palette);
   CHECK_FALSE(surface.DirtyTiles().Any());
 }
+
+TEST_CASE("FX selector replaces grid and restores it on release") {
+  ui2::UiPalette palette;
+  const auto check = [&](auto data, auto build, auto renderDelta) {
+    ui2::UiFrameScene scene;
+    auto previous = data;
+    data.fxSelector = true;
+    data.editRow = 0;
+    data.editColumn = 2;
+    data.rows[0][2] = "ARP";
+    REQUIRE(build(data, palette, scene) == ui2::UiBuildStatus::Built);
+    REQUIRE(FindTextCommand(scene.top.Stream(), "FX SELECT") != nullptr);
+    REQUIRE(FindTextCommand(scene.content.Stream(), "VOL") != nullptr);
+    CHECK(FindTextCommand(scene.content.Stream(), "ARP")->color ==
+          static_cast<ui2::PaletteIndex>(ui2::UiColorToken::TextHighlighted));
+    ui2::UiSurfaceStorage storage;
+    ui2::UiIndexedSurface surface(storage);
+    renderDelta(previous, data, scene, surface, palette);
+    previous = data;
+    data.fxSelector = false;
+    REQUIRE(build(data, palette, scene) == ui2::UiBuildStatus::Built);
+    renderDelta(previous, data, scene, surface, palette);
+    ui2::UiSurfaceStorage expectedStorage;
+    ui2::UiIndexedSurface expected(expectedStorage);
+    ui2::UiFrameRenderer::RenderStatic(scene, expected, palette);
+    CHECK(std::equal(surface.Pixels().begin(), surface.Pixels().end(), expected.Pixels().begin()));
+    CHECK(FindTextCommand(scene.top.Stream(), "FX SELECT") == nullptr);
+  };
+  check(ui2::UiPhraseViewData{}, ui2::UiPhraseView::Build, ui2::UiPhraseView::RenderDelta);
+  check(ui2::UiTableViewData{}, ui2::UiTableView::Build, ui2::UiTableView::RenderDelta);
+}
+
+TEST_CASE("FX selector centers its cursor and renders animation frames") {
+  ui2::UiPhraseViewData data{};
+  data.fxSelector = true;
+  data.editColumn = 2;
+  data.rows[0][2] = "ARP";
+  ui2::UiPalette palette;
+  ui2::UiFrameScene scene;
+  REQUIRE(ui2::UiPhraseView::Build(data, palette, scene) == ui2::UiBuildStatus::Built);
+  const auto *text = FindTextCommand(scene.content.Stream(), "ARP");
+  REQUIRE(text != nullptr);
+  const auto target = ui2::UiPhraseView::CursorTargetRect(data);
+  CHECK(target.x * 2 + target.width == text->bounds.x * 2 + text->bounds.width);
+  CHECK(target.y * 2 + target.height == text->bounds.y * 2 + text->bounds.height);
+  const auto previous = data;
+  data.cursorVisualOverride = true;
+  data.cursorVisualRect = {30, 51, 41, 19};
+  data.cursorInkVisible = false;
+  REQUIRE(ui2::UiPhraseView::Build(data, palette, scene) == ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.content.Stream(), "ARP")->color ==
+        static_cast<ui2::PaletteIndex>(ui2::UiColorToken::TextNormal));
+  ui2::UiSurfaceStorage storage, expectedStorage;
+  ui2::UiIndexedSurface surface(storage), expected(expectedStorage);
+  ui2::UiPhraseView::RenderDelta(previous, data, scene, surface, palette);
+  ui2::UiFrameRenderer::RenderStatic(scene, expected, palette);
+  CHECK(std::equal(surface.Pixels().begin(), surface.Pixels().end(), expected.Pixels().begin()));
+}

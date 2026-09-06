@@ -48,6 +48,12 @@ public:
     return !selection_.active && input_.Held(TrackerAction::Option);
   }
   [[nodiscard]] constexpr bool TrackFocus() const { return NumberFocus(); }
+  [[nodiscard]] constexpr bool FxSelectorActive() const {
+    return (grid_.Column() == 2U || grid_.Column() == 4U) && !selection_.active && !NumberFocus() &&
+           input_.Held(TrackerAction::Enter) && !input_.Held(TrackerAction::Shift) &&
+           !input_.Held(TrackerAction::Option);
+  }
+
   [[nodiscard]] constexpr bool EnterDigitFocus() const {
     return !NumberFocus() && !selection_.active && IsParameterColumn() &&
            input_.Held(TrackerAction::Enter);
@@ -77,7 +83,7 @@ public:
           output.Push(Command(Ui2TrackerCommandType::CommitValueEdits));
           valueEditDirty_ = false;
           deferredEnter_.Cancel();
-        } else if (deferredEnter_.Take()) {
+        } else if (deferredEnter_.Take() && !(grid_.Column() == 2U || grid_.Column() == 4U)) {
           HandlePrimaryEdit(output);
         }
         if (auditionActive_) {
@@ -152,7 +158,7 @@ public:
     if (input_.Held(TrackerAction::Enter)) {
       if (direction != Ui2TrackerEditDirection::None) {
         const bool resolvePrimary = deferredEnter_.Take();
-        if (resolvePrimary)
+        if (resolvePrimary && !(grid_.Column() == 2U || grid_.Column() == 4U))
           HandlePrimaryEdit(output);
         newEntryPending_ = false;
         HandleEnterDirection(direction, auditionActive_, output);
