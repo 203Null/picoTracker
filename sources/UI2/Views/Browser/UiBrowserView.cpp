@@ -131,7 +131,7 @@ UiBuildStatus UiBrowserView::Build(const UiBrowserViewData &data, UiPalette &,
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
   const UiTopBarModel top{
       .title = data.title, .meta = data.meta, .power = data.power,
-      .metaUserData = true};
+      .metaUserData = true, .backNavigation = true};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;

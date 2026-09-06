@@ -183,6 +183,15 @@ UiBuildStatus UiChromeRenderer::BuildTop(const UiTopBarModel &model,
     builder.Text(model.elapsed, elapsedX, 14, UiColorToken::TextNormal);
   } else if (IsSavingPowerState(model.power)) {
     DrawSaving(model, builder);
+  } else if (model.power == UiPowerState::Navigation && model.backNavigation) {
+    builder.Selection({188, 10, 41, 14});
+    constexpr std::array<std::int16_t, 7> widths{1, 2, 3, 4, 3, 2, 1};
+    for (std::int16_t row = 0; row < 7; ++row) {
+      builder.Fill({static_cast<std::int16_t>(197 - widths[row]),
+                    static_cast<std::int16_t>(13 + row), widths[row], 1},
+                   UiColorToken::TextHighlighted);
+    }
+    builder.Text("BACK", 201, 13, UiColorToken::TextHighlighted);
   } else if (model.power == UiPowerState::Navigation) {
     const UiNavMapModel map =
         model.navMapOverride ? model.navMap : NavigationMap(model.navTarget);

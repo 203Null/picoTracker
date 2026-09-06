@@ -2357,6 +2357,30 @@ TEST_CASE("UI2 battery sampling is bounded to 1 Hz and refreshes after play") {
   CHECK(gate.ShouldSample(false, 500U));
 }
 
+TEST_CASE("UI2 submenu back hint appears only while navigating") {
+  ui2::UiPalette palette;
+  const auto check = [&](auto data, auto build) {
+    ui2::UiFrameScene scene;
+    data.power = ui2::UiPowerState::Navigation;
+    REQUIRE(build(data, palette, scene) == ui2::UiBuildStatus::Built);
+    const auto *back = FindTextCommand(scene.top.Stream(), "BACK");
+    REQUIRE(back != nullptr);
+    CHECK(back->bounds.x == 201);
+    CHECK(back->bounds.y == 13);
+    CHECK(back->color == static_cast<ui2::PaletteIndex>(ui2::UiColorToken::TextHighlighted));
+    for (const auto power : {ui2::UiPowerState::BatteryHigh,
+                            ui2::UiPowerState::Playing,
+                            ui2::UiPowerState::Saving}) {
+      data.power = power;
+      REQUIRE(build(data, palette, scene) == ui2::UiBuildStatus::Built);
+      CHECK(FindTextCommand(scene.top.Stream(), "BACK") == nullptr);
+    }
+  };
+  check(ui2::UiFontViewData{}, ui2::UiFontView::Build);
+  check(ui2::UiThemeViewData{}, ui2::UiThemeView::Build);
+  check(ui2::test::ApprovedBrowserFixture("projects"), ui2::UiBrowserView::Build);
+}
+
 TEST_CASE("UI2 battery percentage keeps a fixed gap before the icon") {
   for (const auto value : {0U, 9U, 99U, 100U}) {
     ui2::UiBarScene scene;

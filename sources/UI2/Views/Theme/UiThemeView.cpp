@@ -90,7 +90,8 @@ UiBuildStatus UiThemeView::Build(const UiThemeViewData &data, UiPalette &,
                                                 kContentBottom);
   scene.topBackground = UiColorToken::SurfaceTopBar;
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
-  const UiTopBarModel top{.title = "THEME", .power = data.power};
+  const UiTopBarModel top{.title = "THEME", .power = data.power,
+                          .backNavigation = true};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;

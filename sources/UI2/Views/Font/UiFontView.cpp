@@ -88,7 +88,8 @@ UiBuildStatus UiFontView::Build(const UiFontViewData &data, UiPalette &,
   scene.bottomVisible = true;
   scene.topBackground = UiColorToken::SurfaceTopBar;
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
-  const UiTopBarModel top{.title = "FONT", .power = data.power};
+  const UiTopBarModel top{.title = "FONT", .power = data.power,
+                          .backNavigation = true};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;
