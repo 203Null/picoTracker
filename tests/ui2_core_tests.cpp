@@ -322,12 +322,8 @@ TEST_CASE("UI2 note presentation matches the complete tracker byte domain") {
     } else {
       const char *pitch = noteNames[value % 12U];
       const int octave = static_cast<int>(value / 12U);
-      if (pitch[1] == ' ')
-        std::snprintf(expected.data(), expected.size(), "%c%d", pitch[0],
-                      octave);
-      else
-        std::snprintf(expected.data(), expected.size(), "%c%c%d", pitch[0],
-                      pitch[1], octave);
+      std::snprintf(expected.data(), expected.size(), "%c%c%d", pitch[0],
+                    pitch[1], octave);
     }
 
     std::array<char, 5> actual{};
@@ -405,14 +401,14 @@ TEST_CASE("UI2 Song Live transport fallback rejects ghost notes") {
   ui2::CopyUiText(notes[6], "A4");
 
   ui2::CaptureUiLiveTransportFallback(&player, true, true, transport, notes);
-  CHECK(std::string_view(notes[0].data()) == "C4");
+  CHECK(std::string_view(notes[0].data()) == "C 4");
   CHECK(std::string_view(notes[1].data()) == "C#4");
   CHECK(std::string_view(notes[2].data()) == "--"); // inactive channel
   CHECK(std::string_view(notes[3].data()) == "--"); // no chain
   CHECK(std::string_view(notes[4].data()) == "--"); // no valid note
   CHECK(std::string_view(notes[5].data()) == "--"); // muted channel
   CHECK(std::string_view(notes[6].data()) == "A4"); // mixer data wins
-  CHECK(std::string_view(notes[7].data()) == "G4");
+  CHECK(std::string_view(notes[7].data()) == "G 4");
 }
 
 TEST_CASE("UI2 transport notes remain blank outside playing Song Live") {

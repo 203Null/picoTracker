@@ -37,7 +37,7 @@ inline void FormatUiNote(std::uint8_t value, std::array<char, 5> &text) {
   const char *pitch = noteNames[value % 12U];
   std::size_t cursor = 0U;
   text[cursor++] = pitch[0];
-  if (pitch[1] != ' ') text[cursor++] = pitch[1];
+  text[cursor++] = pitch[1];
   const int octave = static_cast<int>(value / 12U);
   text[cursor] = static_cast<char>('0' + octave);
 }

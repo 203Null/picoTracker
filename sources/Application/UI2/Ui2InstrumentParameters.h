@@ -635,7 +635,7 @@ inline void Ui2FormatInstrumentParameter(
     if (current < 0)
       detail::CopyText(destination, capacity, "--");
     else
-      std::snprintf(destination, capacity, "%s%d", names[current % 12],
+      std::snprintf(destination, capacity, "%-2s%d", names[current % 12],
                     current / 12);
     break;
   }
