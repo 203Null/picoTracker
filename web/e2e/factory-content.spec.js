@@ -212,7 +212,7 @@ test('PicoTracker 2.0 bt9 MIDI project loads from another project without a samp
   })
 
   await page.getByRole('button', { name: 'Tracker', exact: true }).click()
-  await chord(page, 'x', 'w')
+  await chord(page, 'c', 'w')
   await tap(page, 'd')
   await tap(page, 'k')
   await tap(page, 'k')
@@ -224,7 +224,7 @@ test('PicoTracker 2.0 bt9 MIDI project loads from another project without a samp
 
   // Switching again is a separate transaction path from restoring oneCycAc
   // as the startup project. Exercise that exact browser workflow too.
-  await chord(page, 'x', 'w')
+  await chord(page, 'c', 'w')
   await tap(page, 'd')
   await tap(page, 'k')
   await tap(page, 's')
@@ -240,7 +240,7 @@ test('PicoTracker 2.0 bt9 MIDI project loads from another project without a samp
   // immediately. The sequencer must still run with browser audio disabled so
   // the device UI can show playback cursors and the bottom-bar played note.
   await chord(page, 'j', 'd')
-  await chord(page, 'k', 'c')
+  await chord(page, 'k', 'x')
   await expectModel(page, { playerRunning: true })
 })
 
@@ -297,7 +297,7 @@ test('real oneCycAc project imports, trims, plays, and survives reload plus runt
     await expect(audioDiagnostics).toHaveAttribute('data-audio-capability-reason', /Audio disabled/)
   }
 
-  await tap(page, 'c')
+  await tap(page, 'x')
   await expectModel(page, { playerRunning: true })
   if (workletMode) {
     await expect.poll(async () => (await modelSnapshot(page)).masterLevel, { timeout: 10_000 }).not.toBe(0)
@@ -305,13 +305,13 @@ test('real oneCycAc project imports, trims, plays, and survives reload plus runt
     const beforeCallbacks = Number(await callbacks.getAttribute('data-audio-worklet-callbacks'))
     await expect.poll(() => callbacks.getAttribute('data-audio-worklet-callbacks')).not.toBe(String(beforeCallbacks))
   }
-  await tap(page, 'c')
+  await tap(page, 'x')
   await expectModel(page, { playerRunning: false })
 
   // Exercise the real fixed Node controls instead of a diagnostic view jump:
   // SHIFT+UP opens Project, then ENTER+RIGHT changes tempo. Project's name
   // actions are NEW, LOAD, SAVE, RENAME, so two RIGHT presses select SAVE.
-  await chord(page, 'x', 'w')
+  await chord(page, 'c', 'w')
   await tap(page, 's')
   await chord(page, 'k', 'd')
   await expectModel(page, { tempo: 164 })
@@ -351,9 +351,9 @@ test('real oneCycAc project imports, trims, plays, and survives reload plus runt
   // AudioWorklet gate is enabled; the default gate declares audio unavailable.
   for (let index = 0; index < 5; index += 1) await tap(page, 's')
   await tap(page, 'k')
-  await chord(page, 'x', 'j')
+  await chord(page, 'c', 'j')
   await tap(page, 's') // skip /data/samples' parent-directory entry
-  if (workletMode) await tap(page, 'c')
+  if (workletMode) await tap(page, 'x')
   await tap(page, 'k')
   await expectModel(page, { sampleCount: 2 })
   await expect.poll(
@@ -372,7 +372,7 @@ test('real oneCycAc project imports, trims, plays, and survives reload plus runt
 
   // Return to the project pool, choose the newly imported (sorted-last) WAV,
   // and enter SampleEditor through its real Edit action.
-  await chord(page, 'x', 'j')
+  await chord(page, 'c', 'j')
   await tap(page, 's')
   await tap(page, 'k')
 
@@ -429,7 +429,7 @@ test('real oneCycAc project imports, trims, plays, and survives reload plus runt
 
   // Leave Import with SHIFT+LEFT, return from Sample Pool to Project/Save, and
   // persist the model after assigning the new sample to the current instrument.
-  await chord(page, 'x', 'a')
+  await chord(page, 'c', 'a')
   for (let index = 0; index < 5; index += 1) await tap(page, 'w')
   const beforeImportedProjectSave = await storageSnapshot(page)
   await tap(page, 'k')
@@ -450,21 +450,21 @@ test('real oneCycAc project imports, trims, plays, and survives reload plus runt
   await expectPersistedFactoryState(page, editedHash)
 
   // Playback remains operational after both persistence boundaries.
-  await tap(page, 'c')
+  await tap(page, 'x')
   await expectModel(page, { playerRunning: true })
   if (workletMode) {
     await expect.poll(async () => (await modelSnapshot(page)).masterLevel, { timeout: 10_000 }).not.toBe(0)
   }
-  await tap(page, 'c')
+  await tap(page, 'x')
   await expectModel(page, { playerRunning: false })
 
   // Re-open the persisted project pool with Node controls. In AudioWorklet
   // mode, preview the edited WAV once more; a bad header would open a modal.
-  await chord(page, 'x', 'w')
+  await chord(page, 'c', 'w')
   for (let index = 0; index < 6; index += 1) await tap(page, 's')
   await tap(page, 'k')
   await tap(page, 's')
-  if (workletMode) await tap(page, 'c')
+  if (workletMode) await tap(page, 'x')
 
   await stopWorkbench(page)
   await expect(page.locator('[data-runtime-state="idle"]')).toBeVisible({ timeout: 10_000 })
