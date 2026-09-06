@@ -226,7 +226,11 @@ UiBuildStatus UiChromeRenderer::BuildTop(const UiTopBarModel &model,
     if (model.showBatteryPercent) {
       std::array<char, 5> percent{};
       FormatUiPercent100(model.batteryPercent, percent);
-      builder.Text(percent.data(), 184, 14, UiColorToken::TextNormal);
+      // Keep a four-pixel gap before the battery at x=207 for every digit count.
+      const std::string_view percentText{percent.data()};
+      const auto percentX = static_cast<std::int16_t>(
+          203 - UiFont5x7::TextWidth(percentText.size()));
+      builder.Text(percentText, percentX, 14, UiColorToken::TextNormal);
     }
     DrawPower(model, builder);
   }

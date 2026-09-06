@@ -2357,6 +2357,22 @@ TEST_CASE("UI2 battery sampling is bounded to 1 Hz and refreshes after play") {
   CHECK(gate.ShouldSample(false, 500U));
 }
 
+TEST_CASE("UI2 battery percentage keeps a fixed gap before the icon") {
+  for (const auto value : {0U, 9U, 99U, 100U}) {
+    ui2::UiBarScene scene;
+    REQUIRE(ui2::UiChromeRenderer::BuildTop(
+                {.title = "DEVICE",
+                 .showBatteryPercent = true,
+                 .batteryPercent = static_cast<std::uint8_t>(value)},
+                scene) == ui2::UiBuildStatus::Built);
+    const auto text = std::to_string(value) + "%";
+    const auto *command = FindTextCommand(scene.Stream(), text);
+    REQUIRE(command != nullptr);
+    CAPTURE(value);
+    CHECK(command->bounds.Right() == 203);
+  }
+}
+
 TEST_CASE("UI2 charging changes battery color without changing fullness") {
   ui2::UiTopBarModel model{};
   model.showBatteryPercent = true;
