@@ -99,7 +99,8 @@ FourCC CommandList::GetNextAlpha(FourCC current) {
       }
     };
   };
-  return current;
+  // No later group: saturate at the final command, including within V.
+  return found ? _all[sizeof(_all) / sizeof(FourCC) - 1] : current;
 };
 
 FourCC CommandList::GetPrevAlpha(FourCC current) {

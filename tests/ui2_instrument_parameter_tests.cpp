@@ -1019,10 +1019,14 @@ TEST_CASE(
                                      Ui2InstrumentValueDirection::Left) == -1);
 
   const auto adsr = Ui2InstrumentOperatorParameter(2U, false);
+  CHECK(Ui2AdjustInstrumentParameter(adsr, 0xFFF8,
+                                     Ui2InstrumentValueDirection::Up) == 0xFFFF);
+  CHECK(Ui2AdjustInstrumentParameter(adsr, 8,
+                                     Ui2InstrumentValueDirection::Down) == 0);
   CHECK(Ui2AdjustInstrumentParameter(adsr, 0xFFFF,
-                                     Ui2InstrumentValueDirection::Up) == 0x0F);
+                                     Ui2InstrumentValueDirection::Up) == 0xFFFF);
   CHECK(Ui2AdjustInstrumentParameter(
-            adsr, 0, Ui2InstrumentValueDirection::Down) == 0xFFF0);
+            adsr, 0, Ui2InstrumentValueDirection::Down) == 0);
 }
 
 TEST_CASE(

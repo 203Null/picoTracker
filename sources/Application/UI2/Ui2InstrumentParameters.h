@@ -530,7 +530,8 @@ Ui2ResolveSamplePositionMaximum(Ui2InstrumentParameterDescriptor descriptor,
       descriptor.format == Ui2InstrumentValueFormat::OpalAlgorithm ||
       descriptor.format == Ui2InstrumentValueFormat::OpalWave ||
       descriptor.format == Ui2InstrumentValueFormat::OpalKeyscale;
-  if (descriptor.wrap || selectorWrap) {
+  // Numeric coarse edits reach the endpoint; option selectors still cycle.
+  if ((!coarse && descriptor.wrap) || selectorWrap) {
     const std::int64_t count =
         descriptor.maximum - descriptor.minimum + std::int64_t{1};
     return count <= 0

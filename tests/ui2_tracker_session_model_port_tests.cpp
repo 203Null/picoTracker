@@ -1792,3 +1792,51 @@ TEST_CASE("UI2 Shift Play requests a selected-track stop in Live mode") {
   CHECK(player->lastRequestStop);
   CHECK_FALSE(player->lastForceImmediate);
 }
+
+TEST_CASE("UI2 grid coarse edits saturate instead of wrapping at bounds") {
+  TrackerApplicationSession session;
+  Ui2TrackerSessionModelPort port(session);
+  auto &phrase = session.ProjectModel().song_.phrase_;
+  session.EditorState().currentPhrase_ = 0;
+  session.ProjectModel().SetScale(0, 0U);
+  auto adjust = GridCommand(Ui2TrackerCommandType::AdjustCell,
+                            Ui2TrackerPage::Phrase, 0, 0);
+  phrase.note_[0] = HIGHEST_NOTE - 3;
+  adjust.direction = Ui2TrackerEditDirection::Up;
+  port.ApplyGridCommand(adjust);
+  CHECK(phrase.note_[0] == HIGHEST_NOTE);
+  port.ApplyGridCommand(adjust);
+  CHECK(phrase.note_[0] == HIGHEST_NOTE);
+  phrase.note_[0] = 3;
+  adjust.direction = Ui2TrackerEditDirection::Down;
+  port.ApplyGridCommand(adjust);
+  CHECK(phrase.note_[0] == 0);
+
+  adjust.column = 1;
+  phrase.instr_[0] = MAX_INSTRUMENT_COUNT - 4;
+  adjust.direction = Ui2TrackerEditDirection::Up;
+  port.ApplyGridCommand(adjust);
+  CHECK(phrase.instr_[0] == MAX_INSTRUMENT_COUNT - 1);
+  phrase.instr_[0] = 3;
+  adjust.direction = Ui2TrackerEditDirection::Down;
+  port.ApplyGridCommand(adjust);
+  CHECK(phrase.instr_[0] == 0);
+
+  for (const auto page : {Ui2TrackerPage::Phrase,
+                          Ui2TrackerPage::PhraseTable}) {
+    adjust.sourcePage = page;
+    adjust.column = page == Ui2TrackerPage::Phrase ? 3 : 1;
+    auto &parameter = page == Ui2TrackerPage::Phrase
+        ? phrase.param1_[0] : TableHolder::GetInstance()->GetTable(0).param1_[0];
+    parameter = 0xFFF8;
+    adjust.direction = Ui2TrackerEditDirection::Up;
+    adjust.value = 16;
+    port.ApplyGridCommand(adjust);
+    CHECK(parameter == 0xFFFF);
+    parameter = 8;
+    adjust.direction = Ui2TrackerEditDirection::Down;
+    adjust.value = -16;
+    port.ApplyGridCommand(adjust);
+    CHECK(parameter == 0);
+  }
+}

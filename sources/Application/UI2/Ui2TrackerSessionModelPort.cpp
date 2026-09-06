@@ -205,8 +205,9 @@ std::uint8_t AdjustPhraseNote(Project &project, const Phrase &phrase,
     offset += direction;
     candidate = static_cast<int>(current) + offset;
   }
+  // Octave jumps saturate; semitone edits retain their existing wrap behavior.
   return AdjustByte(current, static_cast<std::int16_t>(offset), HIGHEST_NOTE,
-                    true, false);
+                    delta >= -1 && delta <= 1, false);
 }
 
 } // namespace
@@ -549,7 +550,9 @@ void Ui2TrackerSessionModelPort::ApplyAdjustCell(
       phrase.instr_[index] =
           AdjustByte(phrase.instr_[index],
                      DirectionDelta(command.direction, 16),
-                     MAX_INSTRUMENT_COUNT - 1U, true);
+                     MAX_INSTRUMENT_COUNT - 1U,
+                     command.direction == Ui2TrackerEditDirection::Left ||
+                         command.direction == Ui2TrackerEditDirection::Right);
       lastInstrument_ = phrase.instr_[index];
       break;
     case 2:
@@ -560,7 +563,8 @@ void Ui2TrackerSessionModelPort::ApplyAdjustCell(
     case 3:
       phrase.param1_[index] = CommandList::RangeLimitCommandParam(
           phrase.cmd1_[index],
-          static_cast<std::uint16_t>(phrase.param1_[index] + command.value));
+          static_cast<std::uint16_t>(std::clamp<int>(
+              phrase.param1_[index] + command.value, 0, 0xFFFF)));
       lastParameter_ = phrase.param1_[index];
       break;
     case 4:
@@ -571,7 +575,8 @@ void Ui2TrackerSessionModelPort::ApplyAdjustCell(
     case 5:
       phrase.param2_[index] = CommandList::RangeLimitCommandParam(
           phrase.cmd2_[index],
-          static_cast<std::uint16_t>(phrase.param2_[index] + command.value));
+          static_cast<std::uint16_t>(std::clamp<int>(
+              phrase.param2_[index] + command.value, 0, 0xFFFF)));
       lastParameter_ = phrase.param2_[index];
       break;
     default:
@@ -598,8 +603,8 @@ void Ui2TrackerSessionModelPort::ApplyAdjustCell(
     } else {
       parameters[group][command.row] = CommandList::RangeLimitCommandParam(
           commands[group][command.row],
-          static_cast<std::uint16_t>(parameters[group][command.row] +
-                                     command.value));
+          static_cast<std::uint16_t>(std::clamp<int>(
+              parameters[group][command.row] + command.value, 0, 0xFFFF)));
       lastParameter_ = parameters[group][command.row];
     }
   }

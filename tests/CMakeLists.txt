@@ -15,6 +15,8 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/../sources/Externals/etl/include)
 
 add_executable(picoTracker_tests
   test_main.cpp
+  command_list_tests.cpp
+  ../sources/Application/Instruments/CommandList.cpp
   foundation_types_tests.cpp
   fourcc_persistency_tests.cpp
   groove_telemetry_tests.cpp
