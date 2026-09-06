@@ -973,7 +973,7 @@ TEST_CASE(
   const auto channel = Ui2InstrumentFieldParameter(IT_MIDI, 0U);
   CHECK(Format(channel, 0) == "01");
   CHECK(Format(channel, 15) == "16");
-  CHECK(Format(Ui2InstrumentFieldParameter(IT_SAMPLE, 4U), 60) == "C3");
+  CHECK(Format(Ui2InstrumentFieldParameter(IT_SAMPLE, 4U), 60) == "C5");
   CHECK(Format(Ui2InstrumentFieldParameter(IT_MIDI, 4U), 0) == "NO");
   CHECK(Format(Ui2InstrumentFieldParameter(IT_MIDI, 4U), 1) == "YES");
   CHECK(Format(Ui2InstrumentFieldParameter(IT_MIDI, 3U), -1) == "--");

@@ -636,7 +636,7 @@ inline void Ui2FormatInstrumentParameter(
       detail::CopyText(destination, capacity, "--");
     else
       std::snprintf(destination, capacity, "%s%d", names[current % 12],
-                    current / 12 - 2);
+                    current / 12);
     break;
   }
   case Ui2InstrumentValueFormat::Boolean:

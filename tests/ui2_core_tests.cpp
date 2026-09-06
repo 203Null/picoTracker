@@ -314,14 +314,14 @@ TEST_CASE("UI2 note presentation matches the complete tracker byte domain") {
     const auto value = static_cast<std::uint8_t>(raw);
     std::array<char, 5> expected{};
     if (value == NO_NOTE) {
-      expected = {'-', '-', '-', '-', '\0'};
+      expected = {'-', '-', '-', '\0', '\0'};
     } else if (value == NOTE_OFF) {
       expected = {'O', 'F', 'F', '\0', '\0'};
     } else if (value > HIGHEST_NOTE) {
-      expected = {'?', '?', '?', '?', '\0'};
+      expected = {'?', '?', '?', '\0', '\0'};
     } else {
       const char *pitch = noteNames[value % 12U];
-      const int octave = static_cast<int>(value / 12U) - 2;
+      const int octave = static_cast<int>(value / 12U);
       if (pitch[1] == ' ')
         std::snprintf(expected.data(), expected.size(), "%c%d", pitch[0],
                       octave);
@@ -367,7 +367,7 @@ TEST_CASE("UI2 track notes avoid the legacy shared text buffer alias") {
 
   std::array<std::array<char, 5>, 8> notes{};
   ui2::CaptureUiTrackNotes(&player, true, notes);
-  CHECK(std::string_view(notes[0].data()) == "C#4");
+  CHECK(std::string_view(notes[0].data()) == "C#6");
   CHECK(std::string_view(notes[1].data()) == "--");
   CHECK(std::string_view(notes[2].data()) == "--");
   CHECK(player.rawReads == 7U);
@@ -405,14 +405,14 @@ TEST_CASE("UI2 Song Live transport fallback rejects ghost notes") {
   ui2::CopyUiText(notes[6], "A4");
 
   ui2::CaptureUiLiveTransportFallback(&player, true, true, transport, notes);
-  CHECK(std::string_view(notes[0].data()) == "C2");
-  CHECK(std::string_view(notes[1].data()) == "C#2");
+  CHECK(std::string_view(notes[0].data()) == "C4");
+  CHECK(std::string_view(notes[1].data()) == "C#4");
   CHECK(std::string_view(notes[2].data()) == "--"); // inactive channel
   CHECK(std::string_view(notes[3].data()) == "--"); // no chain
   CHECK(std::string_view(notes[4].data()) == "--"); // no valid note
   CHECK(std::string_view(notes[5].data()) == "--"); // muted channel
   CHECK(std::string_view(notes[6].data()) == "A4"); // mixer data wins
-  CHECK(std::string_view(notes[7].data()) == "G2");
+  CHECK(std::string_view(notes[7].data()) == "G4");
 }
 
 TEST_CASE("UI2 transport notes remain blank outside playing Song Live") {
