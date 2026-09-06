@@ -8,6 +8,7 @@
 
 #include "UI2/Chrome/UiBarResolver.h"
 #include "UI2/Render/UiFrameRenderer.h"
+#include "UI2/Views/Tracker/UiTrackerGridMetrics.h"
 
 #include <algorithm>
 #include <array>
@@ -42,7 +43,9 @@ RectI16 ExpandedCursorDamage(RectI16 rect) {
 RectI16 UiGrooveView::CursorTargetRect(std::uint8_t row) {
   if (row >= 16U)
     return {};
-  return {27, static_cast<std::int16_t>(48 + row * 9), 15, 9};
+  return {UiTrackerGridMetrics::kContentStartX - 2,
+          UiTrackerGridMetrics::RowBoundsY(row),
+          UiTrackerGridMetrics::TextWidth(2) + 4, 9};
 }
 
 RectI16 UiGrooveView::SelectionTargetRect(std::int16_t top,
@@ -51,20 +54,26 @@ RectI16 UiGrooveView::SelectionTargetRect(std::int16_t top,
   bottom = std::clamp<std::int16_t>(bottom, 0, 15);
   if (top > bottom)
     std::swap(top, bottom);
-  return {27, static_cast<std::int16_t>(48 + top * 9), 15,
-          static_cast<std::int16_t>((bottom - top + 1) * 9)};
+  const auto first = CursorTargetRect(static_cast<std::uint8_t>(top));
+  const auto last = CursorTargetRect(static_cast<std::uint8_t>(bottom));
+  return {first.x, first.y, first.width,
+          static_cast<std::int16_t>(last.y + last.height - first.y)};
 }
 
 RectI16 UiGrooveView::RowDamageRect(std::uint8_t row) {
   if (row >= 16U)
     return {};
-  return {5, static_cast<std::int16_t>(47 + row * 9), 40, 11};
+  return UiTrackerGridMetrics::RowDamage(
+      row, UiTrackerGridMetrics::kContentStartX +
+               UiTrackerGridMetrics::TextWidth(2) + 3);
 }
 
 RectI16 UiGrooveView::PlaybackTickRect(std::uint8_t row) {
   if (row >= 16U)
     return {};
-  return {26, static_cast<std::int16_t>(50 + row * 9), 2, 5};
+  return {UiTrackerGridMetrics::kContentStartX - 3,
+          static_cast<std::int16_t>(UiTrackerGridMetrics::RowTextY(row) + 1),
+          2, 5};
 }
 
 void UiGrooveView::RenderDelta(const UiGrooveViewData &previous,
@@ -160,19 +169,20 @@ UiBuildStatus UiGrooveView::Build(const UiGrooveViewData &data, UiPalette &,
     return bottomStatus;
 
   UiSceneBuilder<256, 1024> builder(scene.content);
-  builder.Text("STEP", 28, 39, UiColorToken::TextColored);
+  builder.GridText("STEP", UiTrackerGridMetrics::kContentStartX,
+                   UiTrackerGridMetrics::kHeaderTextY, UiColorToken::TextColored);
   const RectI16 cursor = ResolvedCursorRect(data);
   if (!data.selectionVisualRect.Empty())
     builder.SelectionHighlight(data.selectionVisualRect);
   for (std::uint8_t row = 0; row < 16U; ++row) {
-    const std::int16_t y = static_cast<std::int16_t>(49 + row * 9);
+    const std::int16_t y = UiTrackerGridMetrics::RowTextY(row);
     const auto rowText = HexByte(row);
-    builder.Text(rowText.data(), 8, y,
+    builder.GridText(rowText.data(), UiTrackerGridMetrics::kRowLabelX, y,
                  row == data.editRow ? UiColorToken::TextColored
                                      : UiColorToken::DerivedTextFaint);
     const auto value = HexByte(data.steps[row]);
     const char *display = data.steps[row] == 0xFFU ? "--" : value.data();
-    builder.Text(display, 29, y,
+    builder.GridText(display, UiTrackerGridMetrics::kContentStartX, y,
                  data.steps[row] == 0xFFU ? UiColorToken::DerivedTextFaint
                                           : UiColorToken::TextNormal);
   }
@@ -195,7 +205,8 @@ UiBuildStatus UiGrooveView::Build(const UiGrooveViewData &data, UiPalette &,
     const auto value = HexByte(data.steps[data.editRow]);
     const char *display =
         data.steps[data.editRow] == 0xFFU ? "--" : value.data();
-    builder.Text(display, 29, static_cast<std::int16_t>(49 + data.editRow * 9),
+    builder.GridText(display, UiTrackerGridMetrics::kContentStartX,
+                     UiTrackerGridMetrics::RowTextY(data.editRow),
                  UiColorToken::TextHighlighted);
   }
   return builder.Ok() ? UiBuildStatus::Built : UiBuildStatus::CommandOverflow;

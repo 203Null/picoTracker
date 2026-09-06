@@ -76,6 +76,11 @@ public:
     Accept(commands_.PixelMask(bounds, encoded, Index(color)));
   }
 
+  void GridText(std::string_view text, std::int16_t x, std::int16_t y,
+                UiColorToken color) {
+    Accept(commands_.Text({x, y}, text, Index(color), 1, false, 1));
+  }
+
   void Text(std::string_view text, std::int16_t x, std::int16_t y,
             UiColorToken color, std::uint8_t scale = 1) {
     Accept(commands_.Text({x, y}, text, Index(color), scale));

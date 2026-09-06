@@ -101,13 +101,13 @@ RectI16 UiPhraseView::CursorTargetRect(const UiPhraseViewData &data) {
     const std::uint8_t digit = std::min<std::uint8_t>(
         data.editDigit, static_cast<std::uint8_t>(value.size() - 1U));
     return {static_cast<std::int16_t>(
-                kColumnX[data.editColumn] + digit * UiFont5x7::kAdvance - 2),
+                kColumnX[data.editColumn] + digit * UiTrackerGridMetrics::kCharacterAdvance - 2),
             UiTrackerGridMetrics::RowBoundsY(data.editRow),
             static_cast<std::int16_t>(UiFont5x7::kGlyphWidth + 4), 9};
   }
   return {static_cast<std::int16_t>(kColumnX[data.editColumn] - 2),
           UiTrackerGridMetrics::RowBoundsY(data.editRow),
-          static_cast<std::int16_t>(UiFont5x7::TextWidth(value.size()) + 4), 9};
+          static_cast<std::int16_t>(UiTrackerGridMetrics::TextWidth(value.size()) + 4), 9};
 }
 
 RectI16 UiPhraseView::SelectionTargetRect(std::int16_t left,
@@ -127,7 +127,7 @@ RectI16 UiPhraseView::SelectionTargetRect(std::int16_t left,
         static_cast<std::int16_t>(kColumnX[column] - 2),
         UiTrackerGridMetrics::RowBoundsY(row),
         static_cast<std::int16_t>(
-            UiFont5x7::TextWidth(kColumnCharacters[column]) + 4),
+            UiTrackerGridMetrics::TextWidth(kColumnCharacters[column]) + 4),
         9};
   };
   return Union(cell(left, top), cell(right, bottom));
@@ -137,7 +137,7 @@ RectI16 UiPhraseView::RowDamageRect(std::uint8_t row) {
   if (row >= 16U)
     return {};
   return UiTrackerGridMetrics::RowDamage(
-      row, UiTrackerGridMetrics::kGridRightFull);
+      row, UiTrackerGridMetrics::kGridRightFull + 2);
 }
 
 RectI16 UiPhraseView::PlaybackTickRect(std::uint8_t row) {
@@ -177,7 +177,7 @@ void UiPhraseView::RenderDelta(const UiPhraseViewData &previous,
       previous.navCursor != current.navCursor)
     render({184, 0, 56, 34});
   if (previous.activeHeader != current.activeHeader) {
-    render({24, 34, 171, 13});
+    render({24, 34, 210, 13});
   }
 
   std::array<bool, 16> rowRendered{};
@@ -324,13 +324,13 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
     return bottomStatus;
 
   UiSceneBuilder<256, 1024> builder(scene.content);
-  builder.Text("NOTE", kColumnX[0], UiTrackerGridMetrics::kHeaderTextY,
+  builder.GridText("NOTE", kColumnX[0], UiTrackerGridMetrics::kHeaderTextY,
                HeaderColor(data.activeHeader, UiPhraseHeader::Note));
-  builder.Text("INS", kColumnX[1], UiTrackerGridMetrics::kHeaderTextY,
+  builder.GridText("INST", kColumnX[1], UiTrackerGridMetrics::kHeaderTextY,
                HeaderColor(data.activeHeader, UiPhraseHeader::Instrument));
-  builder.Text("FX1", kColumnX[2], UiTrackerGridMetrics::kHeaderTextY,
+  builder.GridText("FX1", kColumnX[2], UiTrackerGridMetrics::kHeaderTextY,
                HeaderColor(data.activeHeader, UiPhraseHeader::Fx1));
-  builder.Text("FX2", kColumnX[4], UiTrackerGridMetrics::kHeaderTextY,
+  builder.GridText("FX2", kColumnX[4], UiTrackerGridMetrics::kHeaderTextY,
                HeaderColor(data.activeHeader, UiPhraseHeader::Fx2));
 
   if (!data.numberFocus && !data.selectionVisualRect.Empty()) {
@@ -343,13 +343,13 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
     const std::int16_t y = UiTrackerGridMetrics::RowTextY(row);
     const auto rowLabel =
         HexByte(static_cast<std::uint8_t>(data.rowOffset + row));
-    builder.Text(rowLabel.data(), UiTrackerGridMetrics::kRowLabelX, y,
+    builder.GridText(rowLabel.data(), UiTrackerGridMetrics::kRowLabelX, y,
                  !data.numberFocus && row == data.editRow
                      ? UiColorToken::TextColored
                      : UiColorToken::DerivedTextFaint);
     for (std::uint8_t column = 0; column < kColumnX.size(); ++column) {
       const std::string_view value = data.rows[row][column];
-      builder.Text(value, kColumnX[column], y,
+      builder.GridText(value, kColumnX[column], y,
                    IsDimValue(value) ? UiColorToken::DerivedTextFaint
                                      : UiColorToken::TextNormal);
     }
@@ -395,14 +395,14 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
           !value.empty()) {
         const std::uint8_t digit = std::min<std::uint8_t>(
             data.editDigit, static_cast<std::uint8_t>(value.size() - 1U));
-        builder.Text(value.substr(digit, 1),
+        builder.GridText(value.substr(digit, 1),
                      static_cast<std::int16_t>(
                          kColumnX[data.editColumn] +
-                         digit * UiFont5x7::kAdvance),
+                         digit * UiTrackerGridMetrics::kCharacterAdvance),
                      UiTrackerGridMetrics::RowTextY(data.editRow),
                      UiColorToken::TextHighlighted);
       } else {
-        builder.Text(value, kColumnX[data.editColumn],
+        builder.GridText(value, kColumnX[data.editColumn],
                      UiTrackerGridMetrics::RowTextY(data.editRow),
                      UiColorToken::TextHighlighted);
       }

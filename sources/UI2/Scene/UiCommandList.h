@@ -132,7 +132,7 @@ public:
 
   [[nodiscard]] bool Text(PointI16 origin, std::string_view text,
                           PaletteIndex color, std::uint8_t scale = 1,
-                          bool preserveCase = false) {
+                          bool preserveCase = false, std::uint8_t letterSpacing = 0) {
     if (text.size() > TextCapacity - textSize_ || text.size() > 255U) {
       overflowed_ = true;
       return false;
@@ -144,7 +144,8 @@ public:
         origin.x, origin.y,
         static_cast<std::int16_t>(text.empty()
                                       ? 0
-                                      : text.size() * 6U * scale - scale),
+                                      : text.size() * 6U * scale - scale +
+                                            (text.size() - 1U) * letterSpacing),
         static_cast<std::int16_t>(7U * scale)};
     const std::uint8_t parameter = static_cast<std::uint8_t>(
         scale | (preserveCase ? std::uint8_t{0x80} : std::uint8_t{0}));

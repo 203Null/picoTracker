@@ -86,13 +86,13 @@ RectI16 UiTableView::CursorTargetRect(const UiTableViewData &data) {
     const std::uint8_t digit = std::min<std::uint8_t>(
         data.editDigit, static_cast<std::uint8_t>(value.size() - 1U));
     return {static_cast<std::int16_t>(
-                kColumnX[data.editColumn] + digit * UiFont5x7::kAdvance - 2),
+                kColumnX[data.editColumn] + digit * UiTrackerGridMetrics::kCharacterAdvance - 2),
             UiTrackerGridMetrics::RowBoundsY(data.editRow),
             static_cast<std::int16_t>(UiFont5x7::kGlyphWidth + 4), 9};
   }
   return {static_cast<std::int16_t>(kColumnX[data.editColumn] - 2),
           UiTrackerGridMetrics::RowBoundsY(data.editRow),
-          static_cast<std::int16_t>(UiFont5x7::TextWidth(value.size()) + 4), 9};
+          static_cast<std::int16_t>(UiTrackerGridMetrics::TextWidth(value.size()) + 4), 9};
 }
 
 RectI16 UiTableView::SelectionTargetRect(std::int16_t left, std::int16_t top,
@@ -111,7 +111,7 @@ RectI16 UiTableView::SelectionTargetRect(std::int16_t left, std::int16_t top,
         static_cast<std::int16_t>(kColumnX[column] - 2),
         UiTrackerGridMetrics::RowBoundsY(row),
         static_cast<std::int16_t>(
-            UiFont5x7::TextWidth(kColumnCharacters[column]) + 4),
+            UiTrackerGridMetrics::TextWidth(kColumnCharacters[column]) + 4),
         9};
   };
   return Union(cell(left, top), cell(right, bottom));
@@ -121,7 +121,7 @@ RectI16 UiTableView::RowDamageRect(std::uint8_t row) {
   if (row >= 16U)
     return {};
   return UiTrackerGridMetrics::RowDamage(
-      row, UiTrackerGridMetrics::kGridRightFull);
+      row, UiTrackerGridMetrics::kGridRightFull + 2);
 }
 
 RectI16 UiTableView::PlaybackTickRect(std::uint8_t group,
@@ -310,7 +310,7 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
   constexpr std::array<UiTableHeader, 3> headerKinds{
       UiTableHeader::Fx1, UiTableHeader::Fx2, UiTableHeader::Fx3};
   for (std::uint8_t group = 0; group < headers.size(); ++group) {
-    builder.Text(headers[group], kColumnX[group * 2U],
+    builder.GridText(headers[group], kColumnX[group * 2U],
                  UiTrackerGridMetrics::kHeaderTextY,
                  HeaderColor(data.activeHeader, headerKinds[group]));
   }
@@ -323,7 +323,7 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
   for (std::uint8_t row = 0; row < 16U; ++row) {
     const std::int16_t y = UiTrackerGridMetrics::RowTextY(row);
     const auto label = HexByte(static_cast<std::uint8_t>(data.rowOffset + row));
-    builder.Text(label.data(), UiTrackerGridMetrics::kRowLabelX, y,
+    builder.GridText(label.data(), UiTrackerGridMetrics::kRowLabelX, y,
                  !data.numberFocus && row == data.editRow
                      ? UiColorToken::TextColored
                      : UiColorToken::DerivedTextFaint);
@@ -335,7 +335,7 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
       } else if ((column & 1U) == 0U && value == "---") {
         color = UiColorToken::DerivedTextFaint;
       }
-      builder.Text(value, kColumnX[column], y, color);
+      builder.GridText(value, kColumnX[column], y, color);
     }
   }
   for (std::uint8_t group = 0U; group < data.playbackRows.size(); ++group) {
@@ -382,14 +382,14 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
           !value.empty()) {
         const std::uint8_t digit = std::min<std::uint8_t>(
             data.editDigit, static_cast<std::uint8_t>(value.size() - 1U));
-        builder.Text(value.substr(digit, 1),
+        builder.GridText(value.substr(digit, 1),
                      static_cast<std::int16_t>(
                          kColumnX[data.editColumn] +
-                         digit * UiFont5x7::kAdvance),
+                         digit * UiTrackerGridMetrics::kCharacterAdvance),
                      UiTrackerGridMetrics::RowTextY(data.editRow),
                      UiColorToken::TextHighlighted);
       } else {
-        builder.Text(value, kColumnX[data.editColumn],
+        builder.GridText(value, kColumnX[data.editColumn],
                      UiTrackerGridMetrics::RowTextY(data.editRow),
                      UiColorToken::TextHighlighted);
       }

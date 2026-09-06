@@ -48,7 +48,7 @@ RectI16 UiChainView::CursorTargetRect(const UiChainViewData &data) {
     return {};
   return {static_cast<std::int16_t>(kColumnX[data.editColumn] - 2),
           UiTrackerGridMetrics::RowBoundsY(data.editRow),
-          static_cast<std::int16_t>(data.editColumn == 0U ? 15 : 21), 9};
+          static_cast<std::int16_t>(data.editColumn == 0U ? 16 : 23), 9};
 }
 
 RectI16 UiChainView::SelectionTargetRect(std::int16_t left, std::int16_t top,
@@ -65,7 +65,7 @@ RectI16 UiChainView::SelectionTargetRect(std::int16_t left, std::int16_t top,
   const auto cell = [](std::int16_t column, std::int16_t row) {
     return RectI16{static_cast<std::int16_t>(kColumnX[column] - 2),
                    UiTrackerGridMetrics::RowBoundsY(row),
-                   static_cast<std::int16_t>(column == 0 ? 15 : 21), 9};
+                   static_cast<std::int16_t>(column == 0 ? 16 : 23), 9};
   };
   return Union(cell(left, top), cell(right, bottom));
 }
@@ -88,8 +88,8 @@ RectI16 UiChainView::PlaybackTickRect(std::uint8_t row) {
 RectI16 UiChainView::VuDamageRect(std::uint8_t side) {
   if (side >= 2U)
     return {};
-  return {UiTrackerGridMetrics::VuX(side), kMeterTop,
-          UiTrackerGridMetrics::kVuChannelWidth, kMeterHeight};
+  return {UiTrackerGridMetrics::VuX(side), UiTrackerGridMetrics::kVuTop,
+          UiTrackerGridMetrics::kVuChannelWidth, UiTrackerGridMetrics::kVuHeight};
 }
 
 void UiChainView::RenderDelta(const UiChainViewData &previous,
@@ -227,15 +227,15 @@ UiBuildStatus UiChainView::Build(const UiChainViewData &data,
   if (bottomStatus != UiBuildStatus::Built)
     return bottomStatus;
 
-  if (!UiVuGradient::Configure(palette, kMeterHeight)) {
+  if (!UiVuGradient::Configure(palette, UiTrackerGridMetrics::kVuHeight)) {
     return UiBuildStatus::CommandOverflow;
   }
   UiSceneBuilder<256, 1024> builder(scene.content);
-  builder.Text("PH", kColumnX[0], UiTrackerGridMetrics::kHeaderTextY,
+  builder.GridText("PH", kColumnX[0], UiTrackerGridMetrics::kHeaderTextY,
                !data.numberFocus && data.editColumn == 0U
                    ? UiColorToken::TextColored
                    : UiColorToken::TextDim);
-  builder.Text("TR", kColumnX[1], UiTrackerGridMetrics::kHeaderTextY,
+  builder.GridText("TR", kColumnX[1], UiTrackerGridMetrics::kHeaderTextY,
                !data.numberFocus && data.editColumn == 1U
                    ? UiColorToken::TextColored
                    : UiColorToken::TextDim);
@@ -249,18 +249,18 @@ UiBuildStatus UiChainView::Build(const UiChainViewData &data,
   for (std::uint8_t row = 0; row < 16U; ++row) {
     const std::int16_t y = UiTrackerGridMetrics::RowTextY(row);
     const auto rowText = HexByte(row);
-    builder.Text(rowText.data(), UiTrackerGridMetrics::kRowLabelX, y,
+    builder.GridText(rowText.data(), UiTrackerGridMetrics::kRowLabelX, y,
                  !data.numberFocus && row == data.editRow
                      ? UiColorToken::TextColored
                      : UiColorToken::DerivedTextFaint);
     const auto phrase = HexByte(data.phrases[row]);
     const char *phraseText = data.phrases[row] == 0xFFU ? "--" : phrase.data();
-    builder.Text(phraseText, kColumnX[0], y,
+    builder.GridText(phraseText, kColumnX[0], y,
                  data.phrases[row] == 0xFFU ? UiColorToken::DerivedTextFaint
                                             : UiColorToken::TextNormal);
     const auto transpose = Ui2ChainTranspose::Format(data.transposes[row]);
     const bool rowEmpty = data.phrases[row] == 0xFFU;
-    builder.Text(rowEmpty ? "---" : transpose.data(), kColumnX[1], y,
+    builder.GridText(rowEmpty ? "---" : transpose.data(), kColumnX[1], y,
                  rowEmpty ? UiColorToken::DerivedTextFaint
                           : data.transposes[row] == 0U
                                 ? UiColorToken::TextDim
@@ -309,7 +309,7 @@ UiBuildStatus UiChainView::Build(const UiChainViewData &data,
                                 : (data.phrases[data.editRow] == 0xFFU
                                        ? "---"
                                        : transposeText.data());
-      builder.Text(display, kColumnX[data.editColumn],
+      builder.GridText(display, kColumnX[data.editColumn],
                    UiTrackerGridMetrics::RowTextY(data.editRow),
                    UiColorToken::TextHighlighted);
     }
@@ -318,7 +318,7 @@ UiBuildStatus UiChainView::Build(const UiChainViewData &data,
     const RectI16 meter = VuDamageRect(side);
     builder.Fill(meter, UiColorToken::DerivedVuTrack);
     const std::uint8_t level =
-        std::min<std::uint8_t>(data.vuLevelTop[side], kMeterHeight);
+        UiTrackerGridMetrics::VuLevelTop(data.vuLevelTop[side]);
     builder.VerticalPaletteRamp(
         {meter.x, static_cast<std::int16_t>(meter.y + level), meter.width,
          static_cast<std::int16_t>(meter.height - level)},

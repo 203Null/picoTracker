@@ -54,8 +54,6 @@ struct UiChainViewData {
 
 class UiChainView {
 public:
-  static constexpr std::int16_t kMeterTop = 47;
-  static constexpr std::int16_t kMeterHeight = 153;
 
   [[nodiscard]] static UiBuildStatus
   Build(const UiChainViewData &data, UiPalette &palette, UiFrameScene &scene);

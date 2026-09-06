@@ -858,41 +858,46 @@ TEST_CASE("UI2 tracker pages share one origin and vertical rhythm") {
   CHECK(ui2::UiTrackerGridMetrics::kContentStartX == 29);
   CHECK(ui2::UiTrackerGridMetrics::kSongTrackX[0] ==
         ui2::UiTrackerGridMetrics::kChainColumnX[0]);
-  CHECK(ui2::UiTrackerGridMetrics::kSongTrackX[1] ==
-        ui2::UiTrackerGridMetrics::kChainColumnX[1]);
-  CHECK(ui2::UiTrackerGridMetrics::kColumnGap == 12);
+  CHECK(ui2::UiTrackerGridMetrics::kChainColumnX[1] -
+            ui2::UiTrackerGridMetrics::kChainColumnX[0] -
+            ui2::UiTrackerGridMetrics::TextWidth(2) ==
+        ui2::UiTrackerGridMetrics::kColumnGap);
+  CHECK(ui2::UiTrackerGridMetrics::kColumnGap == 19);
   for (std::size_t column = 1;
        column < ui2::UiTrackerGridMetrics::kSongTrackX.size(); ++column) {
     CHECK(ui2::UiTrackerGridMetrics::kSongTrackX[column] -
               ui2::UiTrackerGridMetrics::kSongTrackX[column - 1U] -
-              ui2::UiFont5x7::TextWidth(
+              ui2::UiTrackerGridMetrics::TextWidth(
                   ui2::UiTrackerGridMetrics::kSongColumnCharacters[column -
                                                                     1U]) ==
-          ui2::UiTrackerGridMetrics::kColumnGap);
+          ui2::UiTrackerGridMetrics::kSongColumnGap);
   }
   for (std::size_t column = 1;
        column < ui2::UiTrackerGridMetrics::kPhraseColumnX.size(); ++column) {
     CHECK(ui2::UiTrackerGridMetrics::kPhraseColumnX[column] -
               ui2::UiTrackerGridMetrics::kPhraseColumnX[column - 1U] -
-              ui2::UiFont5x7::TextWidth(
+              ui2::UiTrackerGridMetrics::TextWidth(
                   ui2::UiTrackerGridMetrics::kPhraseColumnCharacters[column -
                                                                       1U]) ==
-          ui2::UiTrackerGridMetrics::kColumnGap);
+          ui2::UiTrackerGridMetrics::kPhraseGaps[column - 1U]);
   }
   for (std::size_t column = 1;
        column < ui2::UiTrackerGridMetrics::kTableColumnX.size(); ++column) {
     CHECK(ui2::UiTrackerGridMetrics::kTableColumnX[column] -
               ui2::UiTrackerGridMetrics::kTableColumnX[column - 1U] -
-              ui2::UiFont5x7::TextWidth(
+              ui2::UiTrackerGridMetrics::TextWidth(
                   ui2::UiTrackerGridMetrics::kTableColumnCharacters[column -
                                                                      1U]) ==
-          ui2::UiTrackerGridMetrics::kColumnGap);
+          ui2::UiTrackerGridMetrics::kTableGaps[column - 1U]);
   }
+  for (std::size_t column = 2; column < 6; ++column)
+    CHECK(ui2::UiTrackerGridMetrics::kPhraseColumnX[column] ==
+          ui2::UiTrackerGridMetrics::kTableColumnX[column]);
   CHECK(ui2::UiTrackerGridMetrics::kPhraseColumnX.back() +
-            ui2::UiFont5x7::TextWidth(4) <=
+            ui2::UiTrackerGridMetrics::TextWidth(4) <=
         240);
   CHECK(ui2::UiTrackerGridMetrics::kTableColumnX.back() +
-            ui2::UiFont5x7::TextWidth(4) <=
+            ui2::UiTrackerGridMetrics::TextWidth(4) <=
         240);
   CHECK(ui2::UiTrackerGridMetrics::RowHighlightY(0) == 46);
   CHECK(ui2::UiTrackerGridMetrics::RowBoundsY(0) == 47);
@@ -1201,18 +1206,18 @@ TEST_CASE("UI2 tracker headers omit Table VAL and use packed Table columns") {
 
 TEST_CASE("UI2 tracker selections resolve to one clipped rounded region") {
   CHECK(ui2::UiSongView::SelectionTargetRect(1, 18, 3, 21, 16) ==
-        ui2::RectI16{50, 67, 61, 39});
+        ui2::RectI16{51, 67, 64, 39});
   CHECK(ui2::UiSongView::SelectionTargetRect(0, 0, 7, 15, 16).Empty());
   CHECK(ui2::UiChainView::SelectionTargetRect(0, 2, 1, 4) ==
-        ui2::RectI16{27, 67, 44, 29});
+        ui2::RectI16{27, 67, 54, 29});
   CHECK(ui2::UiPhraseView::SelectionTargetRect(1, 1, 4, 3) ==
-        ui2::RectI16{62, 57, 114, 29});
+        ui2::RectI16{65, 57, 138, 29});
   // Legacy Table selection may transiently report column 6. UI2 clips that
   // endpoint to the sixth visible value column without escaping the screen.
   CHECK(ui2::UiTableView::SelectionTargetRect(2, 0, 6, 15) ==
-        ui2::RectI16{91, 47, 120, 159});
+        ui2::RectI16{103, 47, 133, 159});
   CHECK(ui2::UiGrooveView::SelectionTargetRect(2, 6) ==
-        ui2::RectI16{27, 66, 15, 45});
+        ui2::RectI16{27, 67, 16, 49});
 }
 
 TEST_CASE("UI2 tracker selections use their independent theme color") {
@@ -1504,7 +1509,8 @@ TEST_CASE("UI2 VU gradient uses fixed palette slots without RGB framebuffer") {
   CHECK(palette.Get(ui2::UiVuGradient::IndexAt(60)) ==
         ui2::Rgb888{0x00, 0xDC, 0x74});
   CHECK(palette.Get(ui2::UiVuGradient::IndexAt(152)).green >= 0xA9);
-  CHECK_FALSE(ui2::UiVuGradient::Configure(palette, 154));
+  CHECK(ui2::UiVuGradient::Configure(palette, 159));
+  CHECK_FALSE(ui2::UiVuGradient::Configure(palette, 161));
 }
 
 TEST_CASE("UI2 VU gradient is restored after direct dynamic palette writes") {
@@ -1948,7 +1954,7 @@ TEST_CASE("UI2 approved Song fixture fits fixed scene buffers") {
   CHECK(surface.Pixel(5, 34) ==
         palette.Index(ui2::UiColorToken::SurfaceBackground));
   CHECK(surface.Pixel(6, 128) == palette.Index(ui2::UiColorToken::CursorRow));
-  CHECK(surface.Pixel(218, 47) ==
+  CHECK(surface.Pixel(219, 47) ==
         palette.Index(ui2::UiColorToken::DerivedVuTrack));
   const ui2::RectI16 cursor = ui2::UiSongView::CursorTargetRect(0, 8);
   CHECK(surface.Pixel(cursor.x + 1, cursor.y + 4) ==
@@ -2410,8 +2416,15 @@ TEST_CASE("UI2 region rendering marks its clipped damage once") {
 }
 
 TEST_CASE("UI2 Song damage geometry keeps stereo VU channels separate") {
-  CHECK(ui2::UiSongView::VuDamageRect(0) == ui2::RectI16{218, 47, 7, 153});
-  CHECK(ui2::UiSongView::VuDamageRect(1) == ui2::RectI16{227, 47, 7, 153});
+  CHECK(ui2::UiSongView::VuDamageRect(0) == ui2::RectI16{219, 47, 6, 159});
+  CHECK(ui2::UiSongView::VuDamageRect(1) == ui2::RectI16{227, 47, 6, 159});
+  CHECK(ui2::UiSongView::VuDamageRect(1).Right() ==
+        ui2::UiTrackerGridMetrics::kGridRightFull - 2);
+  CHECK(ui2::UiSongView::VuDamageRect(0).Bottom() ==
+        ui2::UiSongView::CursorTargetRect(0, 15).Bottom());
+  CHECK(ui2::UiTrackerGridMetrics::VuLevelTop(0) == 0);
+  CHECK(ui2::UiTrackerGridMetrics::VuLevelTop(153) == 159);
+  CHECK(ui2::UiTrackerGridMetrics::VuLevelTop(255) == 159);
   CHECK(ui2::UiSongView::VuDamageRect(0).Right() <
         ui2::UiSongView::VuDamageRect(1).x);
   CHECK(ui2::Intersect(ui2::UiSongView::RowDamageRect(15),
@@ -2583,7 +2596,7 @@ TEST_CASE("UI2 Song animated cursor delta matches the same full visual frame") {
   current.editRow = 3;
   current.editTrack = 5;
   current.cursorVisualOverride = true;
-  current.cursorVisualRect = {91, 85, 15, 9};
+  current.cursorVisualRect = {94, 85, 15, 9};
   current.cursorInkVisible = false;
   ui2::UiFrameScene currentScene;
   REQUIRE(ui2::UiSongView::Build(current, deltaPalette, currentScene) ==
@@ -2605,7 +2618,7 @@ TEST_CASE("UI2 Song animated cursor delta matches the same full visual frame") {
                            current.cursorVisualRect.y + 4) ==
         deltaPalette.Index(ui2::UiColorToken::TextHighlighted));
   CHECK(ui2::UiSongView::CursorTargetRect(5, 3) ==
-        ui2::RectI16{142, 77, 15, 9});
+        ui2::RectI16{147, 77, 16, 9});
 }
 
 TEST_CASE("UI2 Song idle is clean and a cursor move stays locally dirty") {
@@ -3465,11 +3478,11 @@ TEST_CASE("UI2 Groove idle is clean and a row move stays locally dirty") {
 TEST_CASE("UI2 Chain keeps stereo VU channels physically separate") {
   CHECK(ui2::UiChainView::RowDamageRect(0) == ui2::RectI16{6, 46, 212, 12});
   CHECK(ui2::UiPhraseView::RowDamageRect(0) ==
-        ui2::RectI16{6, 46, 229, 12});
+        ui2::RectI16{6, 46, 231, 12});
   CHECK(ui2::UiTableView::RowDamageRect(0) ==
-        ui2::RectI16{6, 46, 229, 12});
-  CHECK(ui2::UiChainView::VuDamageRect(0) == ui2::RectI16{218, 47, 7, 153});
-  CHECK(ui2::UiChainView::VuDamageRect(1) == ui2::RectI16{227, 47, 7, 153});
+        ui2::RectI16{6, 46, 231, 12});
+  CHECK(ui2::UiChainView::VuDamageRect(0) == ui2::RectI16{219, 47, 6, 159});
+  CHECK(ui2::UiChainView::VuDamageRect(1) == ui2::RectI16{227, 47, 6, 159});
 }
 
 TEST_CASE("UI2 Chain transpose uses signed three-glyph decimal semantics") {
@@ -3503,7 +3516,7 @@ TEST_CASE("UI2 Chain transpose uses signed three-glyph decimal semantics") {
   CHECK(FindTextCommand(scene.content.Stream(), "---") != nullptr);
   CHECK(FindTextCommand(scene.bottom.Stream(), "OCT") != nullptr);
   CHECK(ui2::UiChainView::CursorTargetRect(data) ==
-        ui2::RectI16{50, 47, 21, 9});
+        ui2::RectI16{58, 47, 23, 9});
 
   bool coarsePlusMinusPresent = false;
   for (const ui2::UiCommand &command : scene.bottom.Commands()) {

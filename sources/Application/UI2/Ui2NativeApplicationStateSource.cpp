@@ -328,7 +328,7 @@ Ui2NativeApplicationStateSource::CaptureChain(UiChainFrameState &state) {
         state.playbackRows[track] = static_cast<std::int8_t>(playbackRow);
     }
   }
-  state.vuLevelTop = MasterVu(UiChainView::kMeterHeight);
+  state.vuLevelTop = MasterVu();
   return {.active = PlayerRunning()};
 }
 

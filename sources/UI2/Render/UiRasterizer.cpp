@@ -31,6 +31,9 @@ void RenderTextCommand(const UiCommand &command, const UiCommandStream &stream,
   PointI16 glyphOrigin{bounds.x, bounds.y};
   const std::uint8_t scale = command.parameter & 0x7FU;
   const bool preserveCase = (command.parameter & 0x80U) != 0U;
+  const auto advance = length > 1U
+      ? (bounds.width - UiFont5x7::kGlyphWidth * scale) / (length - 1U)
+      : UiFont5x7::kAdvance * scale;
   bool wordStart = true;
   for (const char character :
        stream.text.subspan(command.payload, length)) {
@@ -50,7 +53,7 @@ void RenderTextCommand(const UiCommand &command, const UiCommandStream &stream,
     surface.DrawGlyph5x7(glyphOrigin, UiFont5x7::Glyph(displayed), color,
                          scale, clip);
     glyphOrigin.x = static_cast<std::int16_t>(
-        glyphOrigin.x + UiFont5x7::kAdvance * scale);
+        glyphOrigin.x + advance);
   }
 }
 

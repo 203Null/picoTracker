@@ -42,7 +42,7 @@ std::uint8_t LerpChannel(std::uint8_t from, std::uint8_t to,
 bool UiVuGradient::Configure(UiPalette &palette, std::uint16_t height) {
   if (height == 0 || height > kMaximumHeight) return false;
   // Meter levels rebuild their command scenes at audio cadence, while the
-  // 153 gradient colors only depend on the theme. Preserve that work until a
+  // gradient colors only depend on height and theme. Preserve that work until a
   // theme edit or a direct write into the dynamic bank invalidates it.
   if (palette.VuGradientCurrent(height)) return true;
   const std::uint32_t coordinateDenominator = 2U * height;
