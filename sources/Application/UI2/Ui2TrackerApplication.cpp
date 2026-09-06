@@ -280,7 +280,7 @@ bool Ui2TrackerApplication::Init(Ui2StartupOptions options) {
   // targets retain the guarded UPDATE FIRMWARE row.
   visibleDeviceFields &= ~(std::uint32_t{1} << static_cast<std::uint8_t>(
                                Ui2DeviceField::UpdateFirmware));
-#if defined(NULLPERATOR_IOS)
+#if defined(NULLPERATOR_IOS) || defined(__EMSCRIPTEN__)
   visibleDeviceFields &= ~(std::uint32_t{1} << static_cast<std::uint8_t>(
                                Ui2DeviceField::MidiDevice));
   visibleDeviceFields &=

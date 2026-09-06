@@ -133,11 +133,12 @@ void WasmSystem::ShutdownPlatformServices() {
 unsigned long WasmSystem::GetClock() { return Millis(); }
 
 void WasmSystem::GetBatteryState(BatteryState &state) {
-  state.percentage = 0;
+  // Web uses a fixed full battery rather than sampling a physical device.
+  state.percentage = 100;
   state.voltage_mv = 0;
   state.temperature_c = 0;
   state.charging = false;
-  state.error = true;
+  state.error = false;
 }
 
 void WasmSystem::SetDisplayBrightness(unsigned char value) {

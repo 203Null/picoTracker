@@ -44,7 +44,7 @@ UiApplicationRuntime::CapturePowerState(IUiApplicationStateSource &source,
   }
 
   // Treat an unavailable/error sample as invalid cached state. That preserves
-  // the 1 Hz read ceiling while ensuring Web never renders a fabricated 0%.
+  // the 1 Hz read ceiling without displaying an invalid percentage.
   cachedPower_ = {};
   const UiApplicationBatteryState battery = source.ReadBattery();
   if (!battery.available)
