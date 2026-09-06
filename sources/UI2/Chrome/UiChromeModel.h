@@ -91,6 +91,7 @@ struct UiTopBarModel {
   bool metaInkVisible = true;
   bool metaUserData = false;
   bool backNavigation = false;
+  bool projectNavigation = false;
   bool showBatteryPercent = false;
   std::uint8_t batteryPercent = 60;
 };

@@ -5235,3 +5235,42 @@ TEST_CASE("Held instrument and FX parameter cells show editing legends") {
   CHECK(FindTextCommand(scene.bottom.Stream(), "DIGIT") != nullptr);
   CHECK(FindTextCommand(scene.bottom.Stream(), "VALUE") != nullptr);
 }
+
+TEST_CASE("Device navigation shows highlighted Project instead of battery") {
+  ui2::UiPalette palette;
+  ui2::UiFrameScene scene;
+  ui2::UiDeviceViewData data{};
+  data.power = ui2::UiPowerState::Navigation;
+  data.batteryPercentValid = true;
+  data.batteryPercent = 100;
+  REQUIRE(ui2::UiDeviceView::Build(data, palette, scene) == ui2::UiBuildStatus::Built);
+  const auto *project = FindTextCommand(scene.top.Stream(), "PROJECT");
+  REQUIRE(project != nullptr);
+  CHECK(project->color == static_cast<ui2::PaletteIndex>(ui2::UiColorToken::TextHighlighted));
+  CHECK(FindTextCommand(scene.top.Stream(), "100%") == nullptr);
+  data.power = ui2::UiPowerState::BatteryHigh;
+  REQUIRE(ui2::UiDeviceView::Build(data, palette, scene) == ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.top.Stream(), "PROJECT") == nullptr);
+  CHECK(FindTextCommand(scene.top.Stream(), "100%") != nullptr);
+}
+
+TEST_CASE("Device Shift hint leaves no pixels after battery is restored") {
+  ui2::UiPalette palette;
+  ui2::UiDeviceViewData previous{};
+  previous.batteryPercent = 100;
+  previous.power = ui2::UiPowerState::BatteryHigh;
+  ui2::UiFrameScene scene;
+  REQUIRE(ui2::UiDeviceView::Build(previous, palette, scene) == ui2::UiBuildStatus::Built);
+  ui2::UiSurfaceStorage storage, expectedStorage;
+  ui2::UiIndexedSurface surface(storage), expected(expectedStorage);
+  ui2::UiFrameRenderer::RenderStatic(scene, surface, palette);
+  for (const auto power : {ui2::UiPowerState::Navigation, ui2::UiPowerState::BatteryHigh}) {
+    auto current = previous;
+    current.power = power;
+    REQUIRE(ui2::UiDeviceView::Build(current, palette, scene) == ui2::UiBuildStatus::Built);
+    ui2::UiDeviceView::RenderDelta(previous, current, scene, surface, palette);
+    ui2::UiFrameRenderer::RenderStatic(scene, expected, palette);
+    CHECK(std::equal(surface.Pixels().begin(), surface.Pixels().end(), expected.Pixels().begin()));
+    previous = current;
+  }
+}

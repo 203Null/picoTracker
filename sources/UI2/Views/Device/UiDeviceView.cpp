@@ -266,7 +266,8 @@ void UiDeviceView::RenderDelta(const UiDeviceViewData &previous,
   if (previous.power != current.power ||
       previous.batteryPercentValid != current.batteryPercentValid ||
       previous.batteryPercent != current.batteryPercent) {
-    render({174, 0, 66, 34});
+    // Include the full Shift-held Project hint, which starts at x=167.
+    render({167, 0, 73, 34});
   }
   const bool contentRedrawn = previous.scrollOffset != current.scrollOffset;
   if (contentRedrawn)
@@ -316,6 +317,7 @@ UiBuildStatus UiDeviceView::Build(const UiDeviceViewData &data, UiPalette &,
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
   const UiTopBarModel top{.title = "DEVICE",
                           .power = data.power,
+                          .projectNavigation = true,
                           .showBatteryPercent = data.batteryPercentValid,
                           .batteryPercent = data.batteryPercent};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);

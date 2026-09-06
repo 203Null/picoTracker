@@ -1119,7 +1119,7 @@ UiApplicationRuntime::PresentDevice(IUiApplicationStateSource &source,
       previousValid_ ? previous.scrollOffset : 0;
   const UiApplicationActivityState activity = source.CaptureDevice(current);
   const PowerFrameState power = CapturePowerState(source, activity.active);
-  current.power = power.power;
+  current.power = CurrentPowerState(source, activity.active);
   current.batteryPercent = power.batteryPercent;
   current.batteryPercentValid = power.batteryPercentValid;
   UiDeviceViewData capture = ViewDataFor(current);
