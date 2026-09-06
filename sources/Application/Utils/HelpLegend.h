@@ -17,6 +17,10 @@ static char **getHelpLegend(FourCC command) {
   static char *result[2];
   result[1] = (char *)("                               ");
   switch (command) {
+  case FourCC::InstrumentCommandNone:
+    result[0] = (char *)("No command");
+    result[1] = (char *)("clear the FX command");
+    break;
   case FourCC::InstrumentCommandKill:
     result[0] = (char *)("KILl: --bb");
     result[1] = (char *)("stop playing after bb ticks");
@@ -82,7 +86,7 @@ static char **getHelpLegend(FourCC command) {
     result[1] = (char *)("run table bb");
     break;
   case FourCC::InstrumentCommandCrush:
-    result[0] = (char *)("drive & CruSH: aa-b");
+    result[0] = (char *)("Drive & Crush: aa-b");
     result[1] = (char *)("drive aa crush -b");
     break;
   case FourCC::InstrumentCommandFilterCut:
@@ -110,12 +114,12 @@ static char **getHelpLegend(FourCC command) {
     result[1] = (char *)("delay b+1 ticks");
     break;
   case FourCC::InstrumentCommandStop:
-    result[0] = (char *)("Stop table playback");
-    result[1] = (char *)("");
+    result[0] = (char *)("Stop: ----");
+    result[1] = (char *)("stop table playback");
     break;
   case FourCC::InstrumentCommandGateOff:
-    result[0] = (char *)("Gate Off (Synth only)");
-    result[1] = (char *)("");
+    result[0] = (char *)("Gate Off: ----");
+    result[1] = (char *)("release gate (synth only)");
     break;
   case FourCC::InstrumentCommandMidiChord:
     result[0] = (char *)("MIDI Chord:abcd");
