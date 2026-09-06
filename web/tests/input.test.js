@@ -19,8 +19,8 @@ describe('tracker input state', () => {
     expect(DEFAULT_KEY_MAP.up.bindings).toContainEqual(['KeyW'])
     expect(DEFAULT_KEY_MAP.enter.bindings).toEqual([['KeyK']])
     expect(DEFAULT_KEY_MAP.option.bindings).toEqual([['KeyJ']])
-    expect(DEFAULT_KEY_MAP.shift.bindings).toEqual([['KeyX']])
-    expect(DEFAULT_KEY_MAP.play.bindings).toEqual([['KeyC']])
+    expect(DEFAULT_KEY_MAP.shift.bindings).toEqual([['KeyC']])
+    expect(DEFAULT_KEY_MAP.play.bindings).toEqual([['KeyX']])
     expect(DEFAULT_KEY_MAP.power.bindings).toEqual([])
   })
 
@@ -142,7 +142,7 @@ describe('tracker input state', () => {
   it('ignores DOM repeats, handles simultaneous fixed keys, and prevents only consumed keys', () => {
     const bridge = createBridge()
     const input = createInputStore(bridge)
-    const shiftDown = { code: 'KeyX', repeat: false, preventDefault: vi.fn() }
+    const shiftDown = { code: 'KeyC', repeat: false, preventDefault: vi.fn() }
     const enterDown = { code: 'KeyK', repeat: false, preventDefault: vi.fn() }
     const repeatedEnter = { code: 'KeyK', repeat: true, preventDefault: vi.fn() }
     const enterUp = { code: 'KeyK', preventDefault: vi.fn() }

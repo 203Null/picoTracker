@@ -100,12 +100,12 @@ test('Operator fixed WASD, J/K, and X/C controls reach C++ with direct M8 semant
   expect(await page.locator('.bottom-buttons [data-action]').evaluateAll(
     (buttons) => buttons.map((button) => button.dataset.action),
   )).toEqual(['play', 'shift'])
-  await expect(page.getByRole('button', { name: 'PLAY', exact: true }).locator('kbd')).toHaveText('C')
-  await expect(page.getByRole('button', { name: 'SHIFT', exact: true }).locator('kbd')).toHaveText('X')
+  await expect(page.getByRole('button', { name: 'PLAY', exact: true }).locator('kbd')).toHaveText('X')
+  await expect(page.getByRole('button', { name: 'SHIFT', exact: true }).locator('kbd')).toHaveText('C')
 
   const keyActions = [
     ['w', 'up', 3], ['a', 'left', 0], ['s', 'down', 1], ['d', 'right', 2],
-    ['j', 'option', 5], ['k', 'enter', 6], ['x', 'shift', 4], ['c', 'play', 7],
+    ['j', 'option', 5], ['k', 'enter', 6], ['c', 'shift', 4], ['x', 'play', 7],
   ]
   for (const [key, name, action] of keyActions) {
     const control = page.locator(`[data-action="${name}"]`)
@@ -117,55 +117,55 @@ test('Operator fixed WASD, J/K, and X/C controls reach C++ with direct M8 semant
     await expect(control).toHaveAttribute('aria-pressed', 'false')
   }
   const holdGeneration = Number(await actionGeneration(canvas))
-  await page.keyboard.down('c')
+  await page.keyboard.down('x')
   await expect.poll(() => actionMask(canvas)).toBe(String(1 << 7))
   await page.waitForTimeout(550)
   await expect(actionGeneration(canvas)).resolves.toBe(String(holdGeneration + 1))
-  await page.keyboard.up('c')
+  await page.keyboard.up('x')
   await expect.poll(() => actionGeneration(canvas)).toBe(String(holdGeneration + 2))
   await expect(canvas).toHaveAttribute('data-last-action', '7')
   await expect(canvas).toHaveAttribute('data-action-mask', '0')
 
-  await page.keyboard.down('x')
+  await page.keyboard.down('c')
   await expect.poll(() => actionMask(canvas)).toBe(String(1 << 4))
   await page.keyboard.down('k')
   await expect.poll(() => actionMask(canvas)).toBe(String((1 << 4) | (1 << 6)))
   await page.keyboard.up('k')
   await expect.poll(() => actionMask(canvas)).toBe(String(1 << 4))
-  await page.keyboard.up('x')
+  await page.keyboard.up('c')
   await expect.poll(() => actionMask(canvas)).toBe('0')
 
   const shiftPlayGeneration = Number(await actionGeneration(canvas))
-  await page.keyboard.down('x')
-  await expect.poll(() => actionMask(canvas)).toBe(String(1 << 4))
   await page.keyboard.down('c')
+  await expect.poll(() => actionMask(canvas)).toBe(String(1 << 4))
+  await page.keyboard.down('x')
   await expect.poll(() => actionMask(canvas)).toBe(String((1 << 4) | (1 << 7)))
-  await page.keyboard.up('c')
+  await page.keyboard.up('x')
   await expect.poll(() => actionGeneration(canvas)).toBe(String(shiftPlayGeneration + 3))
   await expect(canvas).toHaveAttribute('data-last-action', '7')
   await expect(canvas).toHaveAttribute('data-action-mask', String(1 << 4))
-  await page.keyboard.up('x')
+  await page.keyboard.up('c')
   await expect.poll(() => actionMask(canvas)).toBe('0')
 
-  await page.keyboard.down('x')
   await page.keyboard.down('c')
+  await page.keyboard.down('x')
   await expect.poll(() => actionMask(canvas)).toBe(String((1 << 4) | (1 << 7)))
   await page.keyboard.down('j')
   await expect.poll(() => actionMask(canvas)).toBe(String((1 << 4) | (1 << 5) | (1 << 7)))
   await page.keyboard.up('j')
   await expect.poll(() => actionMask(canvas)).toBe(String((1 << 4) | (1 << 7)))
-  await page.keyboard.up('c')
-  await expect.poll(() => actionMask(canvas)).toBe(String(1 << 4))
   await page.keyboard.up('x')
+  await expect.poll(() => actionMask(canvas)).toBe(String(1 << 4))
+  await page.keyboard.up('c')
   await expect.poll(() => actionMask(canvas)).toBe('0')
 
-  await page.keyboard.down('c')
-  await expect.poll(() => actionMask(canvas)).toBe(String(1 << 7))
   await page.keyboard.down('x')
-  await expect.poll(() => actionMask(canvas)).toBe(String((1 << 4) | (1 << 7)))
-  await page.keyboard.up('x')
   await expect.poll(() => actionMask(canvas)).toBe(String(1 << 7))
+  await page.keyboard.down('c')
+  await expect.poll(() => actionMask(canvas)).toBe(String((1 << 4) | (1 << 7)))
   await page.keyboard.up('c')
+  await expect.poll(() => actionMask(canvas)).toBe(String(1 << 7))
+  await page.keyboard.up('x')
   await expect.poll(() => actionMask(canvas)).toBe('0')
 })
 
