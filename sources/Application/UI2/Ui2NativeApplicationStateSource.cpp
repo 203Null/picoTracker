@@ -348,7 +348,7 @@ Ui2NativeApplicationStateSource::CapturePhrase(UiPhraseFrameState &state) {
   state.enterDigitFocus = controller.EnterDigitFocus();
   state.adjustmentFocus =
       !state.numberFocus && !state.enterDigitFocus &&
-      controller.Column() == 0U &&
+      controller.Column() <= 1U &&
       (controller.HeldMask() & TrackerActionBit(TrackerAction::Enter)) != 0U;
   state.selectionActive = controller.Selection().active;
   state.selectionNextExpansionAll =

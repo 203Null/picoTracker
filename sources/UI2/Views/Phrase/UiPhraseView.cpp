@@ -254,6 +254,7 @@ void UiPhraseView::RenderDelta(const UiPhraseViewData &previous,
       previous.bottomTrackVisualOverride != current.bottomTrackVisualOverride ||
       previous.bottomTrackInkVisible != current.bottomTrackInkVisible ||
       previous.adjustmentFocus != current.adjustmentFocus ||
+      previous.enterDigitFocus != current.enterDigitFocus ||
       previous.selectionActive != current.selectionActive ||
       previous.selectionNextExpansionAll !=
           current.selectionNextExpansionAll ||
@@ -303,6 +304,8 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
       .fineLabel = "NOTE",
       .coarseLabel = "OCT",
   };
+  const UiAdjustmentLegendModel instrumentAdjustment{.fineStep = 1, .coarseStep = 16};
+  const UiAdjustmentLegendModel parameterAdjustment{.fineLabel = "DIGIT", .coarseLabel = "VALUE"};
   const UiBottomBarModel *cursorContext =
       !data.numberFocus && data.cursorBottom.kind != UiBottomBarKind::Hidden
           ? &data.cursorBottom
@@ -312,12 +315,9 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
       .pageDefault = pageBottom,
       .cursorContext = cursorContext,
       .enterHeldTracks = &editTracks,
-      // FX and parameter cells retain their contextual help while held. Only
-      // Note is a semantic coarse/fine domain (note / octave).
-      .enterHeldAdjustment =
-          data.adjustmentFocus && data.activeHeader == UiPhraseHeader::Note
-              ? &noteAdjustment
-              : nullptr,
+      .enterHeldAdjustment = data.enterDigitFocus ? &parameterAdjustment
+          : data.adjustmentFocus && data.editColumn <= 1U ? (data.editColumn == 0U ? &noteAdjustment : &instrumentAdjustment)
+          : nullptr,
       .selectionActive = data.selectionActive,
       .selectionNextExpansionAll = data.selectionNextExpansionAll,
       .clipboardReady = data.clipboardReady,

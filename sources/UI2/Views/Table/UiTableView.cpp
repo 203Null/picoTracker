@@ -243,6 +243,7 @@ void UiTableView::RenderDelta(const UiTableViewData &previous,
       previous.bottomTrackVisualOverride != current.bottomTrackVisualOverride ||
       previous.bottomTrackInkVisible != current.bottomTrackInkVisible ||
       previous.adjustmentFocus != current.adjustmentFocus ||
+      previous.enterDigitFocus != current.enterDigitFocus ||
       previous.selectionActive != current.selectionActive ||
       previous.selectionNextExpansionAll !=
           current.selectionNextExpansionAll ||
@@ -288,6 +289,7 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
   tracks.trackSelectionRect = data.bottomTrackVisualRect;
   tracks.trackSelectionOverride = data.bottomTrackVisualOverride;
   tracks.trackInkVisible = data.bottomTrackInkVisible;
+  const UiAdjustmentLegendModel parameterAdjustment{.fineLabel = "DIGIT", .coarseLabel = "VALUE"};
   const UiBottomBarModel *cursorContext =
       !data.numberFocus && data.cursorBottom.kind != UiBottomBarKind::Hidden
           ? &data.cursorBottom
@@ -297,9 +299,7 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
       .pageDefault = pageBottom,
       .cursorContext = cursorContext,
       .enterHeldTracks = &tracks,
-      // Table values are command-specific. Their help remains more useful
-      // than a generic +/- legend; digit focus still appears in the cell.
-      .enterHeldAdjustment = nullptr,
+      .enterHeldAdjustment = data.enterDigitFocus ? &parameterAdjustment : nullptr,
       .selectionActive = data.selectionActive,
       .selectionNextExpansionAll = data.selectionNextExpansionAll,
       .clipboardReady = data.clipboardReady,

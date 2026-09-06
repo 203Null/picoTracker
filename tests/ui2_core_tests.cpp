@@ -5212,3 +5212,26 @@ TEST_CASE("FX selector centers its cursor and renders animation frames") {
   ui2::UiFrameRenderer::RenderStatic(scene, expected, palette);
   CHECK(std::equal(surface.Pixels().begin(), surface.Pixels().end(), expected.Pixels().begin()));
 }
+
+TEST_CASE("Held instrument and FX parameter cells show editing legends") {
+  ui2::UiPalette palette;
+  ui2::UiFrameScene scene;
+  ui2::UiPhraseViewData phrase{};
+  phrase.editColumn = 1;
+  phrase.adjustmentFocus = true;
+  REQUIRE(ui2::UiPhraseView::Build(phrase, palette, scene) == ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "1") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "16") != nullptr);
+  phrase.editColumn = 3;
+  phrase.adjustmentFocus = false;
+  phrase.enterDigitFocus = true;
+  REQUIRE(ui2::UiPhraseView::Build(phrase, palette, scene) == ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "DIGIT") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "VALUE") != nullptr);
+  ui2::UiTableViewData table{};
+  table.editColumn = 1;
+  table.enterDigitFocus = true;
+  REQUIRE(ui2::UiTableView::Build(table, palette, scene) == ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "DIGIT") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "VALUE") != nullptr);
+}
