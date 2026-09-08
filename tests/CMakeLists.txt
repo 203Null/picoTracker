@@ -104,7 +104,10 @@ add_executable(picoTracker_tests
   ../sources/Foundation/Variables/VariableContainer.cpp
   ../sources/Foundation/Variables/WatchedVariable.cpp
   ../sources/System/io/Status.cpp
-  ../sources/Externals/TinyXML2/tinyxml2_printer_only.cpp
+  # Host UBSan checks XMLPrinter's visitor methods too. They need the DOM
+  # typeinfo provided by the full library; firmware keeps its printer-only
+  # build without RTTI. Do not disable vptr sanitization to hide missing symbols.
+  ../sources/Externals/TinyXML2/tinyxml2.cpp
   ../sources/Externals/TinyXML2/tinyxml2adapter.cpp
   ../sources/Externals/yxml/yxml.c
   nanoprintf_test.cpp
@@ -518,7 +521,7 @@ add_executable(theme_transaction_tests
   ../sources/Foundation/Variables/Variable.cpp
   ../sources/Foundation/Variables/VariableContainer.cpp
   ../sources/Foundation/Variables/WatchedVariable.cpp
-  ../sources/Externals/TinyXML2/tinyxml2_printer_only.cpp
+  ../sources/Externals/TinyXML2/tinyxml2.cpp
   ../sources/Externals/TinyXML2/tinyxml2adapter.cpp
   ../sources/Externals/yxml/yxml.c
 )
