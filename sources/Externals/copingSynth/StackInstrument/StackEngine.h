@@ -226,7 +226,10 @@ typedef struct stack_voice_t {
     int16_t cents = (cent_offsets[osc] * (int16_t)parameters.spread * 25) / 255;
     uint32_t multiplier = compute_cent_multiplier(cents);
     notes[osc] = note;
-    base_frequency[osc] = uint32_t((uint64_t(noteFrequency(note)) * multiplier) >> 16);
+    // Detune can push a clamped high note past the signed phase-increment
+    // range. Keep it below Nyquist before the pitch envelope multiplies it.
+    base_frequency[osc] = static_cast<int32_t>(std::min<uint64_t>(
+        (uint64_t(noteFrequency(note)) * multiplier) >> 16, INT32_MAX));
     frequency[osc] = base_frequency[osc];
 
     set_oscillator_lut_index(osc, note);

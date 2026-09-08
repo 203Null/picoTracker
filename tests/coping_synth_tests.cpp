@@ -77,6 +77,12 @@ int main() {
     differs |= a != b;
   }
   assert(differs);
+  params.transpose = 24;
+  params.spread = 255;
+  bright.note_on(119, 255, true, params);
+  bright.set_chord(15, 15, 15, 15);
+  for (int oscillator = 0; oscillator < stackNumOscillators; ++oscillator)
+    assert(bright.base_frequency[oscillator] > 0);
   std::cout << "Drum and Stack DSP tests passed; voice bytes: "
             << sizeof(drum_voice_t) << ", " << sizeof(stack_voice_t) << '\n';
 }
