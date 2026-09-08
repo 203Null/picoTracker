@@ -8,6 +8,7 @@
 
 #include "UI2/Render/UiFrameRenderer.h"
 #include "UI2/Render/UiVuGradient.h"
+#include "UI2/Text/UiFont5x7.h"
 
 #include <algorithm>
 #include <array>
@@ -139,8 +140,13 @@ UiBuildStatus UiMixerView::Build(const UiMixerViewData &data,
           UiVuGradient::IndexAt(level));
     }
     const bool selected = data.selectedChannel == channel;
+    if (selected && !data.volumes[channel].empty()) {
+      const auto width = UiFont5x7::TextWidth(data.volumes[channel].size());
+      builder.Selection({static_cast<std::int16_t>(kCenters[channel] - width / 2 - 2),
+                         206, static_cast<std::int16_t>(width + 4), 9});
+    }
     builder.CenteredText(data.volumes[channel], kCenters[channel], 207,
-                         selected ? UiColorToken::TextColored
+                         selected ? UiColorToken::TextHighlighted
                                   : UiColorToken::TextNormal);
     builder.CenteredText(kLabels[channel], kCenters[channel], 224,
                          selected ? UiColorToken::TextColored
