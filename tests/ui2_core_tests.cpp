@@ -3114,7 +3114,7 @@ TEST_CASE("UI2 Instrument exposes fixed cursor targets for fields and OPAL "
         ui2::RectI16{200, 161, 9, 9});
 }
 
-TEST_CASE("UI2 Instrument warning operator headers and approved adjustment "
+TEST_CASE("UI2 Instrument operator headers and approved adjustment "
           "legend stay semantic") {
   ui2::UiPalette palette;
   ui2::UiFrameScene scene;
@@ -3123,11 +3123,7 @@ TEST_CASE("UI2 Instrument warning operator headers and approved adjustment "
       ui2::test::ApprovedInstrumentFixture("sid");
   REQUIRE(ui2::UiInstrumentView::Build(sid, palette, scene) ==
           ui2::UiBuildStatus::Built);
-  const ui2::UiCommand *experimental =
-      FindTextCommand(scene.top.Stream(), "EXPERIMENTAL");
-  REQUIRE(experimental != nullptr);
-  CHECK(experimental->color ==
-        palette.Index(ui2::UiColorToken::SystemWarning));
+  CHECK(FindTextCommand(scene.top.Stream(), "EXPERIMENTAL") == nullptr);
 
   ui2::UiInstrumentViewData op1 =
       ui2::test::ApprovedInstrumentFixture("opal");
@@ -3136,6 +3132,7 @@ TEST_CASE("UI2 Instrument warning operator headers and approved adjustment "
   REQUIRE(ui2::UiInstrumentView::Build(op1, palette, scene) ==
           ui2::UiBuildStatus::Built);
   REQUIRE(FindTextCommand(scene.content.Stream(), "OP 1") != nullptr);
+  CHECK(FindTextCommand(scene.top.Stream(), "EXPERIMENTAL") == nullptr);
   REQUIRE(FindTextCommand(scene.content.Stream(), "OP 2") != nullptr);
   CHECK(FindTextCommand(scene.content.Stream(), "OP 1")->color ==
         palette.Index(ui2::UiColorToken::TextColored));

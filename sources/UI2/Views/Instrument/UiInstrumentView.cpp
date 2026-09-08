@@ -428,13 +428,6 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
       UiChromeRenderer::BuildTop(chrome.top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;
-  if (data.kind == UiInstrumentKind::Sid ||
-      data.kind == UiInstrumentKind::Opal) {
-    UiSceneBuilder<64, 256> topBuilder(scene.top);
-    topBuilder.Text("EXPERIMENTAL", 62, 21, UiColorToken::SystemWarning);
-    if (!topBuilder.Ok())
-      return UiBuildStatus::CommandOverflow;
-  }
   scene.bottomVisible = chrome.bottom.kind != UiBottomBarKind::Hidden;
   const UiBuildStatus bottomStatus =
       UiChromeRenderer::BuildBottom(chrome.bottom, scene.bottom);
