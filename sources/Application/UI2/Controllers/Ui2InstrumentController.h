@@ -105,7 +105,7 @@ public:
       std::uint8_t number = 0, std::uint8_t selectedTrack = 0,
       std::uint8_t fieldCount = 0, std::uint8_t operatorCount = 0,
       Ui2InstrumentCursorPosition cursor = {},
-      Ui2SelectorState typeSelector = {5U, 0U, true},
+      Ui2SelectorState typeSelector = {kUiInstrumentTypeCount, 0U, true},
       std::uint8_t viewportRows = 10,
       std::uint8_t instrumentCount = DefaultInstrumentCount,
       bool instrumentWrap = true)
@@ -539,7 +539,7 @@ private:
 
   Ui2FixedListCursor<MaximumRows> cursor_{};
   Ui2ControllerInputState input_{};
-  Ui2SelectorState typeSelector_{5U, 0U, true};
+  Ui2SelectorState typeSelector_{kUiInstrumentTypeCount, 0U, true};
   std::uint8_t fieldCount_ = 0;
   std::uint8_t operatorCount_ = 0;
   std::uint8_t number_ = 0;

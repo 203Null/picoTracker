@@ -3068,6 +3068,28 @@ TEST_CASE("UI2 Instrument enter mode resolves both independent cursors") {
         palette.Index(ui2::UiColorToken::CursorPrimary));
 }
 
+TEST_CASE("UI2 Drum and Stack render approved fields and contextual bottom bars") {
+  ui2::UiPalette palette;
+  ui2::UiFrameScene scene;
+  auto drum = ui2::test::ApprovedInstrumentFixture("drum");
+  REQUIRE(ui2::UiInstrumentView::Build(drum, palette, scene) == ui2::UiBuildStatus::Built);
+  REQUIRE(scene.bottomVisible);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "PITCH / NOTE / DECAY / WAVE") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "ONE SOUND PER NOTE") != nullptr);
+  auto tail = drum;
+  tail.selectedField = 12;
+  CHECK(ui2::UiInstrumentView::RevealCursor(0, tail) == 0);
+  CheckDeltaMatchesFullFrame(drum, tail, ui2::UiInstrumentView::Build,
+                            ui2::UiInstrumentView::RenderDelta);
+  auto stack = ui2::test::ApprovedInstrumentFixture("stack");
+  REQUIRE(ui2::UiInstrumentView::Build(stack, palette, scene) == ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "SAW") != nullptr);
+  CHECK(FindTextCommand(scene.content.Stream(), "AUTOMATION") != nullptr);
+  stack.cursor = ui2::UiInstrumentCursor::Type;
+  REQUIRE(ui2::UiInstrumentView::Build(stack, palette, scene) == ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "STACK") != nullptr);
+}
+
 TEST_CASE("UI2 Instrument exposes fixed cursor targets for fields and OPAL "
           "operators") {
   ui2::UiInstrumentViewData sample =

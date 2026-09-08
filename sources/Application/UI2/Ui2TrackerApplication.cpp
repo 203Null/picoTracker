@@ -1330,7 +1330,8 @@ void Ui2TrackerApplication::ExecuteInstrument(Ui2InstrumentCommand command) {
                             : instrument->FindVariable(descriptor.primary);
       const bool tableField =
           descriptor.primary == FourCC::SampleInstrumentTable ||
-          descriptor.primary == FourCC::MidiInstrumentTable;
+          descriptor.primary == FourCC::MidiInstrumentTable ||
+          descriptor.primary == FourCC::StackTable;
       if (tableField) {
         TableHolder *tables = TableHolder::GetInstance();
         if (value != nullptr && tables != nullptr &&

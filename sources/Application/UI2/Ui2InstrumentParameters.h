@@ -132,6 +132,82 @@ Parameter(const char *label, FourCC::enum_type primary, std::int16_t minimum,
           .userData = userData};
 }
 
+inline constexpr std::array<Ui2InstrumentParameterDescriptor, 13>
+    kDrumParameters{
+        Parameter("C", FourCC::DrumVoice0, 0, 0xFFFF, 1, 1, 68, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("C#", FourCC::DrumVoice1, 0, 0xFFFF, 1, 1, 78, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("D", FourCC::DrumVoice2, 0, 0xFFFF, 1, 1, 88, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("D#", FourCC::DrumVoice3, 0, 0xFFFF, 1, 1, 98, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("E", FourCC::DrumVoice4, 0, 0xFFFF, 1, 1, 108, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("F", FourCC::DrumVoice5, 0, 0xFFFF, 1, 1, 118, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("F#", FourCC::DrumVoice6, 0, 0xFFFF, 1, 1, 128, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("G", FourCC::DrumVoice7, 0, 0xFFFF, 1, 1, 138, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("G#", FourCC::DrumVoice8, 0, 0xFFFF, 1, 1, 148, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("A", FourCC::DrumVoice9, 0, 0xFFFF, 1, 1, 158, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("A#", FourCC::DrumVoice10, 0, 0xFFFF, 1, 1, 168, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("B", FourCC::DrumVoice11, 0, 0xFFFF, 1, 1, 178, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("CHARACTER", FourCC::DrumCharacter, 0, 255, 1, 16, 192, 2,
+                  Ui2InstrumentValueFormat::Hex),
+    };
+
+inline constexpr std::array<Ui2InstrumentParameterDescriptor, 13>
+    kStackParameters{
+        Parameter("WAVE", FourCC::StackWave, 0, 6, 1, 1, 68, 0,
+                  Ui2InstrumentValueFormat::Choice, true),
+        Parameter("CHORD", FourCC::StackChord, 0, 0xFFFF, 1, 1, 78, 4,
+                  Ui2InstrumentValueFormat::Hex, false, false, true, FourCC::Default, false,
+                  Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("SPREAD", FourCC::StackSpread, 0, 255, 1, 16, 88, 2,
+                  Ui2InstrumentValueFormat::Hex),
+        Parameter("TRANSPOSE", FourCC::StackTranspose, -24, 24, 1, 12, 98, 3,
+                  Ui2InstrumentValueFormat::Decimal),
+        Parameter("VOLUME", FourCC::StackVolume, 0, 255, 1, 16, 108, 2,
+                  Ui2InstrumentValueFormat::Hex),
+        Parameter("BRIGHTNESS", FourCC::StackBrightness, 0, 12, 1, 1, 118, 2,
+                  Ui2InstrumentValueFormat::Decimal),
+        Parameter("PITCH DECAY", FourCC::StackGlide, 0, 255, 1, 16, 128, 2,
+                  Ui2InstrumentValueFormat::Hex),
+        Parameter("ATTACK", FourCC::StackAttack, 0, 255, 1, 16, 138, 2,
+                  Ui2InstrumentValueFormat::Hex),
+        Parameter("DECAY", FourCC::StackDecay, 0, 255, 1, 16, 148, 2,
+                  Ui2InstrumentValueFormat::Hex),
+        Parameter("SUSTAIN", FourCC::StackSustain, 0, 255, 1, 16, 158, 2,
+                  Ui2InstrumentValueFormat::Hex),
+        Parameter("RELEASE", FourCC::StackRelease, 0, 255, 1, 16, 168, 2,
+                  Ui2InstrumentValueFormat::Hex),
+        Parameter("TABLE", FourCC::StackTable, 0, TABLE_COUNT - 1, 1, 16, 178, 2,
+                  Ui2InstrumentValueFormat::OffHex, false, true),
+        Parameter("AUTOMATION", FourCC::StackTableAuto, 0, 1, 1, 1, 188, 0,
+                  Ui2InstrumentValueFormat::Boolean),
+    };
+static_assert(kDrumParameters.size() <= kUiInstrumentMaximumFields);
+static_assert(kStackParameters.size() <= kUiInstrumentMaximumFields);
+static_assert(IT_LAST == kUiInstrumentTypeCount);
+
 inline constexpr std::array<Ui2InstrumentParameterDescriptor, 19>
     kSampleParameters{
         Parameter("SAMPLE", FourCC::SampleInstrumentSample, 0, 0, 1, 1, 66,
@@ -343,6 +419,10 @@ Ui2InstrumentFieldCount(InstrumentType type) {
     return detail::kSidParameters.size();
   case IT_OPAL:
     return detail::kOpalParameters.size();
+  case IT_DRUM:
+    return detail::kDrumParameters.size();
+  case IT_STACK:
+    return detail::kStackParameters.size();
   case IT_NONE:
   case IT_LAST:
     return 0U;
@@ -383,6 +463,14 @@ Ui2InstrumentFieldParameter(InstrumentType type, std::uint8_t index,
   case IT_OPAL:
     if (index < detail::kOpalParameters.size())
       descriptor = detail::kOpalParameters[index];
+    break;
+  case IT_DRUM:
+    if (index < detail::kDrumParameters.size())
+      descriptor = detail::kDrumParameters[index];
+    break;
+  case IT_STACK:
+    if (index < detail::kStackParameters.size())
+      descriptor = detail::kStackParameters[index];
     break;
   case IT_NONE:
   case IT_LAST:

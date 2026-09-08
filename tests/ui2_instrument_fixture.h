@@ -21,6 +21,36 @@ inline UiInstrumentViewData ApprovedInstrumentFixture(std::string_view state) {
     data.name = "--";
     return data;
   }
+  if (state == "drum" || state == "stack") {
+    data.cursor = UiInstrumentCursor::Field;
+    data.fieldCount = 13;
+    if (state == "drum") {
+      data.kind = UiInstrumentKind::Drum;
+      data.name = "DRUM KIT";
+      constexpr std::array<std::string_view, 12> notes{
+          "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+      constexpr std::array<std::string_view, 12> values{
+          "4562", "0845", "0464", "4F95", "2B64", "1452",
+          "0F37", "1652", "0944", "1852", "0B6F", "1F84"};
+      for (int i = 0; i < 12; ++i)
+        data.fields[i] = {notes[i], values[i], static_cast<std::int16_t>(68 + i * 10)};
+      data.fields[12] = {"CHARACTER", "00", 192};
+      data.fieldBottom = UiInstrumentFieldBottom::Adjustment;
+    } else {
+      data.kind = UiInstrumentKind::Stack;
+      data.name = "STACK LEAD";
+      data.fields = {{{"WAVE", "SAW", 68}, {"CHORD", "047C", 78},
+          {"SPREAD", "00", 88}, {"TRANSPOSE", "0", 98}, {"VOLUME", "80", 108},
+          {"BRIGHTNESS", "12", 118}, {"PITCH DECAY", "00", 128},
+          {"ATTACK", "00", 138}, {"DECAY", "00", 148}, {"SUSTAIN", "FF", 158},
+          {"RELEASE", "00", 168}, {"TABLE", "--", 178}, {"AUTOMATION", "NO", 188}}};
+      data.fieldBottom = UiInstrumentFieldBottom::Selector;
+      data.fieldOptions = UiInstrumentFieldOptions::StackWave;
+      data.fieldOptionCurrent = 3;
+      data.fieldOptionWrap = true;
+    }
+    return data;
+  }
   if (state == "midi") {
     data.kind = UiInstrumentKind::Midi;
     data.name = "LEAD";

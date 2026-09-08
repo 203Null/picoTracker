@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
   const std::string_view state = argv[1];
   if (state != "none" && state != "name" && state != "number" &&
       state != "sample" && state != "midi" && state != "sid" &&
-      state != "opal") {
+      state != "opal" && state != "drum" && state != "stack") {
     return 3;
   }
   ui2::UiPalette palette;

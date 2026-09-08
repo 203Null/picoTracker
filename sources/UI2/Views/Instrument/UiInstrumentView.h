@@ -19,7 +19,7 @@
 
 namespace ui2 {
 
-enum class UiInstrumentKind : std::uint8_t { None, Sample, Midi, Sid, Opal };
+enum class UiInstrumentKind : std::uint8_t { None, Sample, Midi, Sid, Opal, Drum, Stack };
 enum class UiInstrumentCursor : std::uint8_t {
   None,
   Name,
@@ -47,6 +47,7 @@ enum class UiInstrumentFieldOptions : std::uint8_t {
   OpalAlgorithm,
   OpalWave,
   OpalKeyscale,
+  StackWave,
 };
 
 struct UiInstrumentField {

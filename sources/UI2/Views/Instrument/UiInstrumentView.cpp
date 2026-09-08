@@ -16,8 +16,10 @@
 namespace ui2 {
 namespace {
 
-constexpr std::array<std::string_view, 5> kTypeOptions{"NONE", "SAMPLE", "MIDI",
-                                                       "SID", "OPAL"};
+constexpr std::array<std::string_view, kUiInstrumentTypeCount> kTypeOptions{
+    "NONE", "SAMPLE", "MIDI", "SID", "OPAL", "DRUM", "STACK"};
+constexpr std::array<std::string_view, 7> kStackWaveOptions{
+    "PULSE 12.5", "PULSE 25", "PULSE 50", "SAW", "TRIANGLE", "ORGAN", "VOX"};
 constexpr std::array<std::string_view, 2> kBooleanOptions{"NO", "YES"};
 constexpr std::array<std::string_view, 5> kSampleLoopOptions{
     "ONE SHOT", "FORWARD", "PING PONG", "OSCILLATOR", "LOOP SYNC"};
@@ -57,6 +59,8 @@ OptionsFor(UiInstrumentFieldOptions options) {
     return kOpalWaveOptions;
   case UiInstrumentFieldOptions::OpalKeyscale:
     return kOpalKeyscaleOptions;
+  case UiInstrumentFieldOptions::StackWave:
+    return kStackWaveOptions;
   case UiInstrumentFieldOptions::None:
     return {};
   }
@@ -155,6 +159,8 @@ bool SelectedSubfield(const UiInstrumentViewData &data,
 
 bool BottomVisible(const UiInstrumentViewData &data) {
   return data.numberFocus || data.adjustmentFocus ||
+         (data.kind == UiInstrumentKind::Drum &&
+          data.cursor == UiInstrumentCursor::Field && data.selectedField < 12U) ||
          data.cursor == UiInstrumentCursor::Name ||
          data.cursor == UiInstrumentCursor::Type ||
          data.fieldBottom != UiInstrumentFieldBottom::Hidden;
@@ -356,6 +362,19 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     bottom.selector.options = kTypeOptions;
     bottom.selector.current = static_cast<std::uint8_t>(data.kind);
     bottom.selector.wrap = true;
+  } else if (data.kind == UiInstrumentKind::Drum &&
+             data.cursor == UiInstrumentCursor::Field && data.selectedField < 12U) {
+    bottom.kind = UiBottomBarKind::Context;
+    constexpr std::string_view legend = "PITCH / NOTE / DECAY / WAVE";
+    constexpr std::string_view hint = "ONE SOUND PER NOTE";
+    bottom.context.firstLine[0] = {
+        legend, UiColorToken::TextColored,
+        static_cast<std::int16_t>((240 - UiFont5x7::TextWidth(legend.size())) / 2)};
+    bottom.context.secondLine[0] = {
+        hint, UiColorToken::TextNormal,
+        static_cast<std::int16_t>((240 - UiFont5x7::TextWidth(hint.size())) / 2)};
+    bottom.context.firstLineCount = 1;
+    bottom.context.secondLineCount = 1;
   } else if (data.fieldBottom == UiInstrumentFieldBottom::Open) {
     bottom.kind = UiBottomBarKind::Actions;
     bottom.actions.actions = {"OPEN", {}, {}, {}};
