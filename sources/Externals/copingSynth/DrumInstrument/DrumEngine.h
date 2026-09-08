@@ -8,10 +8,10 @@
 
 #pragma once
 
-#include "Application/Utils/fixed.h"
+#include "Foundation/Types/Fixed.h"
 #include <cstdint>
 
-#include "System/Console/Trace.h"
+#include <algorithm>
 
 #include "../ChiptuneInstrument/ChiptuneTables.h"
 #include "DrumEnums.h"
@@ -56,7 +56,7 @@ static_assert(sizeof(drum_parameters_t) == 4, "Check sizeof(drum_parameters_t) i
 
 // (!) alignment has to be manually kept in this struct to allow using pack()
 //     to keep the size as small as possible
-#pragma pack(push, 1)
+
 typedef struct drum_voice_t {
   drum_parameters_t parameters; // parameters passed from instrument
 
@@ -70,7 +70,7 @@ typedef struct drum_voice_t {
   uint8_t bitcrush; // bitcrush setting (only settable via command)
 
   uint8_t note;          // current base note
-  drum_wave_type_e wave; // selected waveform
+  drum_wave_type_e wave = drumWaveNone; // selected waveform
 
   uint16_t lfsr = 17; // shift register for the noise generators
 
@@ -99,6 +99,9 @@ typedef struct drum_voice_t {
   }
 
   inline void stop() {
+    wave = drumWaveNone;
+    envelope.state = drumEnvIdle;
+    level = 0;
     frequency = 0;
     phase = 0;
   }
@@ -108,13 +111,14 @@ typedef struct drum_voice_t {
 
     // volume
     envelope.tick();
+    if (envelope.state == drumEnvIdle) { stop(); return; }
 
     // recompute combined gain when envelope, pan or volume changes
     level = (volume * envelope.value) >> 16;
 
     // pitch
     pitch.tick();
-    frequency = (uint32_t)((uint64_t)base_frequency * pitch.value) >> 16;
+    frequency = uint32_t((uint64_t(base_frequency) * pitch.value) >> 16);
   }
 
   inline void tick_1000Hz() {
@@ -136,6 +140,7 @@ typedef struct drum_voice_t {
   }
 
   inline void sample(fixed *left, fixed *right) {
+    if (wave == drumWaveNone) { *left = *right = 0; return; }
     // precompute the gain, it doesn't need to be updated every sample
 
     // cold loop @ 100 Hz ------------------------------------------------------
@@ -215,14 +220,11 @@ typedef struct drum_voice_t {
     }
 
     // apply panning
-    *left = sample;
-    *right = sample;
+    *left = *right = int32_t(sample) - int32_t((HALF_SAMPLE_LEVEL >> 8) * level);
   }
 
   inline void note_on(unsigned char note, uint8_t inVolume, bool retrigger, const drum_parameters_t inParameters,
                       bool keepClocks = false) {
-    Trace::Log("Note On", "%d: %d %d %d %d", note % 12, inParameters.wave, inParameters.decay, inParameters.pitch,
-               inParameters.note);
     // bool retrigger is currently unused
     parameters = inParameters;
 
@@ -234,7 +236,7 @@ typedef struct drum_voice_t {
 
     // oscillator frequency setup
     int fIndex = 64 + 3 * parameters.note; // 64..109
-    base_frequency = frequencyLUT[fIndex];
+    base_frequency = noteFrequency(fIndex - 12); // Preserve upstream drum tuning.
     frequency = base_frequency;
     wave = (drum_wave_type_e)(parameters.wave % drumNumWaveforms);
 
@@ -264,6 +266,7 @@ typedef struct drum_voice_t {
     pitch.set_rate(parameters.pitch << 4);
     pitch.trigger();
 
+    glitch_trigger_delay = 0;
     // glitch/character settings
     if (parameters.character) {
       // delay
@@ -287,7 +290,7 @@ typedef struct drum_voice_t {
   // while keeping the implementation fast enough for 8 voices on rp2040
   inline uint32_t pulse(bool high) {
     int32_t target = high ? SAMPLE_LEVEL : 0;
-    int32_t step = frequency + 0x1FFF'FFFF; // 0.125 + phase increment
+    int32_t step = int32_t(std::min<int64_t>(INT32_MAX, int64_t(frequency) + 0x1FFF'FFFF)); // 0.125 + phase increment
     int32_t diff = std::clamp(target - (int32_t)lastSample, -step, step);
     return (lastSample = (lastSample + diff));
   }
@@ -315,7 +318,7 @@ typedef struct drum_voice_t {
    ****************************************************************************/
 
   void set_instrument_parameter(uint8_t param, uint8_t value) {
-    Trace::Error("Set parameter %d to %d", param, value);
+    
     switch (param) {
       default:
         // invalid parameter index, ignore for now
@@ -327,10 +330,3 @@ typedef struct drum_voice_t {
     volume = inVolume;
   }
 } drum_voice_t;
-#pragma pack(pop)
-
-// 128 bytes per voice max to keep the entire thing under 1kB for the 8 voices,
-// also struct needs to be aligned to 4 bytes to prevent unaligned access
-static_assert(sizeof(drum_voice_t) <= 128, "Check sizeof(drum_voice_t) in error message");
-static_assert((sizeof(drum_voice_t) % 4) == 0, "drum_voice_t size must be multiple of 4");
-

@@ -98,7 +98,7 @@ consteval int32_t calculateFrequency(int midiNote) {
 
   // Clamp to int32 range to prevent overflow
   if (phaseIncrement > 2147483647.0)
-    phaseIncrement = 2147483647.0;
+    return INT32_MAX;
   if (phaseIncrement < -2147483648.0)
     phaseIncrement = -2147483648.0;
 
@@ -172,4 +172,3 @@ consteval int8_t calculate_sine64_lut(int index) {
 template <size_t... Is> consteval auto gen_sine64_lut(std::index_sequence<Is...>) {
   return std::array<int8_t, sizeof...(Is)>{calculate_sine64_lut(Is)...};
 }
-

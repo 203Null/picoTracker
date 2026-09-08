@@ -8,11 +8,12 @@
 
 #pragma once
 
-#include "Application/Instruments/ChiptuneInstrument/ChiptuneMath.h"
-#include "Application/Instruments/ChiptuneInstrument/ChiptuneTables.h"
+#include "../ChiptuneInstrument/ChiptuneMath.h"
+#include "../ChiptuneInstrument/ChiptuneTables.h"
 #include "DrumEnums.h"
+#include <algorithm>
 
-#pragma pack(push, 1)
+
 typedef struct drum_envelope_t {
   uint16_t value;
   uint16_t decay;
@@ -32,8 +33,7 @@ typedef struct drum_envelope_t {
     if (state == drumEnvIdle)
       return;
 
-    int32_t diff = -value;
-    int32_t tmp = value + ((diff * decay) >> 16);
+    int32_t tmp = value - std::max<uint32_t>(1, (uint32_t(value) * decay) >> 16);
 
     if (tmp <= drumEnvDecayThreshold) {
       tmp = 0;
@@ -43,4 +43,3 @@ typedef struct drum_envelope_t {
     value = tmp;
   }
 } drum_envelope_t;
-#pragma pack(pop)

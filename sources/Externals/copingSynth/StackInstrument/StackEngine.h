@@ -8,12 +8,12 @@
 
 #pragma once
 
-#include "Application/Instruments/EnvelopeGenerators.h"
-#include "Application/Utils/fixed.h"
+#include "../EnvelopeGenerators.h"
+#include "Foundation/Types/Fixed.h"
 #include "StackWavetables.generated.h"
 #include <cstdint>
 
-#include "System/Console/Trace.h"
+#include <algorithm>
 
 #include "../ChiptuneInstrument/ChiptuneTables.h"
 #include "StackEnums.h"
@@ -62,7 +62,7 @@ typedef struct stack_pitch_envelope_t {
 
 // (!) alignment has to be manually kept in this struct to allow using pack()
 //     to keep the size as small as possible
-#pragma pack(push, 1)
+
 typedef struct stack_voice_t {
   stack_parameters_t parameters; // parameters passed from instrument (10 bytes)
 
@@ -77,7 +77,7 @@ typedef struct stack_voice_t {
   uint8_t volume;
   uint8_t level;
   uint8_t note;           // current base note
-  stack_wave_type_e wave; // selected waveform
+  stack_wave_type_e wave = stackWaveNone; // selected waveform
 
   adsr_envelope_t envelope; // volume envelope, size is 9 bytes
   uint8_t tock;             // sample counter for 1000Hz updates
@@ -89,7 +89,7 @@ typedef struct stack_voice_t {
   stack_pitch_envelope_t pitch[5]; // pitch envelopes (8 bytes)
 
   stack_flags flags;
-  uint8_t notes[5];
+  int16_t notes[5];
 
   // implementation ------------------------------------------------------------
 
@@ -113,6 +113,9 @@ typedef struct stack_voice_t {
   }
 
   inline void stop() {
+    wave = stackWaveNone;
+    level = 0;
+    envelope.state = adsrIdle;
     for (int o = 0; o < stackNumOscillators; o++) {
       frequency[o] = 0;
       phase[o] = 0;
@@ -123,15 +126,15 @@ typedef struct stack_voice_t {
     // processing at ~100Hz
 
     // volume
-    envelope.tick(); // TODO POD: handle output value to know when to kill the note on NOTE_OFF -> release ringing out
+    if (envelope.tick()) { stop(); return; }
 
     // recompute combined gain when envelope, pan or volume changes
-    level = (parameters.volume * volume * envelope.value) >> 24;
+    level = (uint32_t(parameters.volume) * volume * envelope.value) >> 24;
 
     // pitch
     for (int o = 0; o < stackNumOscillators; o++) {
       int32_t value = pitch[o].tick();
-      frequency[o] = (uint32_t)((uint64_t)base_frequency[o] * value) >> 16;
+      frequency[o] = uint32_t((uint64_t(base_frequency[o]) * value) >> 16);
     }
   }
 
@@ -154,6 +157,7 @@ typedef struct stack_voice_t {
   }
 
   inline void sample(fixed *left, fixed *right) {
+    if (wave == stackWaveNone) { *left = *right = 0; return; }
     // precompute the gain, it doesn't need to be updated every sample
 
     // cold loop @ 100 Hz ------------------------------------------------------
@@ -184,7 +188,7 @@ typedef struct stack_voice_t {
     if (wave != stackWaveNone) {
       for (int o = 0; o < stackNumOscillators; o++) {
          // render wavetable
-         sample += (StackWavetables::stack_wavetables[wave][0][phase[o] >> 21]);
+         sample += (StackWavetables::stack_wavetables[wave][lut_index[o]][phase[o] >> 21]);
       }
     }
 
@@ -193,7 +197,7 @@ typedef struct stack_voice_t {
     sample *= level;
 
     // breng it up to 29 bits
-    sample <<= 3;
+    sample *= 8;
 
     // apply bitcrush
     if (bitcrush) {
@@ -222,13 +226,13 @@ typedef struct stack_voice_t {
     int16_t cents = (cent_offsets[osc] * (int16_t)parameters.spread * 25) / 255;
     uint32_t multiplier = compute_cent_multiplier(cents);
     notes[osc] = note;
-    base_frequency[osc] = (uint32_t)((uint64_t)frequencyLUT[note] * multiplier) >> 16;
+    base_frequency[osc] = uint32_t((uint64_t(noteFrequency(note)) * multiplier) >> 16);
     frequency[osc] = base_frequency[osc];
 
     set_oscillator_lut_index(osc, note);
   }
 
-  inline void set_oscillator_lut_index(int osc, uint8_t note) {
+  inline void set_oscillator_lut_index(int osc, int note) {
     // note must be within fLUT_MinNote..fLUT_MaxNote
     constexpr uint8_t noteRange = fLUT_MaxNote - fLUT_MinNote;
     const uint8_t notePos = note - fLUT_MinNote;
@@ -236,17 +240,18 @@ typedef struct stack_voice_t {
     const uint8_t brightness = parameters.brightness;
 
     // map the note to its LUT using brightness as a scale
-    if (brightness <= 7) {
-      lut_index[osc] = (mapped * brightness) / 7;
-    } else {
-      lut_index[osc] = mapped + ((6 - mapped) * (brightness - 7)) / 5;
-    }
+    // Increasing brightness admits more harmonics. Keep the note-dependent
+    // minimum mip level so high notes do not select the richest table.
+    lut_index[osc] = 6 - ((6 - mapped) * brightness) / 12;
   }
 
   inline void note_on(unsigned char note, uint8_t inVolume, bool retrigger, const stack_parameters_t inParameters,
                       bool keepClocks = false) {
     // bool retrigger is currently unused
     parameters = inParameters;
+    parameters.wave = std::min<uint8_t>(parameters.wave, stackWaveLastItem);
+    parameters.brightness = std::min<uint8_t>(parameters.brightness, 12);
+    const bool reset = retrigger || envelope.state == adsrIdle;
 
     // store volume
     volume = inVolume;
@@ -262,7 +267,7 @@ typedef struct stack_voice_t {
       set_oscillator_note(o, note + parameters.transpose);
 
       // reset oscillator phase
-      phase[o] = 0;
+      if (reset) phase[o] = 0;
     }
     wave = (stack_wave_type_e)parameters.wave;
 
@@ -281,11 +286,11 @@ typedef struct stack_voice_t {
     envelope.set_decay(parameters.decay);
     envelope.set_sustain(parameters.sustain);
     envelope.set_release(parameters.release);
-    envelope.trigger();
+    if (reset) envelope.trigger();
 
     // reset pitch envelope
     for (int o = 0; o < stackNumOscillators; o++) {
-      pitch[o].set_rate(parameters.glide << 4);
+      pitch[o].set_rate(parameters.glide);
       pitch[o].trigger();
     }
   }
@@ -295,7 +300,7 @@ typedef struct stack_voice_t {
    ****************************************************************************/
 
   void set_instrument_parameter(uint8_t param, uint8_t value) {
-    Trace::Error("Set parameter %d to %d", param, value);
+    
     switch (param) {
       case 0: // wave
         wave = (stack_wave_type_e)((value <= (int)stackWaveLastItem) ? value : (int)stackWaveLastItem);
@@ -325,7 +330,7 @@ typedef struct stack_voice_t {
         }
         break;
       case 8: // brightness
-        parameters.brightness = value;
+        parameters.brightness = std::min<uint8_t>(value, 12);
         for (int o = 0; o < stackNumOscillators; o++) {
           set_oscillator_lut_index(o, notes[o]);
         }
@@ -333,7 +338,7 @@ typedef struct stack_voice_t {
       case 9: // glide
         parameters.glide = value;
         for (int o = 0; o < stackNumOscillators; o++) {
-          pitch[o].set_rate(value << 4);
+          pitch[o].set_rate(value);
         }
         break;
       default:
@@ -355,10 +360,3 @@ typedef struct stack_voice_t {
     set_oscillator_note(4, baseNote + d);
   }
 } stack_voice_t;
-#pragma pack(pop)
-
-// 128 bytes per voice max to keep the entire thing under 1kB for the 8 voices,
-// also struct needs to be aligned to 4 bytes to prevent unaligned access
-static_assert(sizeof(stack_voice_t) <= 152, "Check sizeof(stack_voice_t) in error message");
-static_assert((sizeof(stack_voice_t) % 4) == 0, "stack_voice_t size must be multiple of 4");
-

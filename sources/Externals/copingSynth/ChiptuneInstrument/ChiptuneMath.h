@@ -22,7 +22,7 @@ static inline uint16_t interpolateU16(const uint16_t *lut, uint8_t v) {
   uint16_t c0 = lut[idx];
   uint16_t c1 = lut[idx + 1]; // safe because of sentinel
 
-  return c0 + (((uint32_t)(c1 - c0) * frac) >> 2);
+  return c0 + (((int32_t)(c1 - c0) * frac) >> 2);
 }
 
 static inline int8_t interpolateS8(const int8_t *lut, uint8_t v) {

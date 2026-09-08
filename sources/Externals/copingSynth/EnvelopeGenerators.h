@@ -9,8 +9,10 @@
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
 
-#include "ChiptuneInstrument/ChiptuneEnums.h"
+inline constexpr int envAttackThreshold = 65530;
+inline constexpr int envDecayThreshold = 10;
 #include "ChiptuneInstrument/ChiptuneMath.h"
 #include "ChiptuneInstrument/ChiptuneTables.h"
 
@@ -80,7 +82,7 @@ typedef struct adsr_envelope_t {
 
       case adsrDecay:
         diff = value; // decay from 0xFFFF down to sustain level
-        tmp = value - ((diff * coefficient) >> 16);
+        tmp = value - std::max<uint32_t>(1, (diff * coefficient) >> 16);
         if (tmp <= sustain) {
           tmp = sustain;
           state = adsrSustain;
@@ -108,4 +110,3 @@ typedef struct adsr_envelope_t {
     return (value == 0 && state == adsrIdle);
   }
 } adsr_envelope_t;
-

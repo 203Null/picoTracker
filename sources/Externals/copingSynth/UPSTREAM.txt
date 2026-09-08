@@ -1,0 +1,14 @@
+Source: https://github.com/n1LS/copingTracker
+Revision: cdedc35385 (main inspected 2026-09-08)
+License: BSD-3-Clause; see LICENSE and source copyright headers.
+
+Imported Drum and Stack DSP, envelope helpers, lookup-table generators and
+tools/copingSynth/generate_wavetables.py. No audio samples or GM bank included.
+
+NullPerator adaptations: native fixed-point include; natural voice alignment;
+correct frequency multiply/shift and signed lookup addressing; terminating
+envelopes; explicit idle silence; bipolar drum output; functioning brightness
+mip selection; retrigger handling; removal of logging from the audio path.
+
+Wave tables: regenerate with
+python3 tools/copingSynth/generate_wavetables.py sources/Externals/copingSynth/StackInstrument/StackWavetables.generated.h

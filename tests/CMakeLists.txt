@@ -13,6 +13,10 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../sources/Externals/etl/include)
 
+add_executable(coping_synth_tests coping_synth_tests.cpp)
+target_include_directories(coping_synth_tests PRIVATE ../sources)
+add_test(NAME coping_synth_tests COMMAND coping_synth_tests)
+
 add_executable(picoTracker_tests
   test_main.cpp
   command_list_tests.cpp
