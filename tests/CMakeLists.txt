@@ -35,6 +35,7 @@ add_executable(picoTracker_tests
   midi_message_encoding_tests.cpp
   midi_note_tracker_tests.cpp
   node_path_resolver_tests.cpp
+  node_usb_include_path_tests.cpp
   project_defaults_tests.cpp
   sample_pool_loading_tests.cpp
   sampler_render_tests.cpp

@@ -50,7 +50,11 @@ extern "C" {
 #endif
 
 #if TUP_MCU_ESPRESSIF
-#define CFG_TUSB_OS_INC_PATH freertos /
+// TinyUSB stringifies this token sequence into an include path. Whitespace
+// before the slash changes the filename, so it must not be reformatted.
+// clang-format off
+#define CFG_TUSB_OS_INC_PATH freertos/
+// clang-format on
 #endif
 
 // CFG_TUSB_DEBUG is defined by compiler in DEBUG build
