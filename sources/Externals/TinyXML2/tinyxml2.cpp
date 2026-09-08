@@ -102,27 +102,11 @@ distribution.
 	#define TIXML_SSCANF   sscanf
 #endif
 
-#if defined(_WIN64)
-	#define TIXML_FSEEK _fseeki64
-	#define TIXML_FTELL _ftelli64
-#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__) || (__CYGWIN__)
-	#define TIXML_FSEEK fseeko
-	#define TIXML_FTELL ftello
-#elif defined(__ANDROID__) 
-    #if __ANDROID_API__ > 24
-        #define TIXML_FSEEK fseeko64
-        #define TIXML_FTELL ftello64
-    #else
-        #define TIXML_FSEEK fseeko
-        #define TIXML_FTELL ftello
-    #endif
-#elif defined(__unix__) && defined(__x86_64__)
-	#define TIXML_FSEEK fseeko64
-	#define TIXML_FTELL ftello64
-#else
-	#define TIXML_FSEEK fseek
-	#define TIXML_FTELL ftell
-#endif
+// NullPerator adapts FILE to I_File on every platform. Native stdio seek/tell
+// variants (notably Linux fseeko64/ftello64) cannot accept that object. Call
+// the adapter directly rather than relying on platform-specific macro aliases.
+#define TIXML_FSEEK(file, offset, origin) ((file)->Seek((offset), (origin)))
+#define TIXML_FTELL(file) ((file)->Tell())
 
 
 static const char LINE_FEED				= static_cast<char>(0x0a);			// all line endings are normalized to LF
