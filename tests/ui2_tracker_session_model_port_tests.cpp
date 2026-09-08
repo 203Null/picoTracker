@@ -264,7 +264,8 @@ TEST_CASE("UI2 Song controller jumps through the model port between sections") {
   CHECK(executor.ActiveState().rowOffset + executor.ActiveState().row == 0U);
 }
 
-TEST_CASE("UI2 Song JumpSection keeps the cursor when no target section exists") {
+TEST_CASE(
+    "UI2 Song JumpSection keeps the cursor when no target section exists") {
   struct NoTargetCase {
     bool populateEveryRow;
     TrackerAction direction;
@@ -340,15 +341,14 @@ TEST_CASE("UI2 atomic cell cut captures Song and Chain last values") {
     constexpr std::uint8_t track = 2U;
     song.data_[sourceRow * SONG_CHANNEL_COUNT + track] = 0x23U;
 
-    port.ApplyGridCommand(
-        GridCommand(Ui2TrackerCommandType::CutCell, Ui2TrackerPage::Song,
-                    sourceRow, track));
+    port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::CutCell,
+                                      Ui2TrackerPage::Song, sourceRow, track));
     CHECK(song.data_[sourceRow * SONG_CHANNEL_COUNT + track] == 0xFFU);
     CHECK(port.ProjectMutationGeneration() == 1U);
 
-    port.ApplyGridCommand(
-        GridCommand(Ui2TrackerCommandType::PasteLast, Ui2TrackerPage::Song,
-                    destinationRow, track));
+    port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::PasteLast,
+                                      Ui2TrackerPage::Song, destinationRow,
+                                      track));
     CHECK(song.data_[destinationRow * SONG_CHANNEL_COUNT + track] == 0x23U);
     CHECK(port.ProjectMutationGeneration() == 2U);
   }
@@ -361,8 +361,8 @@ TEST_CASE("UI2 atomic cell cut captures Song and Chain last values") {
     constexpr int base = 3 * PHRASES_PER_CHAIN;
     song.chain_.data_[base + 5] = 0x31U;
 
-    port.ApplyGridCommand(
-        GridCommand(Ui2TrackerCommandType::CutCell, Ui2TrackerPage::Chain, 5, 0));
+    port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::CutCell,
+                                      Ui2TrackerPage::Chain, 5, 0));
     CHECK(song.chain_.data_[base + 5] == 0xFFU);
     CHECK(port.ProjectMutationGeneration() == 1U);
 
@@ -384,8 +384,8 @@ TEST_CASE("UI2 atomic cell cut captures Song and Chain last values") {
     song.chain_.transpose_[base + 5] = transpose;
     song.chain_.data_[base + 6] = 0x22U;
 
-    port.ApplyGridCommand(
-        GridCommand(Ui2TrackerCommandType::CutCell, Ui2TrackerPage::Chain, 5, 1));
+    port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::CutCell,
+                                      Ui2TrackerPage::Chain, 5, 1));
     CHECK(song.chain_.data_[base + 5] == 0x21U);
     CHECK(song.chain_.transpose_[base + 5] == 0U);
     CHECK(port.ProjectMutationGeneration() == 1U);
@@ -409,8 +409,8 @@ TEST_CASE("UI2 atomic Phrase cell cut captures each last-value kind") {
 
   phrase.note_[base + 1] = 64U;
   phrase.instr_[base + 1] = 7U;
-  port.ApplyGridCommand(
-      GridCommand(Ui2TrackerCommandType::CutCell, Ui2TrackerPage::Phrase, 1, 0));
+  port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::CutCell,
+                                    Ui2TrackerPage::Phrase, 1, 0));
   CHECK(phrase.note_[base + 1] == NO_NOTE);
   CHECK(phrase.instr_[base + 1] == 0xFFU);
   port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::PasteLast,
@@ -420,8 +420,8 @@ TEST_CASE("UI2 atomic Phrase cell cut captures each last-value kind") {
 
   phrase.note_[base + 3] = 70U;
   phrase.instr_[base + 3] = 9U;
-  port.ApplyGridCommand(
-      GridCommand(Ui2TrackerCommandType::CutCell, Ui2TrackerPage::Phrase, 3, 1));
+  port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::CutCell,
+                                    Ui2TrackerPage::Phrase, 3, 1));
   CHECK(phrase.note_[base + 3] == 70U);
   CHECK(phrase.instr_[base + 3] == 0xFFU);
   port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::PasteLast,
@@ -430,8 +430,8 @@ TEST_CASE("UI2 atomic Phrase cell cut captures each last-value kind") {
 
   phrase.cmd1_[base + 5] = FourCC::InstrumentCommandVolume;
   phrase.param1_[base + 5] = 0x55U;
-  port.ApplyGridCommand(
-      GridCommand(Ui2TrackerCommandType::CutCell, Ui2TrackerPage::Phrase, 5, 2));
+  port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::CutCell,
+                                    Ui2TrackerPage::Phrase, 5, 2));
   CHECK(phrase.cmd1_[base + 5] == FourCC::InstrumentCommandNone);
   CHECK(phrase.param1_[base + 5] == 0U);
   port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::PasteLast,
@@ -442,8 +442,8 @@ TEST_CASE("UI2 atomic Phrase cell cut captures each last-value kind") {
   phrase.cmd1_[base + 7] = FourCC::InstrumentCommandTable;
   phrase.param1_[base + 7] = 7U;
   phrase.cmd1_[base + 8] = FourCC::InstrumentCommandTable;
-  port.ApplyGridCommand(
-      GridCommand(Ui2TrackerCommandType::CutCell, Ui2TrackerPage::Phrase, 7, 3));
+  port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::CutCell,
+                                    Ui2TrackerPage::Phrase, 7, 3));
   CHECK(phrase.cmd1_[base + 7] == FourCC::InstrumentCommandTable);
   CHECK(phrase.param1_[base + 7] == 0U);
   port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::PasteLast,
@@ -523,14 +523,40 @@ TEST_CASE("UI2 atomic cell cut preserves empty and invalid storage") {
 
   session.EditorState().currentPhrase_ = 0;
   song.phrase_.instr_[0] = 8U;
-  port.ApplyGridCommand(
-      GridCommand(Ui2TrackerCommandType::CutCell, Ui2TrackerPage::Phrase, 0, 0));
+  port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::CutCell,
+                                    Ui2TrackerPage::Phrase, 0, 0));
   CHECK(song.phrase_.note_[0] == NOTE_OFF);
   CHECK(song.phrase_.instr_[0] == 8U);
   CHECK(port.ProjectMutationGeneration() == 1U);
 }
 
-TEST_CASE("UI2 cell Cut orders preserve value round trips on every grid") {
+TEST_CASE("UI2 empty Song slot is filled on Enter down and cut while held") {
+  TrackerApplicationSession session;
+  Ui2TrackerSessionModelPort port(session);
+  ui2::Ui2SongController controller;
+  auto &cell = session.ProjectModel().song_.data_[0];
+  cell = 0xFFU;
+  ApplyControllerEvent(controller, port, TrackerAction::Enter, true);
+  CHECK(cell == 0U);
+  CHECK(ApplyControllerEvent(controller, port, TrackerAction::Enter, true)
+            .Empty());
+  CHECK(cell == 0U);
+  ApplyControllerEvent(controller, port, TrackerAction::Right, true);
+  CHECK(cell == 1U);
+  ApplyControllerEvent(controller, port, TrackerAction::Right, false);
+  ApplyControllerEvent(controller, port, TrackerAction::Option, true);
+  CHECK(cell == 0xFFU);
+  ApplyControllerEvent(controller, port, TrackerAction::Option, false);
+  ApplyControllerEvent(controller, port, TrackerAction::Enter, false);
+  CHECK(cell == 0xFFU);
+  ApplyControllerEvent(controller, port, TrackerAction::Enter, true);
+  CHECK(cell == 1U);
+  ApplyControllerEvent(controller, port, TrackerAction::Enter, false);
+  CHECK(cell == 1U);
+}
+
+TEST_CASE(
+    "UI2 cell Cut orders preserve populated value round trips on every grid") {
   const auto cut = [](auto &controller, Ui2TrackerSessionModelPort &port,
                       bool enterFirst) {
     if (enterFirst) {
@@ -577,7 +603,7 @@ TEST_CASE("UI2 cell Cut orders preserve value round trips on every grid") {
       releaseCut(controller, port, enterFirst);
       pasteNextRow(controller, port);
       CHECK(song.data_[4 * SONG_CHANNEL_COUNT + 2] == 0x23U);
-      CHECK(port.ProjectMutationGeneration() == 2U);
+      CHECK(port.ProjectMutationGeneration() == (enterFirst ? 3U : 2U));
     }
 
     {
@@ -602,7 +628,7 @@ TEST_CASE("UI2 cell Cut orders preserve value round trips on every grid") {
       pasteNextRow(controller, port);
       CHECK(song.chain_.data_[base + 6] == 0x22U);
       CHECK(song.chain_.transpose_[base + 6] == transpose);
-      CHECK(port.ProjectMutationGeneration() == 2U);
+      CHECK(port.ProjectMutationGeneration() == (enterFirst ? 3U : 2U));
     }
 
     {
@@ -625,7 +651,7 @@ TEST_CASE("UI2 cell Cut orders preserve value round trips on every grid") {
       pasteNextRow(controller, port);
       CHECK(phrase.cmd1_[base + 6] == FourCC::InstrumentCommandVolume);
       CHECK(phrase.param1_[base + 6] == 0x55U);
-      CHECK(port.ProjectMutationGeneration() == 2U);
+      CHECK(port.ProjectMutationGeneration() == (enterFirst ? 3U : 2U));
     }
 
     for (const Ui2TrackerPage page :
@@ -650,7 +676,7 @@ TEST_CASE("UI2 cell Cut orders preserve value round trips on every grid") {
         pasteNextRow(controller, port);
         CHECK(table.cmd1_[6] == FourCC::InstrumentCommandVolume);
         CHECK(table.param1_[6] == 0x55U);
-        CHECK(port.ProjectMutationGeneration() == 2U);
+        CHECK(port.ProjectMutationGeneration() == (enterFirst ? 3U : 2U));
       }
     }
   }
@@ -674,10 +700,11 @@ TEST_CASE("UI2 Phrase Cut orders end audition and preserve Note semantics") {
       if (enterFirst) {
         const auto prefix =
             ApplyControllerEvent(controller, port, TrackerAction::Enter, true);
-        REQUIRE(prefix.count == 1U);
-        CHECK(prefix[0].type == Ui2TrackerCommandType::StartAudition);
-        CHECK(port.ProjectMutationGeneration() == 0U);
-        CHECK(phrase.note_[1] == (filled ? 60U : NO_NOTE));
+        REQUIRE(prefix.count == 2U);
+        CHECK(prefix[0].type == Ui2TrackerCommandType::PasteLast);
+        CHECK(prefix[1].type == Ui2TrackerCommandType::StartAudition);
+        CHECK(port.ProjectMutationGeneration() == 1U);
+        CHECK(phrase.note_[1] == 60U);
       } else {
         CHECK(
             ApplyControllerEvent(controller, port, TrackerAction::Option, true)
@@ -691,9 +718,9 @@ TEST_CASE("UI2 Phrase Cut orders end audition and preserve Note semantics") {
       CHECK(cutBatch[cutBatch.count - 1U].type ==
             Ui2TrackerCommandType::CutCell);
       CHECK_FALSE(player->IsRunning());
-      CHECK(phrase.note_[1] == (filled ? NO_NOTE : NOTE_OFF));
-      CHECK(phrase.instr_[1] == (filled ? 0xFFU : 7U));
-      CHECK(port.ProjectMutationGeneration() == 1U);
+      CHECK(phrase.note_[1] == ((filled || enterFirst) ? NO_NOTE : NOTE_OFF));
+      CHECK(phrase.instr_[1] == ((filled || enterFirst) ? 0xFFU : 7U));
+      CHECK(port.ProjectMutationGeneration() == (enterFirst ? 2U : 1U));
 
       if (enterFirst) {
         CHECK(player->startCalls == 1);
@@ -907,7 +934,8 @@ TEST_CASE("UI2 model port allocates phrase FE before reporting exhaustion") {
   CHECK(song.chain_.data_[1] == 0xFFU);
 }
 
-TEST_CASE("UI2 model port registers pasted Chains and allocates Phrase entries") {
+TEST_CASE(
+    "UI2 model port registers pasted Chains and allocates Phrase entries") {
   TableHolder::GetInstance()->Reset();
   TrackerApplicationSession session;
   Ui2TrackerSessionModelPort port(session);
@@ -923,7 +951,8 @@ TEST_CASE("UI2 model port registers pasted Chains and allocates Phrase entries")
                                     Ui2TrackerPage::Phrase, 4, 1));
   const int phraseIndex = 2 * STEPS_PER_PHRASE + 4;
   CHECK(song.phrase_.instr_[phraseIndex] == 0U);
-  CHECK(session.ProjectModel().GetInstrumentBank()->GetInstrument(0) != nullptr);
+  CHECK(session.ProjectModel().GetInstrumentBank()->GetInstrument(0) !=
+        nullptr);
 
   song.phrase_.cmd1_[phraseIndex] = FourCC::InstrumentCommandTable;
   port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::AllocateNext,
@@ -932,7 +961,8 @@ TEST_CASE("UI2 model port registers pasted Chains and allocates Phrase entries")
   CHECK(port.ProjectMutationGeneration() == 3U);
 }
 
-TEST_CASE("UI2 model port registers a pasted Phrase before allocating another") {
+TEST_CASE(
+    "UI2 model port registers a pasted Phrase before allocating another") {
   TrackerApplicationSession session;
   Ui2TrackerSessionModelPort port(session);
   Song &song = session.ProjectModel().song_;
@@ -1011,12 +1041,12 @@ TEST_CASE("UI2 model port shares selection clipboard between Table contexts") {
   phraseTable.cmd1_[2] = FourCC::InstrumentCommandVolume;
   phraseTable.param1_[2] = 0x0042U;
 
-  port.ApplyGridCommand(SelectionCommand(
-      Ui2TrackerCommandType::CopySelection, Ui2TrackerPage::PhraseTable, 0, 2,
-      1, 2));
-  Ui2TrackerCommand selectInstrumentTable = GridCommand(
-      Ui2TrackerCommandType::SelectNumber, Ui2TrackerPage::InstrumentTable, 0,
-      0);
+  port.ApplyGridCommand(SelectionCommand(Ui2TrackerCommandType::CopySelection,
+                                         Ui2TrackerPage::PhraseTable, 0, 2, 1,
+                                         2));
+  Ui2TrackerCommand selectInstrumentTable =
+      GridCommand(Ui2TrackerCommandType::SelectNumber,
+                  Ui2TrackerPage::InstrumentTable, 0, 0);
   selectInstrumentTable.value = 1;
   port.ApplyGridCommand(selectInstrumentTable);
   port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::PasteSelection,
@@ -1040,9 +1070,8 @@ TEST_CASE("UI2 model port shares FX selections between Phrase and Table") {
   phrase.param1_[2] = 0x0037U;
   phrase.cmd1_[3] = FourCC::InstrumentCommandKill;
   phrase.param1_[3] = 0x00BBU;
-  port.ApplyGridCommand(SelectionCommand(
-      Ui2TrackerCommandType::CopySelection, Ui2TrackerPage::Phrase, 2, 2, 3,
-      3));
+  port.ApplyGridCommand(SelectionCommand(Ui2TrackerCommandType::CopySelection,
+                                         Ui2TrackerPage::Phrase, 2, 2, 3, 3));
   port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::PasteSelection,
                                     Ui2TrackerPage::PhraseTable, 4, 0));
 
@@ -1055,9 +1084,9 @@ TEST_CASE("UI2 model port shares FX selections between Phrase and Table") {
 
   table.cmd2_[6] = FourCC::InstrumentCommandVolume;
   table.param2_[6] = 0x0042U;
-  port.ApplyGridCommand(SelectionCommand(
-      Ui2TrackerCommandType::CopySelection, Ui2TrackerPage::PhraseTable, 2, 6,
-      3, 6));
+  port.ApplyGridCommand(SelectionCommand(Ui2TrackerCommandType::CopySelection,
+                                         Ui2TrackerPage::PhraseTable, 2, 6, 3,
+                                         6));
   port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::PasteSelection,
                                     Ui2TrackerPage::Phrase, 8, 4));
 
@@ -1127,9 +1156,9 @@ TEST_CASE("UI2 Table selection paste registers referenced tables") {
   table.cmd1_[0] = FourCC::InstrumentCommandTable;
   table.param1_[0] = 7U;
   table.cmd1_[1] = FourCC::InstrumentCommandTable;
-  port.ApplyGridCommand(SelectionCommand(
-      Ui2TrackerCommandType::CopySelection, Ui2TrackerPage::PhraseTable, 0, 0,
-      1, 0));
+  port.ApplyGridCommand(SelectionCommand(Ui2TrackerCommandType::CopySelection,
+                                         Ui2TrackerPage::PhraseTable, 0, 0, 1,
+                                         0));
   port.ApplyGridCommand(GridCommand(Ui2TrackerCommandType::PasteSelection,
                                     Ui2TrackerPage::PhraseTable, 1, 0));
 
@@ -1157,7 +1186,8 @@ TEST_CASE("UI2 model port rejects Phrase note selections in Table") {
   CHECK(port.ProjectMutationGeneration() == 0U);
 }
 
-TEST_CASE("UI2 model port synchronizes Phrase audition row and adjacent phrases") {
+TEST_CASE(
+    "UI2 model port synchronizes Phrase audition row and adjacent phrases") {
   TrackerApplicationSession session;
   Ui2TrackerSessionModelPort port(session);
   Song &song = session.ProjectModel().song_;
@@ -1176,8 +1206,8 @@ TEST_CASE("UI2 model port synchronizes Phrase audition row and adjacent phrases"
   CHECK(port.LoadGridState().phraseTableNumber == 4U);
   CHECK(port.LoadGridState().instrumentTableNumber == 9U);
 
-  Ui2TrackerCommand previous = GridCommand(
-      Ui2TrackerCommandType::WarpVertical, Ui2TrackerPage::Phrase, 0, 0);
+  Ui2TrackerCommand previous = GridCommand(Ui2TrackerCommandType::WarpVertical,
+                                           Ui2TrackerPage::Phrase, 0, 0);
   previous.track = 0U;
   previous.value = -1;
   port.ApplyGridCommand(previous);
@@ -1207,7 +1237,8 @@ TEST_CASE("UI2 model port synchronizes Phrase audition row and adjacent phrases"
   CHECK(port.LoadGridState().phraseRow == 0U);
 }
 
-TEST_CASE("UI2 model port resolves Chain quick-select and vertical song position") {
+TEST_CASE(
+    "UI2 model port resolves Chain quick-select and vertical song position") {
   TrackerApplicationSession session;
   Ui2TrackerSessionModelPort port(session);
   Song &song = session.ProjectModel().song_;
@@ -1219,15 +1250,15 @@ TEST_CASE("UI2 model port resolves Chain quick-select and vertical song position
   song.data_[12 * SONG_CHANNEL_COUNT + 3] = 9U;
   song.data_[13 * SONG_CHANNEL_COUNT + 3] = 10U;
 
-  Ui2TrackerCommand track = GridCommand(
-      Ui2TrackerCommandType::SelectTrack, Ui2TrackerPage::Chain, 6, 0);
+  Ui2TrackerCommand track = GridCommand(Ui2TrackerCommandType::SelectTrack,
+                                        Ui2TrackerPage::Chain, 6, 0);
   track.value = 3;
   port.ApplyGridCommand(track);
   CHECK(editor.songX_ == 3);
   CHECK(editor.currentChain_ == 9);
 
-  Ui2TrackerCommand down = GridCommand(
-      Ui2TrackerCommandType::WarpVertical, Ui2TrackerPage::Chain, 6, 0);
+  Ui2TrackerCommand down = GridCommand(Ui2TrackerCommandType::WarpVertical,
+                                       Ui2TrackerPage::Chain, 6, 0);
   down.track = 3U;
   down.value = 1;
   port.ApplyGridCommand(down);
@@ -1242,7 +1273,8 @@ TEST_CASE("UI2 model port resolves Chain quick-select and vertical song position
   CHECK(editor.currentChain_ == 10);
 }
 
-TEST_CASE("UI2 model port resolves Phrase Table context on track quick-select") {
+TEST_CASE(
+    "UI2 model port resolves Phrase Table context on track quick-select") {
   TrackerApplicationSession session;
   Ui2TrackerSessionModelPort port(session);
   Song &song = session.ProjectModel().song_;
@@ -1266,8 +1298,8 @@ TEST_CASE("UI2 model port resolves Phrase Table context on track quick-select") 
   loaded.phraseRow = phraseRow;
   port.StoreGridState(loaded);
 
-  Ui2TrackerCommand select = GridCommand(
-      Ui2TrackerCommandType::SelectTrack, Ui2TrackerPage::PhraseTable, 0, 0);
+  Ui2TrackerCommand select = GridCommand(Ui2TrackerCommandType::SelectTrack,
+                                         Ui2TrackerPage::PhraseTable, 0, 0);
   select.value = 1;
   port.ApplyGridCommand(select);
   const auto resolved = port.LoadGridState();
@@ -1277,7 +1309,8 @@ TEST_CASE("UI2 model port resolves Phrase Table context on track quick-select") 
   CHECK(resolved.phraseTableNumber == 7U);
 }
 
-TEST_CASE("UI2 model port resolves Phrase and Instrument navigation references") {
+TEST_CASE(
+    "UI2 model port resolves Phrase and Instrument navigation references") {
   TrackerApplicationSession session;
   Ui2TrackerSessionModelPort port(session);
   Song &song = session.ProjectModel().song_;
@@ -1378,8 +1411,8 @@ TEST_CASE("UI2 Phrase note adjustment retriggers an active audition") {
   session.EditorState().chainRow_ = 7;
   session.ProjectModel().song_.phrase_.note_[6] = 60U;
 
-  Ui2TrackerCommand audition = GridCommand(
-      Ui2TrackerCommandType::StartAudition, Ui2TrackerPage::Phrase, 6, 0);
+  Ui2TrackerCommand audition = GridCommand(Ui2TrackerCommandType::StartAudition,
+                                           Ui2TrackerPage::Phrase, 6, 0);
   audition.track = 4U;
   port.ApplyGridCommand(audition);
   REQUIRE(player->startCalls == 1);
@@ -1412,8 +1445,9 @@ TEST_CASE("UI2 Phrase controller retriggers audition after every INS change") {
 
   const auto begin =
       ApplyControllerEvent(controller, port, TrackerAction::Enter, true);
-  REQUIRE(begin.count == 1U);
-  CHECK(begin[0].type == Ui2TrackerCommandType::StartAudition);
+  REQUIRE(begin.count == 2U);
+  CHECK(begin[0].type == Ui2TrackerCommandType::PasteLast);
+  CHECK(begin[1].type == Ui2TrackerCommandType::StartAudition);
   REQUIRE(player->startCalls == 1);
 
   for (const std::uint8_t expected : {19U, 35U}) {
@@ -1445,8 +1479,8 @@ TEST_CASE("UI2 Phrase audition never commandeers ordinary transport") {
   session.EditorState().playMode_ = PM_SONG;
   player->OnStartButton(PM_SONG, 2U, false, 0U);
 
-  Ui2TrackerCommand start = GridCommand(
-      Ui2TrackerCommandType::StartAudition, Ui2TrackerPage::Phrase, 4, 0);
+  Ui2TrackerCommand start = GridCommand(Ui2TrackerCommandType::StartAudition,
+                                        Ui2TrackerPage::Phrase, 4, 0);
   start.track = 2U;
   port.ApplyGridCommand(start);
   CHECK(player->startCalls == 1);
@@ -1540,9 +1574,9 @@ TEST_CASE("UI2 context grids distinguish local PLAY from global SHIFT PLAY") {
     session.EditorState().songOffset_ = 32;
     session.EditorState().chainRow_ = playbackCase.chainRow;
 
-    Ui2TrackerCommand command = GridCommand(
-        Ui2TrackerCommandType::StartPlayback, playbackCase.page,
-        playbackCase.row, 0U);
+    Ui2TrackerCommand command =
+        GridCommand(Ui2TrackerCommandType::StartPlayback, playbackCase.page,
+                    playbackCase.row, 0U);
     command.track = 2U;
 
     player->Reset();
@@ -1594,9 +1628,8 @@ TEST_CASE("UI2 Groove playback routes from controller through the model port") {
       controller.Handle(TrackerAction::Shift, true);
     const ui2::Ui2GrooveCommand grooveCommand =
         controller.Handle(TrackerAction::Play, true);
-    const Ui2TrackerCommand trackerCommand =
-        ui2::Ui2GrooveTrackerCommand(grooveCommand,
-                                     session.EditorState().songX_);
+    const Ui2TrackerCommand trackerCommand = ui2::Ui2GrooveTrackerCommand(
+        grooveCommand, session.EditorState().songX_);
     port.ApplyGridCommand(trackerCommand);
 
     CHECK(player->startCalls == 1);
@@ -1635,15 +1668,13 @@ TEST_CASE("UI2 Groove performance chords route through the model port") {
     controller.Handle(TrackerAction::Option, true);
     const ui2::Ui2GrooveCommand grooveCommand =
         controller.Handle(TrackerAction::Play, true);
-    const Ui2TrackerCommand trackerCommand =
-        ui2::Ui2GrooveTrackerCommand(grooveCommand,
-                                     session.EditorState().songX_);
+    const Ui2TrackerCommand trackerCommand = ui2::Ui2GrooveTrackerCommand(
+        grooveCommand, session.EditorState().songX_);
     CHECK(trackerCommand.type == performanceCase.type);
     port.ApplyGridCommand(trackerCommand);
 
     for (int track = 0; track < SONG_CHANNEL_COUNT; ++track) {
-      const bool expectedMuted =
-          performanceCase.shift ? false : track != 5;
+      const bool expectedMuted = performanceCase.shift ? false : track != 5;
       CHECK(player->IsChannelMuted(track) == expectedMuted);
     }
     CHECK(player->startCalls == 0);
@@ -1669,8 +1700,8 @@ TEST_CASE("UI2 Groove selection mute routes through the model port") {
   controller.Handle(TrackerAction::Option, true);
   const ui2::Ui2GrooveCommand grooveCommand =
       controller.Handle(TrackerAction::Shift, true);
-  const Ui2TrackerCommand trackerCommand = ui2::Ui2GrooveTrackerCommand(
-      grooveCommand, session.EditorState().songX_);
+  const Ui2TrackerCommand trackerCommand =
+      ui2::Ui2GrooveTrackerCommand(grooveCommand, session.EditorState().songX_);
 
   CHECK(trackerCommand.type == Ui2TrackerCommandType::ToggleMute);
   port.ApplyGridCommand(trackerCommand);
@@ -1824,12 +1855,13 @@ TEST_CASE("UI2 grid coarse edits saturate instead of wrapping at bounds") {
   port.ApplyGridCommand(adjust);
   CHECK(phrase.instr_[0] == 0);
 
-  for (const auto page : {Ui2TrackerPage::Phrase,
-                          Ui2TrackerPage::PhraseTable}) {
+  for (const auto page :
+       {Ui2TrackerPage::Phrase, Ui2TrackerPage::PhraseTable}) {
     adjust.sourcePage = page;
     adjust.column = page == Ui2TrackerPage::Phrase ? 3 : 1;
     auto &parameter = page == Ui2TrackerPage::Phrase
-        ? phrase.param1_[0] : TableHolder::GetInstance()->GetTable(0).param1_[0];
+                          ? phrase.param1_[0]
+                          : TableHolder::GetInstance()->GetTable(0).param1_[0];
     parameter = 0xFFF8;
     adjust.direction = Ui2TrackerEditDirection::Up;
     adjust.value = 16;

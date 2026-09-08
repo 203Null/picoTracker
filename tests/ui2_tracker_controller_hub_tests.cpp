@@ -10,9 +10,7 @@ namespace {
 
 class FakeGridPort final : public ui2::IUi2TrackerModelPort {
 public:
-  ui2::Ui2TrackerGridState LoadGridState() const override {
-    return loaded;
-  }
+  ui2::Ui2TrackerGridState LoadGridState() const override { return loaded; }
 
   void StoreGridState(const ui2::Ui2TrackerGridState &state) override {
     navigation = state;
@@ -91,9 +89,8 @@ TEST_CASE("UI2 tracker executor applies typed command then stores navigation") {
   executor.Handle(TrackerAction::Enter, true);
   const auto batch = executor.Handle(TrackerAction::Up, true);
 
-  REQUIRE(batch.count == 2);
-  CHECK(batch[0].type == ui2::Ui2TrackerCommandType::PasteLast);
-  CHECK(batch[1].type == ui2::Ui2TrackerCommandType::AdjustCell);
+  REQUIRE(batch.count == 1);
+  CHECK(batch[0].type == ui2::Ui2TrackerCommandType::AdjustCell);
   CHECK(port.appliedCount == 2);
   CHECK(port.applied[0].type == ui2::Ui2TrackerCommandType::PasteLast);
   CHECK(port.applied[1].type == ui2::Ui2TrackerCommandType::AdjustCell);
@@ -115,7 +112,8 @@ TEST_CASE("UI2 tracker executor activates navigation target before storing") {
   CHECK(port.applied[0].targetPage == ui2::Ui2TrackerPage::Chain);
 }
 
-TEST_CASE("UI2 tracker executor preserves held navigation across page switches") {
+TEST_CASE(
+    "UI2 tracker executor preserves held navigation across page switches") {
   FakeGridPort port;
   ui2::Ui2TrackerCommandExecutor executor(port);
 
@@ -151,8 +149,8 @@ TEST_CASE("UI2 tracker hub restores held navigation after direct activation") {
   hub.SetNavigationHeld(true);
 
   REQUIRE(hub.Activate(ui2::Ui2TrackerPage::Chain));
-  CHECK((hub.ActiveState().heldMask &
-         TrackerActionBit(TrackerAction::Shift)) != 0U);
+  CHECK((hub.ActiveState().heldMask & TrackerActionBit(TrackerAction::Shift)) !=
+        0U);
 
   const auto playback = hub.Handle(TrackerAction::Play, true);
   REQUIRE(playback.count == 1U);
