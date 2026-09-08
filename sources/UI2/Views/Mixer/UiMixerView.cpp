@@ -61,6 +61,17 @@ RectI16 UiMixerView::ValueDamageRect(std::uint8_t channel) {
   return CenteredDamage(channel, 205, 11);
 }
 
+RectI16 UiMixerView::CursorTargetRect(const UiMixerViewData &data) {
+  if (data.selectedChannel < 0 || data.selectedChannel >= kChannelCount)
+    return {};
+  const auto channel = static_cast<std::uint8_t>(data.selectedChannel);
+  if (data.volumes[channel].empty())
+    return {};
+  const auto width = UiFont5x7::TextWidth(data.volumes[channel].size());
+  return {static_cast<std::int16_t>(kCenters[channel] - width / 2 - 2),
+          206, static_cast<std::int16_t>(width + 4), 9};
+}
+
 RectI16 UiMixerView::LabelDamageRect(std::uint8_t channel) {
   return CenteredDamage(channel, 222, 11);
 }
@@ -78,6 +89,14 @@ void UiMixerView::RenderDelta(const UiMixerViewData &previous,
   const auto render = [&](RectI16 rect) {
     UiFrameRenderer::RenderRegion(currentScene, surface, palette, rect);
   };
+  const auto previousCursor = previous.cursorVisualOverride
+                                  ? previous.cursorVisualRect : CursorTargetRect(previous);
+  const auto currentCursor = current.cursorVisualOverride
+                                 ? current.cursorVisualRect : CursorTargetRect(current);
+  if (previousCursor != currentCursor) {
+    render(previousCursor);
+    render(currentCursor);
+  }
   for (std::uint8_t channel = 0; channel < kChannelCount; ++channel) {
     for (std::uint8_t side = 0; side < 2U; ++side) {
       if (previous.vuLevelTop[channel][side] !=
@@ -128,6 +147,10 @@ UiBuildStatus UiMixerView::Build(const UiMixerViewData &data,
     return UiBuildStatus::CommandOverflow;
   }
   UiSceneBuilder<256, 1024> builder(scene.content);
+  const auto cursor = data.cursorVisualOverride ? data.cursorVisualRect
+                                                 : CursorTargetRect(data);
+  if (!cursor.Empty())
+    builder.Selection(cursor);
   for (std::uint8_t channel = 0; channel < kChannelCount; ++channel) {
     for (std::uint8_t side = 0; side < 2U; ++side) {
       const RectI16 meter = MeterDamageRect(channel, side);
@@ -140,14 +163,9 @@ UiBuildStatus UiMixerView::Build(const UiMixerViewData &data,
           UiVuGradient::IndexAt(level));
     }
     const bool selected = data.selectedChannel == channel;
-    if (selected && !data.volumes[channel].empty()) {
-      const auto width = UiFont5x7::TextWidth(data.volumes[channel].size());
-      builder.Selection({static_cast<std::int16_t>(kCenters[channel] - width / 2 - 2),
-                         206, static_cast<std::int16_t>(width + 4), 9});
-    }
+    // The rasterizer recolors only glyph pixels covered by the moving cursor.
     builder.CenteredText(data.volumes[channel], kCenters[channel], 207,
-                         selected ? UiColorToken::TextHighlighted
-                                  : UiColorToken::TextNormal);
+                         UiColorToken::TextNormal);
     builder.CenteredText(kLabels[channel], kCenters[channel], 224,
                          selected ? UiColorToken::TextColored
                                   : UiColorToken::TextDim);

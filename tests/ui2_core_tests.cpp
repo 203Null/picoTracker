@@ -3402,6 +3402,21 @@ TEST_CASE("UI2 Mixer delta rendering is pixel-identical to a full redraw") {
   CHECK(surface.DirtyTiles().Any());
 }
 
+TEST_CASE("UI2 Mixer moving value cursor clears intermediate positions") {
+  auto previous = ui2::test::ApprovedMixerFixture();
+  previous.selectedChannel = 3;
+  previous.cursorVisualOverride = true;
+  previous.cursorVisualRect = {18, 206, 15, 9};
+  auto current = previous;
+  current.cursorVisualRect = {30, 206, 15, 9};
+  CheckDeltaMatchesFullFrame(previous, current, ui2::UiMixerView::Build,
+                            ui2::UiMixerView::RenderDelta);
+  auto settled = current;
+  settled.cursorVisualRect = ui2::UiMixerView::CursorTargetRect(settled);
+  CheckDeltaMatchesFullFrame(current, settled, ui2::UiMixerView::Build,
+                            ui2::UiMixerView::RenderDelta);
+}
+
 TEST_CASE("UI2 Mixer idle is clean and one meter change stays local") {
   ui2::UiPalette palette;
   ui2::UiMixerViewData previous = ui2::test::ApprovedMixerFixture();

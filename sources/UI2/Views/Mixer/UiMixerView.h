@@ -21,6 +21,8 @@ struct UiMixerViewData {
   std::array<std::array<std::uint8_t, 2>, 9> vuLevelTop{};
   std::array<std::string_view, 9> volumes{};
   std::int8_t selectedChannel = 0;
+  RectI16 cursorVisualRect{};
+  bool cursorVisualOverride = false;
   UiNavCursorModel navCursor{};
   UiPowerState power = UiPowerState::BatteryNormal;
 };
@@ -44,6 +46,7 @@ public:
                        std::uint8_t previousLevelTop,
                        std::uint8_t currentLevelTop);
   [[nodiscard]] static RectI16 ValueDamageRect(std::uint8_t channel);
+  [[nodiscard]] static RectI16 CursorTargetRect(const UiMixerViewData &data);
   [[nodiscard]] static RectI16 LabelDamageRect(std::uint8_t channel);
 };
 

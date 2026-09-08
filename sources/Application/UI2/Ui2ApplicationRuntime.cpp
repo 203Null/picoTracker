@@ -1443,6 +1443,8 @@ UiApplicationRuntime::ViewDataFor(const MixerFrameState &state) {
     data.volumes[channel] = state.volumes[channel].data();
   }
   data.selectedChannel = state.selectedChannel;
+  data.cursorVisualRect = state.cursorVisualRect;
+  data.cursorVisualOverride = state.cursorVisualOverride;
   data.power = state.power;
   data.navCursor = state.navCursor;
   return data;
@@ -1456,6 +1458,18 @@ UiApplicationRuntime::PresentMixer(IUiApplicationStateSource &source,
   const UiApplicationActivityState activity = source.CaptureMixer(current);
   current.power = CurrentPowerState(source, activity.active);
   UpdateNavigationCursor(current.navCursor, source, UiNavTarget::Mixer, nowMs);
+  const RectI16 target = UiMixerView::CursorTargetRect(ViewDataFor(current));
+  if (!cursorTargetValid_) {
+    cursors_.Snap(UiCursorRole::Content, target, nowMs);
+    cursorTarget_ = target;
+    cursorTargetValid_ = true;
+  } else if (target != cursorTarget_) {
+    cursors_.Retarget(UiCursorRole::Content, target, nowMs,
+                      kListCursorDurationMs);
+    cursorTarget_ = target;
+  }
+  current.cursorVisualRect = cursors_.Sample(UiCursorRole::Content, nowMs);
+  current.cursorVisualOverride = true;
   const bool baseChanged = !previousValid_ || current != previous;
   if (!baseChanged && !DialogChanged()) {
     return engine_.PresentDirty();
