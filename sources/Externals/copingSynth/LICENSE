@@ -1,0 +1,82 @@
+BSD 3-Clause License
+
+Copyright (c) 2018, Discodirt
+Copyright (c) 2024, xiphonics, inc.
+Copyright (c) 2026, nILS Podewski
+
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+-------------------------------------------------------------------------------
+Third-Party Software and Licenses
+-------------------------------------------------------------------------------
+
+This project includes third-party software components. Each component is
+subject to its own license. Below is a summary of included external code:
+
+1. SdFat
+   Path: sources/Externals/SdFat
+   SPDX-License-Identifier: MIT
+   License file: sources/Externals/SdFat/LICENSE.md
+
+2. TinyXML2
+   Path: sources/Externals/TinyXML2
+   SPDX-License-Identifier: Zlib
+   License file: sources/Externals/TinyXML2/LICENSE.txt
+
+3. cRSID
+   Path: sources/Externals/cRSID
+   SPDX-License-Identifier: WTFPL
+   License file: sources/Externals/cRSID/README.txt
+
+4. etl
+   Path: sources/Externals/etl
+   SPDX-License-Identifier: MIT
+   License file: sources/Externals/etl/LICENSE
+
+5. opal
+   Path: sources/Externals/opal
+   SPDX-License-Identifier: Unlicense
+   License file: sources/Externals/opal/LICENSE.md
+
+6. pico-sdk
+   Path: sources/Externals/pico-sdk
+   SPDX-License-Identifier: BSD-3-Clause
+   License file: sources/Externals/pico-sdk/LICENSE.TXT
+
+7. tinyusb
+   Path: sources/Externals/tinyusb
+   SPDX-License-Identifier: MIT
+   License file: sources/Externals/tinyusb/LICENSE
+
+8. yxml
+   Path: sources/Externals/yxml
+   SPDX-License-Identifier: MIT
+   License file: sources/Externals/yxml/COPYING
+
+The license texts for the above components are available in their respective
+folders. This project does not relicense or modify the terms of those licenses.
