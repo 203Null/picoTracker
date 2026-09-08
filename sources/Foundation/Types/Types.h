@@ -267,6 +267,33 @@ struct FourCC {
     ActionShowRecordView = 187,
     VarUITextCase = 188,
 
+    DrumVoice0 = 189,
+    DrumVoice1 = 190,
+    DrumVoice2 = 191,
+    DrumVoice3 = 192,
+    DrumVoice4 = 193,
+    DrumVoice5 = 194,
+    DrumVoice6 = 195,
+    DrumVoice7 = 196,
+    DrumVoice8 = 197,
+    DrumVoice9 = 198,
+    DrumVoice10 = 199,
+    DrumVoice11 = 200,
+    DrumCharacter = 201,
+    StackSpread = 202,
+    StackWave = 203,
+    StackTranspose = 204,
+    StackTable = 205,
+    StackTableAuto = 206,
+    StackAttack = 207,
+    StackDecay = 208,
+    StackSustain = 209,
+    StackRelease = 210,
+    StackVolume = 211,
+    StackBrightness = 212,
+    StackGlide = 213,
+    StackChord = 214,
+
     Default = 255, // "    "
   };
   ETL_DECLARE_ENUM_TYPE(FourCC, uint8_t)
@@ -362,6 +389,32 @@ struct FourCC {
   // channel variable not currently used by OPAL instruments but maybe in future
   ETL_ENUM_TYPE(OPALInstrumentChannel, "CHANNEL")
   ETL_ENUM_TYPE(OPALInstrumentAlgorithm, "ALGORITHM")
+  ETL_ENUM_TYPE(DrumVoice0, "drum0")
+  ETL_ENUM_TYPE(DrumVoice1, "drum1")
+  ETL_ENUM_TYPE(DrumVoice2, "drum2")
+  ETL_ENUM_TYPE(DrumVoice3, "drum3")
+  ETL_ENUM_TYPE(DrumVoice4, "drum4")
+  ETL_ENUM_TYPE(DrumVoice5, "drum5")
+  ETL_ENUM_TYPE(DrumVoice6, "drum6")
+  ETL_ENUM_TYPE(DrumVoice7, "drum7")
+  ETL_ENUM_TYPE(DrumVoice8, "drum8")
+  ETL_ENUM_TYPE(DrumVoice9, "drum9")
+  ETL_ENUM_TYPE(DrumVoice10, "drum10")
+  ETL_ENUM_TYPE(DrumVoice11, "drum11")
+  ETL_ENUM_TYPE(DrumCharacter, "character")
+  ETL_ENUM_TYPE(StackSpread, "spread")
+  ETL_ENUM_TYPE(StackWave, "wave")
+  ETL_ENUM_TYPE(StackTranspose, "transpose")
+  ETL_ENUM_TYPE(StackTable, "table")
+  ETL_ENUM_TYPE(StackTableAuto, "table automation")
+  ETL_ENUM_TYPE(StackAttack, "attack")
+  ETL_ENUM_TYPE(StackDecay, "decay")
+  ETL_ENUM_TYPE(StackSustain, "sustain")
+  ETL_ENUM_TYPE(StackRelease, "release")
+  ETL_ENUM_TYPE(StackVolume, "volume")
+  ETL_ENUM_TYPE(StackBrightness, "brightness")
+  ETL_ENUM_TYPE(StackGlide, "glide")
+  ETL_ENUM_TYPE(StackChord, "chord")
   ETL_ENUM_TYPE(OPALInstrumentFeedback, "FEEDBACK")
   ETL_ENUM_TYPE(OPALInstrumentDeepTremeloVibrato, "DEEPTREMELOVIBRATO")
 

@@ -107,6 +107,10 @@ private:
       return MAX_SIDINSTRUMENT_COUNT;
     case IT_OPAL:
       return MAX_OPALINSTRUMENT_COUNT;
+    case IT_DRUM:
+      return MAX_DRUMINSTRUMENT_COUNT;
+    case IT_STACK:
+      return MAX_STACKINSTRUMENT_COUNT;
     case IT_NONE:
     case IT_LAST:
       break;

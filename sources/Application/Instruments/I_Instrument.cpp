@@ -22,6 +22,35 @@ namespace {
 bool GenericIntegerRange(FourCC id, int &minimum, int &maximum) {
   minimum = 0;
   maximum = 0;
+  if (id >= FourCC::DrumVoice0 && id <= FourCC::DrumVoice11) {
+    maximum = 0xFFFF;
+    return true;
+  }
+  if (id == FourCC::DrumCharacter || id == FourCC::StackSpread ||
+      id == FourCC::StackAttack || id == FourCC::StackDecay ||
+      id == FourCC::StackSustain || id == FourCC::StackRelease ||
+      id == FourCC::StackVolume || id == FourCC::StackGlide) {
+    maximum = 255;
+    return true;
+  }
+  if (id == FourCC::StackTranspose) {
+    minimum = -24;
+    maximum = 24;
+    return true;
+  }
+  if (id == FourCC::StackBrightness) {
+    maximum = 12;
+    return true;
+  }
+  if (id == FourCC::StackChord) {
+    maximum = 0xFFFF;
+    return true;
+  }
+  if (id == FourCC::StackTable) {
+    minimum = VAR_OFF;
+    maximum = TABLE_COUNT - 1;
+    return true;
+  }
   if (id == FourCC::MidiInstrumentChannel) {
     maximum = 0x0F;
   } else if (id == FourCC::MidiInstrumentNoteLength ||

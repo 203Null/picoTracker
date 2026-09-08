@@ -15,6 +15,8 @@
 // standard-library headers above the production persistence headers.
 #include "Adapters/wasm/filesystem/WasmFileSystem.h"
 #include "Application/Instruments/InstrumentBankRestorePolicy.h"
+#include "Application/Instruments/DrumInstrument.h"
+#include "Application/Instruments/StackInstrument.h"
 #include "Application/Instruments/SampleInstrumentParameterLimits.h"
 #include "Application/Model/Groove.h"
 #include "Application/Model/Phrase.h"
@@ -2240,6 +2242,36 @@ TEST_CASE("Instrument service exports a validated pti and preserves overwrite "
   GenericRestoreInstrument restored(IT_MIDI);
   REQUIRE(service.ImportInstrument(&restored, "lead.pti") == PERSIST_LOADED);
   CHECK(restored.MidiChannel() == 15);
+}
+
+TEST_CASE_TEMPLATE("Coping instrument parameters survive validated file export and import",
+                   Synth, DrumInstrument, StackInstrument) {
+  FourCCXmlFixture fixture;
+  fixture.MakeDirectory("instruments");
+  auto &service = TestPersistencyService();
+  Synth source, restored;
+  source.SetName("New synth");
+  source.Variables()->front()->SetInt(123);
+  REQUIRE(service.ExportInstrument(
+      &source, etl::string<MAX_INSTRUMENT_NAME_LENGTH>("synth"), false) == PERSIST_SAVED);
+  CHECK(service.DetectInstrumentType("synth.pti") == source.GetType());
+  REQUIRE(service.ImportInstrument(&restored, "synth.pti") == PERSIST_LOADED);
+  REQUIRE(source.Variables()->size() == restored.Variables()->size());
+  for (std::size_t i = 0; i < source.Variables()->size(); ++i)
+    CHECK((*source.Variables())[i]->GetString() == (*restored.Variables())[i]->GetString());
+}
+
+TEST_CASE("Stack rejects out of range persisted parameters atomically") {
+  FourCCXmlFixture fixture;
+  fixture.MakeDirectory("instruments");
+  fixture.Write("instruments/unsafe-stack.pti",
+                "<INSTRUMENT TYPE=\"STACK\">"
+                "<PARAM NAME=\"spread\" VALUE=\"123\"/>"
+                "<PARAM NAME=\"transpose\" VALUE=\"100\"/>"
+                "</INSTRUMENT>");
+  StackInstrument synth;
+  CHECK(TestPersistencyService().ImportInstrument(&synth, "unsafe-stack.pti") != PERSIST_LOADED);
+  CHECK(synth.Variables()->front()->GetInt() == 0);
 }
 
 TEST_CASE(

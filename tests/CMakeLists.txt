@@ -70,6 +70,8 @@ add_executable(picoTracker_tests
   ../sources/Application/Instruments/MacroInstrument.cpp
   ../sources/Application/Instruments/MidiInstrument.cpp
   ../sources/Application/Instruments/OpalInstrument.cpp
+  ../sources/Application/Instruments/DrumInstrument.cpp
+  ../sources/Application/Instruments/StackInstrument.cpp
   ../sources/Application/Instruments/SampleInstrument.cpp
   ../sources/Application/Instruments/SIDInstrument.cpp
   ../sources/Externals/cRSID/SID.cpp
@@ -496,6 +498,7 @@ target_sources(picoTracker_tests PRIVATE
   ui2_instrument_workflow_tests.cpp
   instrument_export_transaction_tests.cpp
   ui2_instrument_parameter_tests.cpp
+  coping_instrument_tests.cpp
   ui2_project_render_controller_tests.cpp
   firmware_lifecycle_tests.cpp
   ../sources/Application/Session/FirmwareLifecycleController.cpp

@@ -54,6 +54,8 @@ void InstrumentBank::Reset() {
   midiInstrumentPool_.release_all();
   sidInstrumentPool_.release_all();
   opalInstrumentPool_.release_all();
+  drumInstrumentPool_.release_all();
+  stackInstrumentPool_.release_all();
 
   for (size_t i = 0; i < instruments_.max_size(); i++) {
     instruments_[i] = &none_;
@@ -178,6 +180,10 @@ unsigned short InstrumentBank::GetNextAndAssignID(InstrumentType type,
 
 I_Instrument *InstrumentBank::createInstrument(InstrumentType type) {
   switch (type) {
+  case IT_DRUM:
+    return drumInstrumentPool_.create();
+  case IT_STACK:
+    return stackInstrumentPool_.create();
   case IT_SAMPLE: {
     SampleInstrument *si = sampleInstrumentPool_.create();
     if (si == nullptr) {
@@ -281,6 +287,12 @@ void InstrumentBank::destroyInstrument(I_Instrument *instrument) {
     return;
 
   switch (instrument->GetType()) {
+  case IT_DRUM:
+    drumInstrumentPool_.destroy(instrument);
+    break;
+  case IT_STACK:
+    stackInstrumentPool_.destroy(instrument);
+    break;
   case IT_SAMPLE:
     sampleInstrumentPool_.destroy(instrument);
     break;

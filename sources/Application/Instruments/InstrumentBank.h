@@ -19,6 +19,8 @@
 #include "OpalInstrument.h"
 #include "SIDInstrument.h"
 #include "SampleInstrument.h"
+#include "DrumInstrument.h"
+#include "StackInstrument.h"
 
 #define NO_MORE_INSTRUMENT 0x100
 
@@ -81,6 +83,8 @@ private:
   etl::pool<MidiInstrument, MAX_MIDIINSTRUMENT_COUNT> midiInstrumentPool_;
   etl::pool<SIDInstrument, MAX_SIDINSTRUMENT_COUNT> sidInstrumentPool_;
   etl::pool<OpalInstrument, MAX_OPALINSTRUMENT_COUNT> opalInstrumentPool_;
+  etl::pool<DrumInstrument, MAX_DRUMINSTRUMENT_COUNT> drumInstrumentPool_;
+  etl::pool<StackInstrument, MAX_STACKINSTRUMENT_COUNT> stackInstrumentPool_;
   NoneInstrument none_ = NoneInstrument();
   unsigned short sidOscCount = 0;
 };

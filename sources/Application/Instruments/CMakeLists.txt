@@ -1,5 +1,7 @@
 add_library(application_instruments
   CommandList.cpp
+  DrumInstrument.cpp
+  StackInstrument.cpp
   Filters.cpp
   I_Instrument.cpp
   InstrumentBank.cpp
