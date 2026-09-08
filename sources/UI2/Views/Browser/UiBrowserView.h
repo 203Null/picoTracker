@@ -55,8 +55,7 @@ public:
                ? RectI16{7, static_cast<std::int16_t>(43 + row * 11), 226, 11}
                : RectI16{};
   }
-  [[nodiscard]] static RectI16
-  ScrollThumbRect(const UiBrowserViewData &data);
+  [[nodiscard]] static RectI16 ScrollThumbRect(const UiBrowserViewData &data);
 };
 
 } // namespace ui2

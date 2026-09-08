@@ -49,8 +49,10 @@ public:
   }
   [[nodiscard]] constexpr bool TrackFocus() const { return NumberFocus(); }
   [[nodiscard]] constexpr bool FxSelectorActive() const {
-    return (grid_.Column() == 2U || grid_.Column() == 4U) && !selection_.active && !NumberFocus() &&
-           input_.Held(TrackerAction::Enter) && !input_.Held(TrackerAction::Shift) &&
+    return (grid_.Column() == 2U || grid_.Column() == 4U) &&
+           !selection_.active && !NumberFocus() &&
+           input_.Held(TrackerAction::Enter) &&
+           !input_.Held(TrackerAction::Shift) &&
            !input_.Held(TrackerAction::Option);
   }
 
@@ -83,7 +85,8 @@ public:
           output.Push(Command(Ui2TrackerCommandType::CommitValueEdits));
           valueEditDirty_ = false;
           deferredEnter_.Cancel();
-        } else if (deferredEnter_.Take() && !(grid_.Column() == 2U || grid_.Column() == 4U)) {
+        } else if (deferredEnter_.Take() &&
+                   !(grid_.Column() == 2U || grid_.Column() == 4U)) {
           HandlePrimaryEdit(output);
         }
         if (auditionActive_) {

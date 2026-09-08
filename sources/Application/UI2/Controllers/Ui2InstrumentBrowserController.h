@@ -61,8 +61,8 @@ public:
           selected_, count_, input_.Held(TrackerAction::Option) ? -8 : -1);
       error_.fill('\0');
     } else if (action == TrackerAction::Down && selected_ + 1U < count_) {
-      selected_ = Ui2MoveListIndex(
-          selected_, count_, input_.Held(TrackerAction::Option) ? 8 : 1);
+      selected_ = Ui2MoveListIndex(selected_, count_,
+                                   input_.Held(TrackerAction::Option) ? 8 : 1);
       error_.fill('\0');
     } else if (action == TrackerAction::Enter && count_ != 0U) {
       Ui2InstrumentBrowserCommand command{
@@ -92,9 +92,8 @@ public:
     if (error_[0] != '\0') {
       Ui2BrowserSnapshot::CopyText(snapshot.footer, error_.data());
     } else {
-      std::snprintf(snapshot.footer.data(), snapshot.footer.size(),
-                    "%u ITEM%s", static_cast<unsigned>(count_),
-                    count_ == 1U ? "" : "S");
+      std::snprintf(snapshot.footer.data(), snapshot.footer.size(), "%u ITEM%s",
+                    static_cast<unsigned>(count_), count_ == 1U ? "" : "S");
     }
     if (snapshot.hasSelection) {
       Ui2BrowserSnapshot::CopyText(snapshot.actions[0], "LOAD");

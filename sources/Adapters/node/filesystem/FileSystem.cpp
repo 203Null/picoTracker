@@ -46,8 +46,7 @@ bool HasSafeExistingParent(const std::string &fullPath) {
   const std::string parent = fullPath.substr(0, pos);
   struct stat state {};
   return IsSafeExistingPath(parent) &&
-         NoFollowStat(parent.c_str(), &state) == 0 &&
-         S_ISDIR(state.st_mode);
+         NoFollowStat(parent.c_str(), &state) == 0 && S_ISDIR(state.st_mode);
 }
 
 bool EnsureParentDirs(const std::string &full_path) {
@@ -90,8 +89,8 @@ bool MatchesFilter(const std::string &name, const char *filter) {
     return true;
   std::string lowerName = name;
   for (char &character : lowerName) {
-    character = static_cast<char>(
-        tolower(static_cast<unsigned char>(character)));
+    character =
+        static_cast<char>(tolower(static_cast<unsigned char>(character)));
   }
   return lowerName.find(filter) != std::string::npos;
 }
@@ -122,7 +121,8 @@ FileHandle NodeFileSystem::Open(const char *name, const char *mode) {
   }
   if (mayWrite) {
     if (!EnsureParentDirs(full)) {
-      Trace::Error("FILESYSTEM", "EnsureParentDirs failed: %s errno:%d (%s)", full.c_str(), errno, strerror(errno));
+      Trace::Error("FILESYSTEM", "EnsureParentDirs failed: %s errno:%d (%s)",
+                   full.c_str(), errno, strerror(errno));
       return FileHandle();
     }
     if (!IsSafeCreatablePath(full)) {
@@ -134,8 +134,8 @@ FileHandle NodeFileSystem::Open(const char *name, const char *mode) {
   FILE *f = fopen(full.c_str(), mode);
   if (f == nullptr) {
     int err = errno;
-    Trace::Error("FILESYSTEM", "Open failed: %s mode:%s errno:%d (%s)", full.c_str(),
-                 mode ? mode : "", err, strerror(err));
+    Trace::Error("FILESYSTEM", "Open failed: %s mode:%s errno:%d (%s)",
+                 full.c_str(), mode ? mode : "", err, strerror(err));
     return FileHandle();
   }
   return MakeFileHandle(new VfsFile(f));
@@ -153,19 +153,18 @@ bool NodeFileSystem::chdir(const char *path) {
   }
   const std::string &newPath = *resolved;
   struct stat st {};
-  if (IsSafeExistingPath(newPath) &&
-      NoFollowStat(newPath.c_str(), &st) == 0 &&
+  if (IsSafeExistingPath(newPath) && NoFollowStat(newPath.c_str(), &st) == 0 &&
       S_ISDIR(st.st_mode)) {
     cwd_ = newPath;
     return true;
   }
-  Trace::Error("FILESYSTEM", "chdir failed: %s errno:%d (%s)", newPath.c_str(), errno, strerror(errno));
+  Trace::Error("FILESYSTEM", "chdir failed: %s errno:%d (%s)", newPath.c_str(),
+               errno, strerror(errno));
   return false;
 }
 
 bool NodeFileSystem::RefreshDir(const char *filter, bool subDirOnly,
-                                bool includeHidden,
-                                bool retainDirectories) {
+                                bool includeHidden, bool retainDirectories) {
   entries_.clear();
   if (!IsSafeExistingPath(cwd_)) {
     return false;
@@ -239,9 +238,10 @@ bool NodeFileSystem::listBrowserChecked(etl::ivector<int> *fileIndexes,
   return List_(fileIndexes, filter, false, includeHidden, true);
 }
 
-bool NodeFileSystem::listPathChecked(
-    const char *path, FileSystemDirectorySnapshot &snapshot,
-    const char *filter, bool subDirOnly, bool includeHidden) {
+bool NodeFileSystem::listPathChecked(const char *path,
+                                     FileSystemDirectorySnapshot &snapshot,
+                                     const char *filter, bool subDirOnly,
+                                     bool includeHidden) {
   std::lock_guard<std::mutex> lock(mutex_);
   snapshot.Reset();
   if (!MountCard())
@@ -255,7 +255,8 @@ bool NodeFileSystem::listPathChecked(
 
   std::string loweredFilter = filter == nullptr ? "" : filter;
   for (char &character : loweredFilter)
-    character = static_cast<char>(tolower(static_cast<unsigned char>(character)));
+    character =
+        static_cast<char>(tolower(static_cast<unsigned char>(character)));
 
   bool scanned = true;
   while (true) {
@@ -365,8 +366,7 @@ bool NodeFileSystem::exists(const char *path) {
     return false;
   }
   struct stat st {};
-  return IsSafeExistingPath(*full) &&
-         NoFollowStat(full->c_str(), &st) == 0;
+  return IsSafeExistingPath(*full) && NoFollowStat(full->c_str(), &st) == 0;
 }
 
 bool NodeFileSystem::makeDir(const char *path, bool pFlag) {
@@ -382,8 +382,7 @@ bool NodeFileSystem::makeDir(const char *path, bool pFlag) {
       return false;
     }
     struct stat state {};
-    return NoFollowStat(full.c_str(), &state) == 0 &&
-           !S_ISLNK(state.st_mode) &&
+    return NoFollowStat(full.c_str(), &state) == 0 && !S_ISLNK(state.st_mode) &&
            S_ISDIR(state.st_mode);
   }
   return EnsureDirectory(full);
@@ -430,12 +429,12 @@ bool NodeFileSystem::CopyFile(const char *src, const char *dest) {
   }
   std::string temp(tempCapacity, '\0');
   std::string backup(backupCapacity, '\0');
-  if (!FileCopyJournal::BuildSiblingPath(
-          target->c_str(), FileCopyJournal::TempPrefix, temp.data(),
-          temp.size()) ||
-      !FileCopyJournal::BuildSiblingPath(
-          target->c_str(), FileCopyJournal::BackupPrefix, backup.data(),
-          backup.size())) {
+  if (!FileCopyJournal::BuildSiblingPath(target->c_str(),
+                                         FileCopyJournal::TempPrefix,
+                                         temp.data(), temp.size()) ||
+      !FileCopyJournal::BuildSiblingPath(target->c_str(),
+                                         FileCopyJournal::BackupPrefix,
+                                         backup.data(), backup.size())) {
     fclose(in);
     return false;
   }
@@ -458,8 +457,7 @@ bool NodeFileSystem::CopyFile(const char *src, const char *dest) {
       return false;
     }
   }
-  if (NoFollowStat(temp.c_str(), &state) == 0 &&
-      unlink(temp.c_str()) != 0) {
+  if (NoFollowStat(temp.c_str(), &state) == 0 && unlink(temp.c_str()) != 0) {
     fclose(in);
     return false;
   }
@@ -537,7 +535,9 @@ bool NodeFileSystem::isExFat() { return false; }
 VfsFile::VfsFile(FILE *f) : f_(f) {}
 VfsFile::~VfsFile() { Close(); }
 
-int VfsFile::Read(void *ptr, int size) { return static_cast<int>(fread(ptr, 1, size, f_)); }
+int VfsFile::Read(void *ptr, int size) {
+  return static_cast<int>(fread(ptr, 1, size, f_));
+}
 int VfsFile::GetC() { return fgetc(f_); }
 int VfsFile::Write(const void *ptr, int size, int nmemb) {
   return static_cast<int>(fwrite(ptr, size, nmemb, f_));
@@ -556,7 +556,5 @@ bool VfsFile::Close() {
   return fclose(file) == 0;
 }
 int VfsFile::Error() { return f_ ? ferror(f_) : -1; }
-bool VfsFile::Sync() {
-  return f_ && fflush(f_) == 0 && fsync(fileno(f_)) == 0;
-}
+bool VfsFile::Sync() { return f_ && fflush(f_) == 0 && fsync(fileno(f_)) == 0; }
 void VfsFile::Dispose() { delete this; }

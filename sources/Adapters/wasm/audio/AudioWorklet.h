@@ -41,12 +41,11 @@ public:
   void SetDestinationRate(std::uint32_t destinationRate) noexcept;
   [[nodiscard]] bool Render(float *left, float *right,
                             std::size_t frames) noexcept;
-  void RecordCallback(double callbackMilliseconds,
-                      std::size_t frames) noexcept;
+  void RecordCallback(double callbackMilliseconds, std::size_t frames) noexcept;
   // Browser-callable deterministic oracle. It uses the production boundary
   // resampler implementation but never touches the live driver or callback.
-  [[nodiscard]] static WasmAudioRenderOracle RenderOracle(
-      std::uint32_t destinationRate) noexcept;
+  [[nodiscard]] static WasmAudioRenderOracle
+  RenderOracle(std::uint32_t destinationRate) noexcept;
 
 private:
   [[nodiscard]] bool Refill() noexcept;

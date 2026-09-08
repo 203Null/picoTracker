@@ -23,13 +23,12 @@ enum class Ui2FontWorkflowResult : std::uint8_t {
 };
 
 inline Ui2FontWorkflowResult Ui2ExecuteFontCommand(Ui2FontCommand command,
-                                                    Variable *configured) {
+                                                   Variable *configured) {
   switch (command.type) {
   case Ui2FontCommandType::None:
     return Ui2FontWorkflowResult::None;
   case Ui2FontCommandType::SetTextCase: {
-    if (configured == nullptr ||
-        configured->GetID() != FourCC::VarUITextCase)
+    if (configured == nullptr || configured->GetID() != FourCC::VarUITextCase)
       return Ui2FontWorkflowResult::ConfigUnavailable;
     const int value = std::min<int>(command.value, 2);
     if (configured->GetInt() == value)

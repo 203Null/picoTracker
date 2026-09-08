@@ -63,8 +63,8 @@ public:
                           UiIndexedSurface &surface, const UiPalette &palette);
   [[nodiscard]] static RectI16 CursorTargetRect(UiProjectCursor cursor);
   [[nodiscard]] static constexpr std::int16_t ContentBottom() { return 181; }
-  [[nodiscard]] static std::int16_t
-  RevealCursor(std::int16_t currentOffset, UiProjectCursor cursor) {
+  [[nodiscard]] static std::int16_t RevealCursor(std::int16_t currentOffset,
+                                                 UiProjectCursor cursor) {
     return UiVerticalList::Reveal(currentOffset, CursorTargetRect(cursor), 34,
                                   208, ContentBottom());
   }

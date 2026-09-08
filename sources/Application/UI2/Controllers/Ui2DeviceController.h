@@ -68,10 +68,10 @@ public:
   static constexpr std::uint32_t AllFieldsMask =
       Ui2FixedListCursor<FieldCount>::AllEnabledMask;
 
-  constexpr Ui2DeviceController(std::uint32_t visibleFields = AllFieldsMask,
-                                Ui2DeviceField selected =
-                                    Ui2DeviceField::MidiDevice,
-                                std::uint8_t viewportRows = 7)
+  constexpr Ui2DeviceController(
+      std::uint32_t visibleFields = AllFieldsMask,
+      Ui2DeviceField selected = Ui2DeviceField::MidiDevice,
+      std::uint8_t viewportRows = 7)
       : cursor_(FieldIndex(selected), visibleFields, viewportRows) {}
 
   [[nodiscard]] constexpr Ui2DeviceField SelectedField() const {
@@ -103,8 +103,7 @@ public:
     cursor_.SetEnabledMask(visibleFields);
   }
 
-  constexpr void SetSelector(Ui2DeviceField field,
-                             Ui2SelectorState selector) {
+  constexpr void SetSelector(Ui2DeviceField field, Ui2SelectorState selector) {
     const std::size_t index = FieldIndex(field);
     if (index < selectors_.size())
       selectors_[index] = selector;
@@ -115,7 +114,7 @@ public:
     if (IsSelectorField(field)) {
       const Ui2SelectorState selector = Selector(field);
       return {.kind = selector.Valid() ? Ui2DeviceBottomKind::Selector
-                                      : Ui2DeviceBottomKind::Hidden,
+                                       : Ui2DeviceBottomKind::Hidden,
               .action = Ui2DeviceCommandType::None,
               .count = selector.count,
               .current = selector.current,
@@ -143,15 +142,14 @@ public:
         const Ui2DeviceField field = SelectedField();
         if (!IsSelectorField(field))
           return {};
-        const bool vertical = action == TrackerAction::Up ||
-                              action == TrackerAction::Down;
+        const bool vertical =
+            action == TrackerAction::Up || action == TrackerAction::Down;
         if (vertical && !IsNumericField(field))
           return {};
         Ui2SelectorState &selector = selectors_[FieldIndex(field)];
         const std::int8_t delta =
-            action == TrackerAction::Left || action == TrackerAction::Down
-                ? -1
-                : 1;
+            action == TrackerAction::Left || action == TrackerAction::Down ? -1
+                                                                           : 1;
         const std::uint8_t steps = vertical ? 10U : 1U;
         bool changed = false;
         for (std::uint8_t step = 0; step < steps; ++step)
@@ -190,13 +188,11 @@ public:
   }
 
 private:
-  [[nodiscard]] static constexpr std::size_t
-  FieldIndex(Ui2DeviceField field) {
+  [[nodiscard]] static constexpr std::size_t FieldIndex(Ui2DeviceField field) {
     return static_cast<std::size_t>(field);
   }
 
-  [[nodiscard]] static constexpr bool
-  IsSelectorField(Ui2DeviceField field) {
+  [[nodiscard]] static constexpr bool IsSelectorField(Ui2DeviceField field) {
     switch (field) {
     case Ui2DeviceField::MidiDevice:
     case Ui2DeviceField::MidiSync:
@@ -214,8 +210,7 @@ private:
     return false;
   }
 
-  [[nodiscard]] static constexpr bool
-  IsNumericField(Ui2DeviceField field) {
+  [[nodiscard]] static constexpr bool IsNumericField(Ui2DeviceField field) {
     return field == Ui2DeviceField::Volume ||
            field == Ui2DeviceField::Brightness;
   }

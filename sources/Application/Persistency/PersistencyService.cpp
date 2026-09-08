@@ -25,7 +25,7 @@
 using namespace PersistencyPaths;
 
 PersistencyService::PersistencyService()
-    : Service(FourCC::ServicePersistency) {};
+    : Service(FourCC::ServicePersistency){};
 
 bool PersistencyService::IsInternalProjectName(const char *projectName) {
   if (projectName == nullptr)

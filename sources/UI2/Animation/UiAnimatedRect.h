@@ -78,8 +78,7 @@ public:
     Cursor(role).Retarget(target, nowMs, durationMs);
   }
 
-  [[nodiscard]] RectI16 Sample(UiCursorRole role,
-                               std::uint32_t nowMs) const {
+  [[nodiscard]] RectI16 Sample(UiCursorRole role, std::uint32_t nowMs) const {
     return Cursor(role).Sample(nowMs);
   }
 

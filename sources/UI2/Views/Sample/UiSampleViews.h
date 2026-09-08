@@ -62,8 +62,7 @@ struct UiSampleEditorViewData {
   std::span<const std::uint8_t> waveformMask{};
   std::span<const UiSampleWaveformMarker> markers{};
   std::uint32_t waveformRevision = 0;
-  std::array<std::string_view, 4> bottomActions{"SAVE", "TRIM", "DISCARD",
-                                                {}};
+  std::array<std::string_view, 4> bottomActions{"SAVE", "TRIM", "DISCARD", {}};
   std::uint8_t bottomActionCount = 3;
   std::uint8_t bottomActive = 0;
   UiSampleEditorCursor cursor = UiSampleEditorCursor::Start;
@@ -87,15 +86,13 @@ public:
   static void RenderDelta(const UiSampleEditorViewData &previous,
                           const UiSampleEditorViewData &current,
                           const UiFrameScene &currentScene,
-                          UiIndexedSurface &surface,
-                          const UiPalette &palette);
+                          UiIndexedSurface &surface, const UiPalette &palette);
   [[nodiscard]] static RectI16 CursorTargetRect(UiSampleEditorCursor cursor);
   [[nodiscard]] static RectI16
   CursorTargetRect(const UiSampleEditorViewData &data) {
     RectI16 target = CursorTargetRect(data.cursor);
-    if (data.enterDigitFocus &&
-        (data.cursor == UiSampleEditorCursor::Start ||
-         data.cursor == UiSampleEditorCursor::End)) {
+    if (data.enterDigitFocus && (data.cursor == UiSampleEditorCursor::Start ||
+                                 data.cursor == UiSampleEditorCursor::End)) {
       const std::uint8_t digit = std::min<std::uint8_t>(data.focusDigit, 6U);
       target.x = static_cast<std::int16_t>(90 + digit * 6);
       target.width = 9;
@@ -144,8 +141,7 @@ public:
   static void RenderDelta(const UiSampleSlicesViewData &previous,
                           const UiSampleSlicesViewData &current,
                           const UiFrameScene &currentScene,
-                          UiIndexedSurface &surface,
-                          const UiPalette &palette);
+                          UiIndexedSurface &surface, const UiPalette &palette);
   [[nodiscard]] static RectI16 CursorTargetRect(UiSampleSlicesCursor cursor);
   [[nodiscard]] static RectI16
   CursorTargetRect(const UiSampleSlicesViewData &data) {

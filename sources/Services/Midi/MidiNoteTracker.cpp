@@ -18,8 +18,7 @@ MidiNoteTracker::MidiNoteTracker() {
 bool MidiNoteTracker::registerNote(uint8_t note, uint8_t midiChannel,
                                    uint8_t audioChannel) {
   // Validate parameters
-  if (note > 127 || midiChannel > 15 ||
-      audioChannel >= playingNotes_.size()) {
+  if (note > 127 || midiChannel > 15 || audioChannel >= playingNotes_.size()) {
     Trace::Debug("Invalid parameters in registerNote: note=%d, midiChannel=%d, "
                  "audioChannel=%d",
                  note, midiChannel, audioChannel);

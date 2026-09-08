@@ -120,9 +120,8 @@ public:
         instrumentCount_(instrumentCount),
         selectedTrack_(selectedTrack < TrackCount ? selectedTrack
                                                   : TrackCount - 1U),
-        operatorColumn_(cursor.kind == Ui2InstrumentCursorKind::Operator2
-                            ? 1U
-                            : 0U),
+        operatorColumn_(cursor.kind == Ui2InstrumentCursorKind::Operator2 ? 1U
+                                                                          : 0U),
         instrumentWrap_(instrumentWrap) {}
 
   [[nodiscard]] constexpr Ui2InstrumentCursorPosition Cursor() const {
@@ -135,9 +134,8 @@ public:
       return {.kind = Ui2InstrumentCursorKind::Field,
               .index = static_cast<std::uint8_t>(row - 2U)};
     }
-    return {.kind = operatorColumn_ == 0U
-                        ? Ui2InstrumentCursorKind::Operator1
-                        : Ui2InstrumentCursorKind::Operator2,
+    return {.kind = operatorColumn_ == 0U ? Ui2InstrumentCursorKind::Operator1
+                                          : Ui2InstrumentCursorKind::Operator2,
             .index = static_cast<std::uint8_t>(row - 2U - fieldCount_)};
   }
 
@@ -171,9 +169,7 @@ public:
     return !NumberFocus() && subfieldMode_ != Ui2InstrumentSubfieldMode::None &&
            subfieldCount_ > 0U && input_.Held(TrackerAction::Enter);
   }
-  [[nodiscard]] constexpr std::uint8_t Subfield() const {
-    return subfield_;
-  }
+  [[nodiscard]] constexpr std::uint8_t Subfield() const { return subfield_; }
 
   // The application resolves the active descriptor immediately before every
   // input edge. This keeps the controller independent from Instrument model
@@ -182,9 +178,8 @@ public:
   constexpr void ConfigureValueSubfields(Ui2InstrumentSubfieldMode mode,
                                          std::uint8_t count) {
     subfieldMode_ = count == 0U ? Ui2InstrumentSubfieldMode::None : mode;
-    subfieldCount_ = subfieldMode_ == Ui2InstrumentSubfieldMode::None
-                         ? 0U
-                         : count;
+    subfieldCount_ =
+        subfieldMode_ == Ui2InstrumentSubfieldMode::None ? 0U : count;
     if (subfieldCount_ == 0U) {
       subfield_ = 0U;
     } else if (subfield_ >= subfieldCount_) {
@@ -206,8 +201,7 @@ public:
                               std::uint8_t operatorCount) {
     const std::uint8_t nextFieldCount = ClampFieldCount(fieldCount);
     const std::uint8_t nextOperatorCount = ClampOperatorCount(operatorCount);
-    if (fieldCount_ != nextFieldCount ||
-        operatorCount_ != nextOperatorCount)
+    if (fieldCount_ != nextFieldCount || operatorCount_ != nextOperatorCount)
       ResetSubfield();
     fieldCount_ = nextFieldCount;
     operatorCount_ = nextOperatorCount;
@@ -225,8 +219,8 @@ public:
                              std::uint8_t fieldCount,
                              std::uint8_t operatorCount) {
     number_ = SanitizeNumber(number, instrumentCount_);
-    selectedTrack_ = selectedTrack < TrackCount ? selectedTrack
-                                                : TrackCount - 1U;
+    selectedTrack_ =
+        selectedTrack < TrackCount ? selectedTrack : TrackCount - 1U;
     typeSelector_ = typeSelector;
     SetStructure(fieldCount, operatorCount);
   }
@@ -243,11 +237,9 @@ public:
               .selectedIndex = static_cast<std::uint8_t>(nameAction_),
               .optionCount = NameActionCount()};
     }
-    if (cursor.kind == Ui2InstrumentCursorKind::Type &&
-        typeSelector_.Valid()) {
+    if (cursor.kind == Ui2InstrumentCursorKind::Type && typeSelector_.Valid()) {
       return {.kind = Ui2InstrumentBottomKind::TypeSelector,
-              .selectedIndex =
-                  static_cast<std::uint8_t>(typeSelector_.current),
+              .selectedIndex = static_cast<std::uint8_t>(typeSelector_.current),
               .optionCount = static_cast<std::uint8_t>(typeSelector_.count),
               .wrap = typeSelector_.wrap};
     }
@@ -329,16 +321,16 @@ private:
 
   [[nodiscard]] static constexpr std::uint8_t
   SanitizeNumber(std::uint8_t number, std::uint8_t count) {
-    return count == 0U ? 0U : number < count ? number
-                                             : static_cast<std::uint8_t>(count - 1U);
+    return count == 0U      ? 0U
+           : number < count ? number
+                            : static_cast<std::uint8_t>(count - 1U);
   }
 
   [[nodiscard]] static constexpr std::uint32_t
   EnabledRowsMask(std::uint8_t fieldCount, std::uint8_t operatorCount) {
     const std::uint8_t count =
         static_cast<std::uint8_t>(2U + fieldCount + operatorCount);
-    return count >= 32U ? 0xFFFFFFFFU
-                        : (std::uint32_t{1} << count) - 1U;
+    return count >= 32U ? 0xFFFFFFFFU : (std::uint32_t{1} << count) - 1U;
   }
 
   [[nodiscard]] static constexpr std::uint8_t
@@ -352,8 +344,8 @@ private:
     case Ui2InstrumentCursorKind::Field:
       return fieldCount == 0U
                  ? 1U
-                 : static_cast<std::uint8_t>(
-                       2U + (cursor.index < fieldCount ? cursor.index
+                 : static_cast<std::uint8_t>(2U + (cursor.index < fieldCount
+                                                       ? cursor.index
                                                        : fieldCount - 1U));
     case Ui2InstrumentCursorKind::Operator1:
     case Ui2InstrumentCursorKind::Operator2:
@@ -361,10 +353,10 @@ private:
                  ? (fieldCount == 0U
                         ? 1U
                         : static_cast<std::uint8_t>(1U + fieldCount))
-                 : static_cast<std::uint8_t>(
-                       2U + fieldCount +
-                       (cursor.index < operatorCount ? cursor.index
-                                                     : operatorCount - 1U));
+                 : static_cast<std::uint8_t>(2U + fieldCount +
+                                             (cursor.index < operatorCount
+                                                  ? cursor.index
+                                                  : operatorCount - 1U));
     }
     return 0U;
   }
@@ -421,7 +413,8 @@ private:
     if (cursor.kind == Ui2InstrumentCursorKind::Type) {
       if (!typeSelector_.Move(delta))
         return {};
-      Ui2InstrumentCommand command = MakeCommand(Ui2InstrumentCommandType::SetType);
+      Ui2InstrumentCommand command =
+          MakeCommand(Ui2InstrumentCommandType::SetType);
       command.value = static_cast<std::int16_t>(typeSelector_.current);
       command.direction = delta < 0 ? Ui2InstrumentValueDirection::Left
                                     : Ui2InstrumentValueDirection::Right;
@@ -454,9 +447,8 @@ private:
     if (cursor.kind == Ui2InstrumentCursorKind::Type) {
       if (direction == Ui2InstrumentValueDirection::Left ||
           direction == Ui2InstrumentValueDirection::Right) {
-        return HandleHorizontal(direction == Ui2InstrumentValueDirection::Left
-                                    ? -1
-                                    : 1);
+        return HandleHorizontal(
+            direction == Ui2InstrumentValueDirection::Left ? -1 : 1);
       }
       return {};
     }

@@ -63,8 +63,7 @@ struct Ui2DialogSnapshot {
 
   void SetSelectedAction(int selected, bool focused) {
     actionsFocused = focused;
-    focus = focused ? ui2::UiDialogFocus::Actions
-                    : ui2::UiDialogFocus::Input;
+    focus = focused ? ui2::UiDialogFocus::Actions : ui2::UiDialogFocus::Input;
     if (actionCount == 0U) {
       selectedAction = 0U;
       return;

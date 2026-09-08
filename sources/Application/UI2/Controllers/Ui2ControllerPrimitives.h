@@ -55,8 +55,8 @@ public:
         TrackerActionBit(TrackerAction::Shift) |
         TrackerActionBit(TrackerAction::Option) |
         TrackerActionBit(TrackerAction::Enter);
-    mask_ = static_cast<std::uint16_t>((mask_ & ~modifiers) |
-                                      (mask & modifiers));
+    mask_ =
+        static_cast<std::uint16_t>((mask_ & ~modifiers) | (mask & modifiers));
   }
 
   [[nodiscard]] constexpr std::uint16_t Mask() const { return mask_; }
@@ -71,9 +71,9 @@ private:
 // direction press must cross at most one page. Action/modifier repeats likewise
 // remain a single edge so SAVE, IMPORT, PLAY, and modal openers cannot fire
 // again before their matching key-up.
-[[nodiscard]] constexpr bool
-Ui2AcceptInputEvent(TrackerAction action, bool pressed,
-                    std::uint16_t heldBefore) {
+[[nodiscard]] constexpr bool Ui2AcceptInputEvent(TrackerAction action,
+                                                 bool pressed,
+                                                 std::uint16_t heldBefore) {
   if (!TrackerActionIsValid(action))
     return false;
   if (!pressed || (heldBefore & TrackerActionBit(action)) == 0U)
@@ -90,20 +90,17 @@ Ui2AcceptInputEvent(TrackerAction action, bool pressed,
 // SHIFT+direction: the release belongs to the page that initiated navigation,
 // while a later direction press (with SHIFT still held) may claim the new page.
 template <typename Owner>
-[[nodiscard]] constexpr Owner Ui2ClaimPressOwner(Owner &pressOwner,
-                                                 Owner activeOwner,
-                                                 Owner noOwner) {
+[[nodiscard]] constexpr Owner
+Ui2ClaimPressOwner(Owner &pressOwner, Owner activeOwner, Owner noOwner) {
   if (pressOwner == noOwner)
     pressOwner = activeOwner;
   return pressOwner;
 }
 
 template <typename Owner>
-[[nodiscard]] constexpr Owner Ui2ReleasePressOwner(Owner &pressOwner,
-                                                   Owner activeOwner,
-                                                   Owner noOwner) {
-  const Owner releaseOwner =
-      pressOwner == noOwner ? activeOwner : pressOwner;
+[[nodiscard]] constexpr Owner
+Ui2ReleasePressOwner(Owner &pressOwner, Owner activeOwner, Owner noOwner) {
+  const Owner releaseOwner = pressOwner == noOwner ? activeOwner : pressOwner;
   pressOwner = noOwner;
   return releaseOwner;
 }
@@ -115,17 +112,16 @@ template <typename Owner>
 class Ui2InputReleaseGate {
 public:
   constexpr void BlockUntilRelease(TrackerAction trigger) {
-    blockedMask_ = TrackerActionIsValid(trigger)
-                       ? TrackerActionBit(trigger)
-                       : 0U;
+    blockedMask_ =
+        TrackerActionIsValid(trigger) ? TrackerActionBit(trigger) : 0U;
   }
 
   [[nodiscard]] constexpr bool Update(TrackerAction action, bool pressed) {
     if (!TrackerActionIsValid(action))
       return false;
     if (!pressed)
-      blockedMask_ = static_cast<std::uint16_t>(
-          blockedMask_ & ~TrackerActionBit(action));
+      blockedMask_ =
+          static_cast<std::uint16_t>(blockedMask_ & ~TrackerActionBit(action));
     return blockedMask_ == 0U;
   }
 
@@ -138,15 +134,16 @@ private:
 // Clamp a browser/list cursor after a signed movement. The fixed-capacity UI2
 // browsers share this primitive for ordinary single-row movement and M8-style
 // OPTION+UP/DOWN eight-row jumps.
-[[nodiscard]] constexpr std::uint16_t
-Ui2MoveListIndex(std::uint16_t current, std::uint16_t count,
-                 std::int16_t delta) {
+[[nodiscard]] constexpr std::uint16_t Ui2MoveListIndex(std::uint16_t current,
+                                                       std::uint16_t count,
+                                                       std::int16_t delta) {
   if (count == 0U)
     return 0U;
   const std::int32_t maximum = static_cast<std::int32_t>(count) - 1;
   const std::int32_t moved = static_cast<std::int32_t>(current) + delta;
-  return static_cast<std::uint16_t>(
-      moved < 0 ? 0 : moved > maximum ? maximum : moved);
+  return static_cast<std::uint16_t>(moved < 0         ? 0
+                                    : moved > maximum ? maximum
+                                                      : moved);
 }
 
 // A selector owns indices only. Display strings remain static/model-owned, so
@@ -157,13 +154,12 @@ struct Ui2SelectorState {
   bool wrap = false;
 
   constexpr Ui2SelectorState() = default;
-  constexpr Ui2SelectorState(std::uint16_t optionCount,
-                             std::uint16_t selected, bool shouldWrap)
-      : count(optionCount), current(optionCount == 0U
-                                        ? 0U
-                                        : selected < optionCount
-                                              ? selected
-                                              : optionCount - 1U),
+  constexpr Ui2SelectorState(std::uint16_t optionCount, std::uint16_t selected,
+                             bool shouldWrap)
+      : count(optionCount),
+        current(optionCount == 0U        ? 0U
+                : selected < optionCount ? selected
+                                         : optionCount - 1U),
         wrap(shouldWrap) {}
 
   [[nodiscard]] constexpr bool Valid() const { return count > 0U; }
@@ -195,12 +191,10 @@ public:
   static_assert(Capacity > 0U && Capacity <= 32U);
 
   static constexpr std::uint32_t AllEnabledMask =
-      Capacity == 32U ? 0xFFFFFFFFU
-                      : (std::uint32_t{1} << Capacity) - 1U;
+      Capacity == 32U ? 0xFFFFFFFFU : (std::uint32_t{1} << Capacity) - 1U;
 
   constexpr Ui2FixedListCursor(
-      std::uint8_t selected = 0,
-      std::uint32_t enabledMask = AllEnabledMask,
+      std::uint8_t selected = 0, std::uint32_t enabledMask = AllEnabledMask,
       std::uint8_t viewportRows = static_cast<std::uint8_t>(Capacity))
       : enabledMask_(enabledMask & AllEnabledMask),
         viewportRows_(SanitizeViewport(viewportRows)) {
@@ -208,9 +202,7 @@ public:
     EnsureVisible();
   }
 
-  [[nodiscard]] constexpr std::uint8_t Selected() const {
-    return selected_;
-  }
+  [[nodiscard]] constexpr std::uint8_t Selected() const { return selected_; }
   [[nodiscard]] constexpr std::uint8_t SelectedOrdinal() const {
     return OrdinalOf(selected_);
   }
@@ -247,9 +239,9 @@ public:
     const std::uint8_t current = SelectedOrdinal();
     if (current == 0U && !wrap)
       return false;
-    const std::uint8_t next =
-        current == 0U ? static_cast<std::uint8_t>(count - 1U)
-                      : static_cast<std::uint8_t>(current - 1U);
+    const std::uint8_t next = current == 0U
+                                  ? static_cast<std::uint8_t>(count - 1U)
+                                  : static_cast<std::uint8_t>(current - 1U);
     selected_ = IndexAtOrdinal(next);
     EnsureVisible();
     return true;
@@ -263,8 +255,7 @@ public:
     if (current + 1U >= count && !wrap)
       return false;
     const std::uint8_t next =
-        current + 1U >= count ? 0U
-                              : static_cast<std::uint8_t>(current + 1U);
+        current + 1U >= count ? 0U : static_cast<std::uint8_t>(current + 1U);
     selected_ = IndexAtOrdinal(next);
     EnsureVisible();
     return true;
@@ -287,8 +278,7 @@ private:
     selected_ = IsEnabled(requested) ? requested : IndexAtOrdinal(0U);
   }
 
-  [[nodiscard]] constexpr std::uint8_t
-  OrdinalOf(std::uint8_t index) const {
+  [[nodiscard]] constexpr std::uint8_t OrdinalOf(std::uint8_t index) const {
     std::uint8_t ordinal = 0;
     for (std::uint8_t candidate = 0; candidate < Capacity; ++candidate) {
       if (!IsEnabled(candidate))
@@ -316,9 +306,8 @@ private:
   constexpr void ClampFirstVisible() {
     const std::uint8_t count = EnabledCount();
     const std::uint8_t maximum =
-        count > viewportRows_
-            ? static_cast<std::uint8_t>(count - viewportRows_)
-            : 0U;
+        count > viewportRows_ ? static_cast<std::uint8_t>(count - viewportRows_)
+                              : 0U;
     if (firstVisibleOrdinal_ > maximum)
       firstVisibleOrdinal_ = maximum;
   }
@@ -350,12 +339,12 @@ static_assert(std::is_trivially_copyable_v<Ui2SelectorState>);
 static_assert(sizeof(Ui2ControllerInputState) == 2U);
 static_assert(sizeof(Ui2InputReleaseGate) == 2U);
 static_assert(Ui2AcceptInputEvent(TrackerAction::Up, true,
-                                 TrackerActionBit(TrackerAction::Up)));
-static_assert(!Ui2AcceptInputEvent(
-    TrackerAction::Up, true, TrackerActionBit(TrackerAction::Up) |
-                                 TrackerActionBit(TrackerAction::Shift)));
+                                  TrackerActionBit(TrackerAction::Up)));
+static_assert(!Ui2AcceptInputEvent(TrackerAction::Up, true,
+                                   TrackerActionBit(TrackerAction::Up) |
+                                       TrackerActionBit(TrackerAction::Shift)));
 static_assert(!Ui2AcceptInputEvent(TrackerAction::Enter, true,
-                                  TrackerActionBit(TrackerAction::Enter)));
+                                   TrackerActionBit(TrackerAction::Enter)));
 static_assert(Ui2MoveListIndex(3U, 12U, -8) == 0U);
 static_assert(Ui2MoveListIndex(3U, 12U, 8) == 11U);
 static_assert(Ui2MoveListIndex(0U, 0U, 8) == 0U);

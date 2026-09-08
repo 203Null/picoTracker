@@ -34,9 +34,8 @@ struct Ui2ProjectBrowserCommand {
 
 [[nodiscard]] constexpr Ui2ProjectBrowserCommandType
 Ui2ProjectBrowserProjectAction(bool optionHeld, std::uint8_t activeAction) {
-  return optionHeld || activeAction != 0U
-             ? Ui2ProjectBrowserCommandType::Delete
-             : Ui2ProjectBrowserCommandType::Load;
+  return optionHeld || activeAction != 0U ? Ui2ProjectBrowserCommandType::Delete
+                                          : Ui2ProjectBrowserCommandType::Load;
 }
 
 // Native fixed-capacity project browser. It owns copied names so another
@@ -110,8 +109,8 @@ public:
       activeAction_ = 0U;
       KeepSelectionVisible();
     } else if (action == TrackerAction::Down) {
-      selected_ = Ui2MoveListIndex(
-          selected_, RowCount(), input_.Held(TrackerAction::Option) ? 8 : 1);
+      selected_ = Ui2MoveListIndex(selected_, RowCount(),
+                                   input_.Held(TrackerAction::Option) ? 8 : 1);
       activeAction_ = 0U;
       KeepSelectionVisible();
     } else if (action == TrackerAction::Left) {
@@ -132,8 +131,7 @@ public:
       }
       Ui2ProjectBrowserCommand command{
           .type = Ui2ProjectBrowserProjectAction(
-              input_.Held(TrackerAction::Option),
-              activeAction_)};
+              input_.Held(TrackerAction::Option), activeAction_)};
       ReadName(directoryIndex, command.project.data(), command.project.size());
       // DELETE is deliberately unavailable for the active project both in the
       // footer and at command emission. Application re-checks the name before
@@ -178,18 +176,16 @@ public:
     }
     std::snprintf(snapshot.footer.data(), snapshot.footer.size(), "%u ITEM%s",
                   static_cast<unsigned>(count_), count_ == 1U ? "" : "S");
-    const bool navigationSelected =
-        navigationRows != 0U && selected_ == 0U;
-    Ui2BrowserSnapshot::CopyText(snapshot.actions[0], navigationSelected
-                                                         ? "UP"
-                                                         : InProjectDirectory()
-                                                               ? "LOAD"
-                                                               : "OPEN");
+    const bool navigationSelected = navigationRows != 0U && selected_ == 0U;
+    Ui2BrowserSnapshot::CopyText(snapshot.actions[0], navigationSelected ? "UP"
+                                                      : InProjectDirectory()
+                                                          ? "LOAD"
+                                                          : "OPEN");
     snapshot.actionCount = snapshot.hasSelection ? 1U : 0U;
     if (snapshot.hasSelection && !navigationSelected && InProjectDirectory()) {
       char selectedName[Ui2BrowserSnapshot::ItemTextCapacity]{};
-      ReadName(static_cast<std::uint16_t>(selected_ - navigationRows), selectedName,
-               sizeof(selectedName));
+      ReadName(static_cast<std::uint16_t>(selected_ - navigationRows),
+               selectedName, sizeof(selectedName));
       if (!IsCurrentProject(selectedName)) {
         Ui2BrowserSnapshot::CopyText(snapshot.actions[1], "DELETE");
         snapshot.actionCount = 2U;
@@ -259,8 +255,7 @@ private:
 
   [[nodiscard]] bool HasProjectSelection() const {
     const std::uint16_t navigationRows = NavigationRowCount();
-    return selected_ >= navigationRows &&
-           selected_ - navigationRows < count_;
+    return selected_ >= navigationRows && selected_ - navigationRows < count_;
   }
 
   static constexpr const char *ProjectDirectoryName() {
@@ -336,14 +331,15 @@ private:
   }
 
   template <std::size_t Size>
-  [[nodiscard]] bool BuildAbsolutePath(std::array<char, Size> &destination) const {
+  [[nodiscard]] bool
+  BuildAbsolutePath(std::array<char, Size> &destination) const {
     std::size_t used = 0U;
     destination.fill('\0');
     destination[used++] = '/';
     for (std::uint8_t index = 0U; index < depth_; ++index) {
       const std::size_t length = std::strlen(path_[index].data());
-      if (length == 0U || used + length + (index + 1U < depth_ ? 1U : 0U) >=
-                              destination.size())
+      if (length == 0U ||
+          used + length + (index + 1U < depth_ ? 1U : 0U) >= destination.size())
         return false;
       std::memcpy(destination.data() + used, path_[index].data(), length);
       used += length;

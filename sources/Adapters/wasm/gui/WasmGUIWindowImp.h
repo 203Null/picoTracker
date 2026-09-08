@@ -25,14 +25,12 @@ public:
   bool HasPresentedFrame() const;
   static const std::uint8_t *CaptureFrameRgba();
   static const std::uint32_t *FrameSnapshotSequence();
-  ui2::PresentResult
-  Present(const ui2::UiIndexedSurface &surface,
-          const ui2::UiPalette &palette,
-          std::span<const ui2::DirtyStrip> strips) override;
+  ui2::PresentResult Present(const ui2::UiIndexedSurface &surface,
+                             const ui2::UiPalette &palette,
+                             std::span<const ui2::DirtyStrip> strips) override;
 
 private:
-  using RgbaFrame =
-      std::array<std::uint8_t, CanvasWidth * CanvasHeight * 4>;
+  using RgbaFrame = std::array<std::uint8_t, CanvasWidth * CanvasHeight * 4>;
 
   bool InitializePresenter();
   void DestroyPresenter();

@@ -89,9 +89,9 @@ struct Ui2BrowserSnapshot {
     }
     const std::uint16_t selectedIndex = static_cast<std::uint16_t>(
         std::min<std::size_t>(selected, totalItemCount - 1U));
-    const std::uint16_t suppliedTop = static_cast<std::uint16_t>(
-        std::min<std::size_t>(legacyTop,
-                              std::numeric_limits<std::uint16_t>::max()));
+    const std::uint16_t suppliedTop =
+        static_cast<std::uint16_t>(std::min<std::size_t>(
+            legacyTop, std::numeric_limits<std::uint16_t>::max()));
     topIndex = ResolveWindowTop(totalItemCount, selectedIndex, suppliedTop);
     visibleItemCount = static_cast<std::uint8_t>(std::min<std::uint16_t>(
         static_cast<std::uint16_t>(VisibleRowCapacity),
@@ -101,8 +101,7 @@ struct Ui2BrowserSnapshot {
   }
 
   [[nodiscard]] ui2::UiBrowserViewData
-  ViewData(ui2::UiPowerState power =
-               ui2::UiPowerState::BatteryNormal) const {
+  ViewData(ui2::UiPowerState power = ui2::UiPowerState::BatteryNormal) const {
     ui2::UiBrowserViewData data;
     data.title = title.data();
     data.meta = meta.data();
@@ -118,10 +117,10 @@ struct Ui2BrowserSnapshot {
       data.actions[action] = actions[action].data();
     data.actionCount = std::min<std::uint8_t>(
         actionCount, static_cast<std::uint8_t>(actions.size()));
-    data.activeAction = data.actionCount == 0U
-                            ? 0U
-                            : std::min<std::uint8_t>(
-                                  activeAction, data.actionCount - 1U);
+    data.activeAction =
+        data.actionCount == 0U
+            ? 0U
+            : std::min<std::uint8_t>(activeAction, data.actionCount - 1U);
     data.cursorInkVisible = hasSelection;
     data.power = power;
     return data;

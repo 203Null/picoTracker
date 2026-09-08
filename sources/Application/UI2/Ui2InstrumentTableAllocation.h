@@ -15,13 +15,12 @@ namespace ui2 {
 // ENTER allocates a table only for instrument fields whose value is a
 // table reference. Keeping the FourCC allow-list here prevents action rows and
 // the still-unapproved SID/FILTER/SAMPLE interactions from consuming tables.
-inline bool Ui2AllocateInstrumentTable(
-    const Ui2InstrumentParameterDescriptor &descriptor, Variable &value,
-    TableHolder &tables) {
-  const bool tableField =
-      descriptor.primary == FourCC::SampleInstrumentTable ||
-      descriptor.primary == FourCC::MidiInstrumentTable ||
-      descriptor.primary == FourCC::StackTable;
+inline bool
+Ui2AllocateInstrumentTable(const Ui2InstrumentParameterDescriptor &descriptor,
+                           Variable &value, TableHolder &tables) {
+  const bool tableField = descriptor.primary == FourCC::SampleInstrumentTable ||
+                          descriptor.primary == FourCC::MidiInstrumentTable ||
+                          descriptor.primary == FourCC::StackTable;
   if (!descriptor.Valid() || !descriptor.editable || !tableField ||
       value.GetID() != descriptor.primary)
     return false;

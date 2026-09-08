@@ -54,9 +54,9 @@ bool Recover(FileSystemType &fileSystem, const Paths &paths,
       fileSystem.exists(paths.backup) && validate(paths.backup);
   const bool temporaryValid =
       fileSystem.exists(paths.temporary) && validate(paths.temporary);
-  const char *recoveryPath =
-      backupValid ? paths.backup
-                  : temporaryValid ? paths.temporary : nullptr;
+  const char *recoveryPath = backupValid      ? paths.backup
+                             : temporaryValid ? paths.temporary
+                                              : nullptr;
   if (recoveryPath == nullptr) {
     // A corrupt payload must not shadow another project generation. Preserve
     // all potentially useful bytes when none is structurally valid.
@@ -109,8 +109,7 @@ bool SaveAtomically(FileSystemType &fileSystem, const Paths &paths,
 
   // SdFat refuses rename-over-existing. Keep the old file as a journal until
   // the synced replacement is installed.
-  if (fileSystem.exists(paths.backup) &&
-      !fileSystem.DeleteFile(paths.backup)) {
+  if (fileSystem.exists(paths.backup) && !fileSystem.DeleteFile(paths.backup)) {
     (void)fileSystem.DeleteFile(paths.temporary);
     return false;
   }

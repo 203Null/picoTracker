@@ -1,11 +1,11 @@
-#include "Adapters/wasm/platform/wasm_bridge.h"
 #include "Adapters/wasm/audio/WasmAudio.h"
 #include "Adapters/wasm/gui/WasmEventManager.h"
 #include "Adapters/wasm/gui/WasmGUIWindowImp.h"
+#include "Adapters/wasm/platform/wasm_bridge.h"
 #include "Adapters/wasm/system/WasmSystem.h"
 #include "Application/UI2/Ui2TrackerApplication.h"
-#include <emscripten/emscripten.h>
 #include <SDL.h>
+#include <emscripten/emscripten.h>
 #include <new>
 
 namespace {
@@ -48,11 +48,11 @@ int main() {
     return FailStartup("Failed to initialize SDL2 browser UI");
   }
 
-  alignas(WasmGUIWindowImp) static unsigned char windowStorage[
-      sizeof(WasmGUIWindowImp)];
+  alignas(WasmGUIWindowImp) static unsigned char
+      windowStorage[sizeof(WasmGUIWindowImp)];
   auto &window = *(new (windowStorage) WasmGUIWindowImp());
-  alignas(ui2::Ui2TrackerApplication) static unsigned char applicationStorage[
-      sizeof(ui2::Ui2TrackerApplication)];
+  alignas(ui2::Ui2TrackerApplication) static unsigned char
+      applicationStorage[sizeof(ui2::Ui2TrackerApplication)];
   auto *application =
       new (applicationStorage) ui2::Ui2TrackerApplication(window);
   if (!application->Init()) {

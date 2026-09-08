@@ -22,7 +22,8 @@ void UiIndexedSurface::FillRect(RectI16 rect, PaletteIndex color) {
 void UiIndexedSurface::FillRect(RectI16 rect, PaletteIndex color,
                                 RectI16 clip) {
   rect = Intersect(rect, Intersect(clip, RectI16::Screen()));
-  if (rect.Empty()) return;
+  if (rect.Empty())
+    return;
   for (std::int16_t y = rect.y; y < rect.Bottom(); ++y) {
     auto begin = storage_.pixels.begin() + Offset(rect.x, y);
     std::fill_n(begin, rect.width, color);
@@ -37,10 +38,11 @@ void UiIndexedSurface::FillRoundedRect(RectI16 rect, PaletteIndex fill,
 }
 
 void UiIndexedSurface::FillRoundedRect(RectI16 rect, PaletteIndex fill,
-                                       PaletteIndex corner,
-                                       std::uint8_t radius, RectI16 clip) {
+                                       PaletteIndex corner, std::uint8_t radius,
+                                       RectI16 clip) {
   const RectI16 visible = Intersect(rect, Intersect(clip, RectI16::Screen()));
-  if (visible.Empty()) return;
+  if (visible.Empty())
+    return;
   if (radius == 0 || rect.width < 3 || rect.height < 3) {
     FillRect(rect, fill, clip);
     return;
@@ -65,11 +67,14 @@ void UiIndexedSurface::FillRoundedRect(RectI16 rect, PaletteIndex fill,
   MarkDamage(visible);
 }
 
-void UiIndexedSurface::FillCoverageRoundedRect(
-    RectI16 rect, PaletteIndex fill, const UiPalette &palette,
-    UiCoverage coverage, std::uint8_t radius, RectI16 clip) {
+void UiIndexedSurface::FillCoverageRoundedRect(RectI16 rect, PaletteIndex fill,
+                                               const UiPalette &palette,
+                                               UiCoverage coverage,
+                                               std::uint8_t radius,
+                                               RectI16 clip) {
   const RectI16 visible = Intersect(rect, Intersect(clip, RectI16::Screen()));
-  if (visible.Empty()) return;
+  if (visible.Empty())
+    return;
   if (radius == 0 || rect.width < 3 || rect.height < 3) {
     FillRect(rect, fill, clip);
     return;
@@ -88,8 +93,7 @@ void UiIndexedSurface::FillCoverageRoundedRect(
   };
   captureCorner(0U, rect.x, rect.y);
   captureCorner(1U, static_cast<std::int16_t>(rect.Right() - 1), rect.y);
-  captureCorner(2U, rect.x,
-                static_cast<std::int16_t>(rect.Bottom() - 1));
+  captureCorner(2U, rect.x, static_cast<std::int16_t>(rect.Bottom() - 1));
   captureCorner(3U, static_cast<std::int16_t>(rect.Right() - 1),
                 static_cast<std::int16_t>(rect.Bottom() - 1));
   for (std::int16_t y = visible.y; y < visible.Bottom(); ++y) {
@@ -103,26 +107,28 @@ void UiIndexedSurface::FillCoverageRoundedRect(
   };
   restoreCorner(0U, rect.x, rect.y);
   restoreCorner(1U, static_cast<std::int16_t>(rect.Right() - 1), rect.y);
-  restoreCorner(2U, rect.x,
-                static_cast<std::int16_t>(rect.Bottom() - 1));
+  restoreCorner(2U, rect.x, static_cast<std::int16_t>(rect.Bottom() - 1));
   restoreCorner(3U, static_cast<std::int16_t>(rect.Right() - 1),
                 static_cast<std::int16_t>(rect.Bottom() - 1));
   MarkDamage(visible);
 }
 
-void UiIndexedSurface::DrawGlyph5x7(
-    PointI16 origin, const std::array<std::uint8_t, 7> &rows,
-    PaletteIndex color, std::uint8_t scale, RectI16 clip) {
-  if (scale == 0) return;
-  const RectI16 bounds{origin.x, origin.y,
-                       static_cast<std::int16_t>(5 * scale),
+void UiIndexedSurface::DrawGlyph5x7(PointI16 origin,
+                                    const std::array<std::uint8_t, 7> &rows,
+                                    PaletteIndex color, std::uint8_t scale,
+                                    RectI16 clip) {
+  if (scale == 0)
+    return;
+  const RectI16 bounds{origin.x, origin.y, static_cast<std::int16_t>(5 * scale),
                        static_cast<std::int16_t>(7 * scale)};
   const RectI16 visible = Intersect(bounds, Intersect(clip, RectI16::Screen()));
-  if (visible.Empty()) return;
+  if (visible.Empty())
+    return;
   for (std::int16_t y = visible.y; y < visible.Bottom(); ++y) {
     const std::uint8_t glyphY = static_cast<std::uint8_t>(y - origin.y) / scale;
     for (std::int16_t x = visible.x; x < visible.Right(); ++x) {
-      const std::uint8_t glyphX = static_cast<std::uint8_t>(x - origin.x) / scale;
+      const std::uint8_t glyphX =
+          static_cast<std::uint8_t>(x - origin.x) / scale;
       if ((rows[glyphY] & (1U << (4U - glyphX))) != 0U) {
         storage_.pixels[Offset(x, y)] = color;
       }
@@ -133,7 +139,8 @@ void UiIndexedSurface::DrawGlyph5x7(
 
 void UiIndexedSurface::SetPixel(std::int16_t x, std::int16_t y,
                                 PaletteIndex color) {
-  if (x < 0 || y < 0 || x >= kScreenWidth || y >= kScreenHeight) return;
+  if (x < 0 || y < 0 || x >= kScreenWidth || y >= kScreenHeight)
+    return;
   storage_.pixels[Offset(x, y)] = color;
   if (damageBatchDepth_ == 0U) {
     storage_.dirty.MarkPixel(static_cast<std::uint16_t>(x),
@@ -142,7 +149,8 @@ void UiIndexedSurface::SetPixel(std::int16_t x, std::int16_t y,
 }
 
 PaletteIndex UiIndexedSurface::Pixel(std::int16_t x, std::int16_t y) const {
-  if (x < 0 || y < 0 || x >= kScreenWidth || y >= kScreenHeight) return 0;
+  if (x < 0 || y < 0 || x >= kScreenWidth || y >= kScreenHeight)
+    return 0;
   return storage_.pixels[Offset(x, y)];
 }
 

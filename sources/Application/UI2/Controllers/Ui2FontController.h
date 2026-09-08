@@ -77,8 +77,7 @@ public:
       field_ = Ui2FontField::TextCase;
       return {};
     }
-    if (action == TrackerAction::Down &&
-        field_ == Ui2FontField::TextCase) {
+    if (action == TrackerAction::Down && field_ == Ui2FontField::TextCase) {
       field_ = Ui2FontField::Font;
       return {};
     }

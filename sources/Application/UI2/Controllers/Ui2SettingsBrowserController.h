@@ -96,13 +96,11 @@ public:
       return {};
     if (action == TrackerAction::Up) {
       selected_ = Ui2MoveListIndex(
-          selected_, ItemCount(),
-          input_.Held(TrackerAction::Option) ? -8 : -1);
+          selected_, ItemCount(), input_.Held(TrackerAction::Option) ? -8 : -1);
       SelectionChanged();
     } else if (action == TrackerAction::Down) {
-      selected_ = Ui2MoveListIndex(
-          selected_, ItemCount(),
-          input_.Held(TrackerAction::Option) ? 8 : 1);
+      selected_ = Ui2MoveListIndex(selected_, ItemCount(),
+                                   input_.Held(TrackerAction::Option) ? 8 : 1);
       SelectionChanged();
     } else if (action == TrackerAction::Left) {
       activeAction_ = 0U;
@@ -175,9 +173,7 @@ private:
     top_ = Ui2BrowserSnapshot::ResolveWindowTop(ItemCount(), selected_, top_);
   }
 
-  [[nodiscard]] std::uint16_t ItemCount() const {
-    return themeCount_;
-  }
+  [[nodiscard]] std::uint16_t ItemCount() const { return themeCount_; }
 
   void ReadThemeName(std::uint16_t index, char *destination,
                      std::size_t capacity) const {

@@ -29,8 +29,7 @@ inline bool InstrumentBankTokenEquals(const char *left, const char *right) {
   return *left == '\0' && *right == '\0';
 }
 
-inline bool DecodeInstrumentBankSlotId(const char *text,
-                                       std::uint8_t &slot) {
+inline bool DecodeInstrumentBankSlotId(const char *text, std::uint8_t &slot) {
   if (text == nullptr || text[0] == '\0' || text[1] == '\0' ||
       text[2] != '\0') {
     return false;

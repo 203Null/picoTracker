@@ -11,8 +11,8 @@
 #include "Application/Model/ProjectVersion.h"
 #include "Application/Model/Table.h"
 #include "Application/Persistency/PersistencyAttribute.h"
-#include "System/Console/Trace.h"
 #include "ProductVersion.h"
+#include "System/Console/Trace.h"
 
 #include <array>
 #include <cstring>
@@ -96,8 +96,7 @@ bool GenericIntegerRange(FourCC id, int &minimum, int &maximum) {
   return true;
 }
 
-bool ValidateGenericInstrumentVariable(Variable &variable,
-                                       const char *value) {
+bool ValidateGenericInstrumentVariable(Variable &variable, const char *value) {
   if (value == nullptr)
     return false;
   switch (variable.GetType()) {
@@ -111,8 +110,7 @@ bool ValidateGenericInstrumentVariable(Variable &variable,
   case Variable::BOOL:
     // Keep persistence canonical and in lockstep with Variable::SetString(),
     // whose false token is deliberately the exact lower-case string.
-    return std::strcmp(value, "true") == 0 ||
-           std::strcmp(value, "false") == 0;
+    return std::strcmp(value, "true") == 0 || std::strcmp(value, "false") == 0;
   case Variable::CHAR_LIST:
     for (std::uint8_t index = 0U; index < variable.GetListSize(); ++index) {
       const char *option = variable.GetListPointer()[index];
@@ -179,8 +177,7 @@ void I_Instrument::RestoreContent(PersistencyDocument *doc) {
   const auto fail = [doc]() { doc->MarkError(); };
 
   const bool childAlreadySelected =
-      doc->r_ == YXML_ELEMSTART &&
-      strcasecmp(doc->ElemName(), "PARAM") == 0;
+      doc->r_ == YXML_ELEMSTART && strcasecmp(doc->ElemName(), "PARAM") == 0;
   if (!childAlreadySelected) {
     // InstrumentBank stops immediately after consuming the project envelope's
     // TYPE attribute so concrete restore can still see legacy root fields.
@@ -210,8 +207,8 @@ void I_Instrument::RestoreContent(PersistencyDocument *doc) {
   // that state the child is already selected, so calling FirstChild() again
   // would skip the first PARAM entirely (and historically made single-PARAM
   // MIDI/SID/OPAL files appear to load without changing anything).
-  bool element = childAlreadySelected || doc->r_ == YXML_ELEMSTART ||
-                 doc->FirstChild();
+  bool element =
+      childAlreadySelected || doc->r_ == YXML_ELEMSTART || doc->FirstChild();
   while (element) {
     if (strcasecmp(doc->ElemName(), "PARAM") != 0) {
       fail();
@@ -224,15 +221,15 @@ void I_Instrument::RestoreContent(PersistencyDocument *doc) {
     bool attribute = doc->NextAttribute();
     while (attribute) {
       if (!strcasecmp(doc->attrname_, "NAME")) {
-        if (hasName || !CopyPersistedVariableAttribute(
-                           *doc, name.data(), name.size(), false)) {
+        if (hasName || !CopyPersistedVariableAttribute(*doc, name.data(),
+                                                       name.size(), false)) {
           fail();
           return;
         }
         hasName = true;
       } else if (!strcasecmp(doc->attrname_, "VALUE")) {
-        if (hasValue || !CopyPersistedVariableAttribute(
-                            *doc, value.data(), value.size(), true)) {
+        if (hasValue || !CopyPersistedVariableAttribute(*doc, value.data(),
+                                                        value.size(), true)) {
           fail();
           return;
         }
@@ -240,8 +237,7 @@ void I_Instrument::RestoreContent(PersistencyDocument *doc) {
       }
       attribute = doc->NextAttribute();
     }
-    if (doc->HadError() || doc->r_ != YXML_ELEMEND || !hasName ||
-        !hasValue) {
+    if (doc->HadError() || doc->r_ != YXML_ELEMEND || !hasName || !hasValue) {
       fail();
       return;
     }

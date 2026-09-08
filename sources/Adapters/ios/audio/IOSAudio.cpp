@@ -20,7 +20,8 @@ IOSAudio::IOSAudio(AudioSettings &settings) : Audio(settings) {
 }
 
 void IOSAudio::Init() {
-  if (initialized_) return;
+  if (initialized_)
+    return;
   driver = new (driverStorage) IOSAudioDriver(settings_);
   output = new (outputStorage) AudioOutDriver(*driver);
   AddOutput(*output);
@@ -28,8 +29,10 @@ void IOSAudio::Init() {
 }
 
 void IOSAudio::Close() {
-  if (!initialized_) return;
-  if (output != nullptr) output->Close();
+  if (!initialized_)
+    return;
+  if (output != nullptr)
+    output->Close();
 }
 
 int IOSAudio::GetMixerVolume() { return volume_; }

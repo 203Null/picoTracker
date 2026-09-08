@@ -22,8 +22,7 @@ void DrawSegments(BarBuilder &builder,
                   const std::array<UiColoredText, 3> &segments,
                   std::uint8_t count, std::int16_t y) {
   std::int16_t x = 9;
-  const std::size_t safeCount =
-      std::min<std::size_t>(count, segments.size());
+  const std::size_t safeCount = std::min<std::size_t>(count, segments.size());
   for (std::size_t index = 0; index < safeCount; ++index) {
     const std::int16_t segmentX =
         segments[index].x >= 0 ? segments[index].x : x;
@@ -31,8 +30,7 @@ void DrawSegments(BarBuilder &builder,
       builder.UserText(segments[index].text, segmentX, y,
                        segments[index].color);
     else
-      builder.Text(segments[index].text, segmentX, y,
-                   segments[index].color);
+      builder.Text(segments[index].text, segmentX, y, segments[index].color);
     x = static_cast<std::int16_t>(
         segmentX + UiFont5x7::TextWidth(segments[index].text.size()) + 6);
   }
@@ -41,8 +39,7 @@ void DrawSegments(BarBuilder &builder,
 void DrawVerticalArrow(BarBuilder &builder, std::int16_t x, std::int16_t y,
                        bool up) {
   for (std::int16_t row = 0; row < 3; ++row) {
-    const std::int16_t inset =
-        up ? static_cast<std::int16_t>(2 - row) : row;
+    const std::int16_t inset = up ? static_cast<std::int16_t>(2 - row) : row;
     builder.Fill({static_cast<std::int16_t>(x + inset),
                   static_cast<std::int16_t>(y + row), 1, 1},
                  UiColorToken::DerivedTextFaint);
@@ -116,8 +113,7 @@ void UiChromeRenderer::DrawSaving(const UiTopBarModel &model,
         distance == 0U ? UiColorToken::TextColored
                        : (distance == 1U ? UiColorToken::TextNormal
                                          : UiColorToken::DerivedTextFaint);
-    builder.Fill({static_cast<std::int16_t>(kX + index * 5), kY, 3, 10},
-                 color);
+    builder.Fill({static_cast<std::int16_t>(kX + index * 5), kY, 3, 10}, color);
   }
 }
 
@@ -146,7 +142,8 @@ UiBuildStatus UiChromeRenderer::BuildTop(const UiTopBarModel &model,
                                          std::optional<RectI16> navHighlight) {
   scene.Clear();
   BarBuilder builder(scene);
-  const std::uint8_t titleScale = (model.title.size() <= 7 || model.title == "FX SELECT") ? 2 : 1;
+  const std::uint8_t titleScale =
+      (model.title.size() <= 7 || model.title == "FX SELECT") ? 2 : 1;
   builder.Text(model.title, 9, 10, UiColorToken::TextNormal, titleScale);
   if (!model.meta.empty()) {
     const std::int16_t metaX =
@@ -169,8 +166,7 @@ UiBuildStatus UiChromeRenderer::BuildTop(const UiTopBarModel &model,
           builder.UserText(model.meta, metaX, 10,
                            UiColorToken::TextHighlighted);
         else
-          builder.Text(model.meta, metaX, 10,
-                       UiColorToken::TextHighlighted);
+          builder.Text(model.meta, metaX, 10, UiColorToken::TextHighlighted);
       }
     }
   }
@@ -183,7 +179,8 @@ UiBuildStatus UiChromeRenderer::BuildTop(const UiTopBarModel &model,
     builder.Text(model.elapsed, elapsedX, 14, UiColorToken::TextNormal);
   } else if (IsSavingPowerState(model.power)) {
     DrawSaving(model, builder);
-  } else if (model.power == UiPowerState::Navigation && model.projectNavigation) {
+  } else if (model.power == UiPowerState::Navigation &&
+             model.projectNavigation) {
     builder.Selection({167, 10, 62, 14});
     for (std::int16_t row = 0; row < 4; ++row) {
       builder.Fill({static_cast<std::int16_t>(171 + row),
@@ -210,7 +207,8 @@ UiBuildStatus UiChromeRenderer::BuildTop(const UiTopBarModel &model,
             : std::nullopt;
     const RectI16 selection = navHighlight.value_or(
         animatedHighlight.value_or(NavTargetRect(model.navTarget)));
-    if (map.visible != 0U && !selection.Empty()) builder.Selection(selection);
+    if (map.visible != 0U && !selection.Empty())
+      builder.Selection(selection);
     const auto navColor = [&](UiNavTarget target) {
       return model.navTarget == target && model.navCursor.inkVisible
                  ? UiColorToken::TextHighlighted
@@ -244,7 +242,8 @@ UiBuildStatus UiChromeRenderer::BuildTop(const UiTopBarModel &model,
     if (model.showBatteryPercent) {
       std::array<char, 5> percent{};
       FormatUiPercent100(model.batteryPercent, percent);
-      // Keep a four-pixel gap before the battery at x=207 for every digit count.
+      // Keep a four-pixel gap before the battery at x=207 for every digit
+      // count.
       const std::string_view percentText{percent.data()};
       const auto percentX = static_cast<std::int16_t>(
           203 - UiFont5x7::TextWidth(percentText.size()));
@@ -270,8 +269,7 @@ UiNavMapModel UiChromeRenderer::NavigationMap(UiNavTarget target) {
   // then completed vertically, so Mixer for example reads P / SCPI / M
   // without hiding the rest of the horizontal navigation context.
   UiNavMapModel result = map({UiNavTarget::Song, UiNavTarget::Chain,
-                              UiNavTarget::Phrase,
-                              UiNavTarget::Instrument});
+                              UiNavTarget::Phrase, UiNavTarget::Instrument});
   const auto add = [&](UiNavTarget item) {
     result.visible |= UiNavTargetBit(item);
   };
@@ -330,13 +328,15 @@ RectI16 UiChromeRenderer::MetaTargetRect(const UiTopBarModel &model) {
   if (model.meta.empty())
     return {};
   const std::int16_t metaX =
-      model.metaX >= 0
-          ? model.metaX
-          : static_cast<std::int16_t>(
-                9 +
-                UiFont5x7::TextWidth(model.title.size(),
-                                     (model.title.size() <= 7 || model.title == "FX SELECT") ? 2 : 1) +
-                7);
+      model.metaX >= 0 ? model.metaX
+                       : static_cast<std::int16_t>(
+                             9 +
+                             UiFont5x7::TextWidth(model.title.size(),
+                                                  (model.title.size() <= 7 ||
+                                                   model.title == "FX SELECT")
+                                                      ? 2
+                                                      : 1) +
+                             7);
   return {
       static_cast<std::int16_t>(metaX - 2), 9,
       static_cast<std::int16_t>(UiFont5x7::TextWidth(model.meta.size()) + 4),
@@ -358,10 +358,10 @@ RectI16 UiChromeRenderer::BottomRgbTargetRect(std::uint8_t component,
   std::array<char, 4> text{};
   const int length = std::snprintf(text.data(), text.size(), "%u",
                                    static_cast<unsigned>(value));
-  const std::int16_t width = UiFont5x7::TextWidth(
-      static_cast<std::size_t>(std::clamp(length, 0, 3)));
-  const std::int16_t valueX = static_cast<std::int16_t>(
-      centers[component] - width / 2 + 7);
+  const std::int16_t width =
+      UiFont5x7::TextWidth(static_cast<std::size_t>(std::clamp(length, 0, 3)));
+  const std::int16_t valueX =
+      static_cast<std::int16_t>(centers[component] - width / 2 + 7);
   return {static_cast<std::int16_t>(valueX - 2), 218,
           static_cast<std::int16_t>(width + 4), 11};
 }
@@ -376,14 +376,15 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
   case UiBottomBarKind::TrackNotes: {
     for (std::size_t index = 0; index < model.trackNotes.notes.size();
          ++index) {
-      const std::int16_t center = static_cast<std::int16_t>(
-          15 + static_cast<std::int16_t>(index) * 30);
+      const std::int16_t center =
+          static_cast<std::int16_t>(15 + static_cast<std::int16_t>(index) * 30);
       std::array<char, 3> track{
           'T', static_cast<char>('1' + static_cast<int>(index)), 0};
       builder.CenteredText(track.data(), center, 213, UiColorToken::TextDim);
       const std::string_view note = model.trackNotes.notes[index];
-      const UiColorToken noteColor =
-          note == "--" ? UiColorToken::DerivedTextFaint : UiColorToken::TextNormal;
+      const UiColorToken noteColor = note == "--"
+                                         ? UiColorToken::DerivedTextFaint
+                                         : UiColorToken::TextNormal;
       if (static_cast<std::int8_t>(index) == model.trackNotes.selectedNote) {
         const std::int16_t width = UiFont5x7::TextWidth(note.size());
         builder.Fill({static_cast<std::int16_t>(center - width / 2 - 2), 226,
@@ -447,8 +448,7 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
       break;
     }
     const auto centeredOption = [&](std::string_view option,
-                                    std::int16_t center,
-                                    UiColorToken color) {
+                                    std::int16_t center, UiColorToken color) {
       if (model.selector.preserveCase)
         builder.CenteredLiteralText(option, center, 220, color);
       else
@@ -456,17 +456,15 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
     };
     if (model.selector.options.size() == 1) {
       centeredOption(model.selector.options[0], 120,
-                     model.selector.highlightCurrent
-                         ? UiColorToken::TextColored
-                         : UiColorToken::TextDim);
+                     model.selector.highlightCurrent ? UiColorToken::TextColored
+                                                     : UiColorToken::TextDim);
       builder.Text("<", 7, 220, UiColorToken::DerivedTextFaint);
       builder.Text(">", 228, 220, UiColorToken::DerivedTextFaint);
       break;
     }
     if (model.selector.options.size() == 2) {
       for (std::uint8_t index = 0; index < 2; ++index) {
-        centeredOption(model.selector.options[index],
-                       index == 0 ? 60 : 180,
+        centeredOption(model.selector.options[index], index == 0 ? 60 : 180,
                        model.selector.highlightCurrent &&
                                index == model.selector.current
                            ? UiColorToken::TextColored
@@ -489,9 +487,8 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
     const int current = model.selector.current;
     centeredOption(optionAt(current - 1), 60, UiColorToken::TextDim);
     centeredOption(optionAt(current), 120,
-                   model.selector.highlightCurrent
-                       ? UiColorToken::TextColored
-                       : UiColorToken::TextDim);
+                   model.selector.highlightCurrent ? UiColorToken::TextColored
+                                                   : UiColorToken::TextDim);
     centeredOption(optionAt(current + 1), 180, UiColorToken::TextDim);
     builder.Text("<", 7, 220, UiColorToken::DerivedTextFaint);
     builder.Text(">", 228, 220, UiColorToken::DerivedTextFaint);
@@ -512,8 +509,9 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
         std::snprintf(coarse.data(), coarse.size(), "%u",
                       static_cast<unsigned>(model.adjustment.coarseStep));
     }
-    const std::string_view fineText =
-        semanticFine ? model.adjustment.fineLabel : std::string_view(fine.data());
+    const std::string_view fineText = semanticFine
+                                          ? model.adjustment.fineLabel
+                                          : std::string_view(fine.data());
     const std::string_view coarseText = semanticCoarse
                                             ? model.adjustment.coarseLabel
                                             : std::string_view(coarse.data());
@@ -543,11 +541,11 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
                    UiColorToken::TextColored);
       if (index == model.rgb.active) {
         builder.Selection(target);
-        builder.Text(value.data(), static_cast<std::int16_t>(target.x + 2),
-                     220, UiColorToken::TextHighlighted);
+        builder.Text(value.data(), static_cast<std::int16_t>(target.x + 2), 220,
+                     UiColorToken::TextHighlighted);
       } else {
-        builder.Text(value.data(), static_cast<std::int16_t>(target.x + 2),
-                     220, UiColorToken::TextNormal);
+        builder.Text(value.data(), static_cast<std::int16_t>(target.x + 2), 220,
+                     UiColorToken::TextNormal);
       }
     }
     break;
@@ -556,12 +554,10 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
     std::array<char, 32> message{};
     const unsigned width = model.clipboard.width;
     const unsigned height = model.clipboard.height;
-    if (model.clipboard.notice ==
-        UiClipboardBarModel::Notice::Interpolated) {
+    if (model.clipboard.notice == UiClipboardBarModel::Notice::Interpolated) {
       builder.CenteredText("SELECTION INTERPOLATED", 120, 216,
                            UiColorToken::TextColored);
-      std::snprintf(message.data(), message.size(), "%u STEPS UPDATED",
-                    height);
+      std::snprintf(message.data(), message.size(), "%u STEPS UPDATED", height);
     } else if (model.clipboard.notice == UiClipboardBarModel::Notice::Pasted) {
       builder.CenteredText("CLIPBOARD PASTED", 120, 216,
                            UiColorToken::TextColored);
@@ -570,14 +566,12 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
     } else {
       std::snprintf(message.data(), message.size(), "%uX%u SELECTION COPIED",
                     width, height);
-      builder.CenteredText(message.data(), 120, 216,
-                           UiColorToken::TextColored);
+      builder.CenteredText(message.data(), 120, 216, UiColorToken::TextColored);
       builder.CenteredText("SHIFT + ENTER TO PASTE", 120, 228,
                            UiColorToken::TextNormal);
       break;
     }
-    builder.CenteredText(message.data(), 120, 228,
-                         UiColorToken::TextNormal);
+    builder.CenteredText(message.data(), 120, 228, UiColorToken::TextNormal);
     break;
   }
   }

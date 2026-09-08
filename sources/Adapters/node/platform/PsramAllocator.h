@@ -33,17 +33,14 @@ public:
     void *storage =
         heap_caps_malloc(bytes, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     if (storage == nullptr) {
-      storage =
-          heap_caps_malloc(bytes, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+      storage = heap_caps_malloc(bytes, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
     }
     if (storage == nullptr)
       std::abort();
     return static_cast<T *>(storage);
   }
 
-  void deallocate(T *storage, std::size_t) noexcept {
-    heap_caps_free(storage);
-  }
+  void deallocate(T *storage, std::size_t) noexcept { heap_caps_free(storage); }
 
   template <typename U>
   friend constexpr bool operator==(const NodePsramAllocator &,

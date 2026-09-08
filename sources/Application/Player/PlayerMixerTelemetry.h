@@ -24,8 +24,8 @@ inline constexpr std::uint32_t SliceMask = 0xFFU << SliceShift;
 inline constexpr std::uint32_t PlayingBit = 1U << 16U;
 inline constexpr std::uint8_t NoSlice = 0xFFU;
 
-[[nodiscard]] constexpr std::uint32_t Pack(std::uint8_t note,
-                                           std::int8_t slice, bool playing) {
+[[nodiscard]] constexpr std::uint32_t Pack(std::uint8_t note, std::int8_t slice,
+                                           bool playing) {
   const std::uint8_t encodedSlice =
       slice < 0 ? NoSlice : static_cast<std::uint8_t>(slice);
   return static_cast<std::uint32_t>(note) |

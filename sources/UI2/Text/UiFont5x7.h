@@ -20,8 +20,8 @@ public:
   using Rows = std::array<std::uint8_t, kGlyphHeight>;
 
   [[nodiscard]] static Rows Glyph(char character);
-  [[nodiscard]] static constexpr std::int16_t TextWidth(std::size_t length,
-                                                        std::uint8_t scale = 1) {
+  [[nodiscard]] static constexpr std::int16_t
+  TextWidth(std::size_t length, std::uint8_t scale = 1) {
     return length == 0
                ? 0
                : static_cast<std::int16_t>(length * kAdvance * scale - scale);

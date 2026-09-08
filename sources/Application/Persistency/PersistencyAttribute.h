@@ -8,8 +8,8 @@
 #include "Application/Persistency/PersistencyDocument.h"
 #include "Foundation/Variables/Variable.h"
 
-#include <cstddef>
 #include <climits>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 
@@ -18,9 +18,10 @@
 // boundary in one allocation-free helper so Project and .pti restore cannot
 // accidentally reintroduce an unchecked strcpy between differently sized
 // buffers.
-inline bool CopyPersistedVariableAttribute(
-    const PersistencyDocument &document, char *destination,
-    std::size_t destinationCapacity, bool allowEmpty) {
+inline bool CopyPersistedVariableAttribute(const PersistencyDocument &document,
+                                           char *destination,
+                                           std::size_t destinationCapacity,
+                                           bool allowEmpty) {
   if (destination == nullptr || destinationCapacity == 0U)
     return false;
   destination[0] = '\0';
@@ -30,8 +31,7 @@ inline bool CopyPersistedVariableAttribute(
     return false;
   const std::size_t length = static_cast<const char *>(terminator) -
                              static_cast<const char *>(document.attrval_);
-  if ((!allowEmpty && length == 0U) ||
-      length > MAX_VARIABLE_STRING_LENGTH ||
+  if ((!allowEmpty && length == 0U) || length > MAX_VARIABLE_STRING_LENGTH ||
       length >= destinationCapacity) {
     return false;
   }

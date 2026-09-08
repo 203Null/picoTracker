@@ -58,15 +58,18 @@ struct RectI16 {
   const std::int32_t y0 = std::max<std::int32_t>(left.y, right.y);
   const std::int32_t x1 = std::min(left.Right(), right.Right());
   const std::int32_t y1 = std::min(left.Bottom(), right.Bottom());
-  if (x1 <= x0 || y1 <= y0) return {};
+  if (x1 <= x0 || y1 <= y0)
+    return {};
   return {static_cast<std::int16_t>(x0), static_cast<std::int16_t>(y0),
           static_cast<std::int16_t>(x1 - x0),
           static_cast<std::int16_t>(y1 - y0)};
 }
 
 [[nodiscard]] constexpr RectI16 Union(RectI16 left, RectI16 right) {
-  if (left.Empty()) return right;
-  if (right.Empty()) return left;
+  if (left.Empty())
+    return right;
+  if (right.Empty())
+    return left;
   const std::int32_t x0 = std::min<std::int32_t>(left.x, right.x);
   const std::int32_t y0 = std::min<std::int32_t>(left.y, right.y);
   const std::int32_t x1 = std::max(left.Right(), right.Right());

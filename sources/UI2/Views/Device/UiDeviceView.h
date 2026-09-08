@@ -71,12 +71,10 @@ public:
                           const UiDeviceViewData &current,
                           const UiFrameScene &currentScene,
                           UiIndexedSurface &surface, const UiPalette &palette);
-  [[nodiscard]] static RectI16
-  CursorTargetRect(const UiDeviceViewData &data);
-  [[nodiscard]] static std::int16_t
-  ContentBottom(const UiDeviceViewData &data);
-  [[nodiscard]] static std::int16_t
-  RevealCursor(std::int16_t currentOffset, const UiDeviceViewData &data);
+  [[nodiscard]] static RectI16 CursorTargetRect(const UiDeviceViewData &data);
+  [[nodiscard]] static std::int16_t ContentBottom(const UiDeviceViewData &data);
+  [[nodiscard]] static std::int16_t RevealCursor(std::int16_t currentOffset,
+                                                 const UiDeviceViewData &data);
   [[nodiscard]] static RectI16 FieldDamageRect(std::int16_t y);
 };
 

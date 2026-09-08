@@ -82,9 +82,9 @@ public:
     return rgb565_;
   }
   [[nodiscard]] PaletteIndex CoverageIndex(UiCoverage coverage,
-                                            PaletteIndex destination) const;
+                                           PaletteIndex destination) const;
   [[nodiscard]] PaletteIndex AntialiasIndex(UiCoverage coverage,
-                                             std::uint8_t quarterCoverage) const;
+                                            std::uint8_t quarterCoverage) const;
 
   [[nodiscard]] static constexpr std::uint16_t PackRgb565(Rgb888 color) {
     return static_cast<std::uint16_t>(
@@ -114,9 +114,8 @@ private:
   void InvalidateVuGradient() { vuGradientValid_ = false; }
   [[nodiscard]] static Rgb888 Composite(Rgb888 source, std::uint8_t alpha,
                                         Rgb888 destination);
-  [[nodiscard]] static Rgb888 CompositeQuarter(Rgb888 source,
-                                               std::uint8_t quarters,
-                                               Rgb888 destination);
+  [[nodiscard]] static Rgb888
+  CompositeQuarter(Rgb888 source, std::uint8_t quarters, Rgb888 destination);
 
   std::array<Rgb888, kColorCount> colors_{};
   std::array<std::uint16_t, kColorCount> rgb565_{};

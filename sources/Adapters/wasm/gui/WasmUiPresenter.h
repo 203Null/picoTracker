@@ -20,10 +20,9 @@ public:
       : rgbaFrame_(rgbaFrame), frameBytes_(frameBytes), commit_(commit),
         context_(context) {}
 
-  ui2::PresentResult
-  Present(const ui2::UiIndexedSurface &surface,
-          const ui2::UiPalette &palette,
-          std::span<const ui2::DirtyStrip> strips) override;
+  ui2::PresentResult Present(const ui2::UiIndexedSurface &surface,
+                             const ui2::UiPalette &palette,
+                             std::span<const ui2::DirtyStrip> strips) override;
 
 private:
   static constexpr std::size_t kRequiredBytes =

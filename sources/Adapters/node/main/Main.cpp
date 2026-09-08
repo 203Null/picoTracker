@@ -1,7 +1,7 @@
 #include "Adapters/node/platform/platform.h"
 
-#include "Adapters/node/system/Ui2System.h"
 #include "Adapters/node/system/TaskStackTelemetry.h"
+#include "Adapters/node/system/Ui2System.h"
 #include "Adapters/node/ui2/NodeUi2Platform.h"
 #include "esp_attr.h"
 #include "esp_heap_caps.h"
@@ -32,9 +32,9 @@ int RunUi2Product(int argc, char **argv) {
       NodeUi2Platform::kApplicationStorageBytes;
   constexpr std::size_t kApplicationAlignment =
       NodeUi2Platform::kApplicationStorageAlignment;
-  void *applicationStorage = heap_caps_aligned_alloc(
-      kApplicationAlignment, kApplicationBytes,
-      MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  void *applicationStorage =
+      heap_caps_aligned_alloc(kApplicationAlignment, kApplicationBytes,
+                              MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (applicationStorage == nullptr) {
     ESP_LOGE(kLogTag,
              "Unable to reserve %u-byte UI2 application block in PSRAM",
@@ -46,11 +46,11 @@ int RunUi2Product(int argc, char **argv) {
   // Keep the cross-core task/mailbox/event-group control block in internal
   // DRAM. Only the large, fixed application/model/renderer object lives in
   // PSRAM; its lifetime is joined before the PSRAM allocation is released.
-  alignas(NodeUi2Platform) DRAM_ATTR static std::byte
-      platformStorage[sizeof(NodeUi2Platform)];
-  NodeUi2Platform *platform = std::construct_at(
-      reinterpret_cast<NodeUi2Platform *>(platformStorage),
-      applicationStorage, kApplicationBytes);
+  alignas(NodeUi2Platform)
+      DRAM_ATTR static std::byte platformStorage[sizeof(NodeUi2Platform)];
+  NodeUi2Platform *platform =
+      std::construct_at(reinterpret_cast<NodeUi2Platform *>(platformStorage),
+                        applicationStorage, kApplicationBytes);
 
   int exitCode = 0;
   if (!platform->Start()) {
@@ -84,14 +84,9 @@ int RunUi2Product(int argc, char **argv) {
 }
 } // namespace
 
-int main(int argc, char *argv[]) {
-  return RunUi2Product(argc, argv);
-}
-
+int main(int argc, char *argv[]) { return RunUi2Product(argc, argv); }
 
 extern "C" {
-  int main(int argc, char *argv[]);
-  void app_main(void) {
-    (void)main(0, NULL);
-  }
+int main(int argc, char *argv[]);
+void app_main(void) { (void)main(0, NULL); }
 }

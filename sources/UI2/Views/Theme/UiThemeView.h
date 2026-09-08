@@ -40,8 +40,7 @@ struct UiThemeViewData {
 struct UiThemeViewState {
   static constexpr std::size_t NameCapacity = 17;
 
-  std::array<char, NameCapacity> name{
-      'D', 'E', 'F', 'A', 'U', 'L', 'T', '\0'};
+  std::array<char, NameCapacity> name{'D', 'E', 'F', 'A', 'U', 'L', 'T', '\0'};
   std::int8_t selectedColor = -1;
   std::array<std::uint8_t, 3> selectedRgb{};
   std::uint8_t colorComponent = 0;
@@ -74,8 +73,8 @@ public:
   [[nodiscard]] static constexpr RectI16 CursorTargetRect() {
     return {7, 41, 226, 9};
   }
-  [[nodiscard]] static constexpr RectI16 ColorCursorTargetRect(
-      std::uint8_t color) {
+  [[nodiscard]] static constexpr RectI16
+  ColorCursorTargetRect(std::uint8_t color) {
     return color < UiPalette::kUserColorCount
                ? RectI16{7,
                          static_cast<std::int16_t>(kColorFirstTop +
@@ -84,8 +83,8 @@ public:
                : RectI16{};
   }
   [[nodiscard]] static RectI16 CursorTargetRect(const UiThemeViewData &data);
-  [[nodiscard]] static std::int16_t
-  RevealCursor(std::int16_t currentOffset, const UiThemeViewData &data);
+  [[nodiscard]] static std::int16_t RevealCursor(std::int16_t currentOffset,
+                                                 const UiThemeViewData &data);
 
   static constexpr std::int16_t kContentBottom = static_cast<std::int16_t>(
       kColorFirstTop + (UiPalette::kUserColorCount - 1U) * kColorRowPitch +

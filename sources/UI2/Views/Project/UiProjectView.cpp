@@ -131,7 +131,8 @@ void UiProjectView::RenderDelta(const UiProjectViewData &previous,
       previous.navCursor != current.navCursor)
     render({184, 0, 56, 34});
   const bool contentRedrawn = previous.scrollOffset != current.scrollOffset;
-  if (contentRedrawn) render({0, 34, 240, 174});
+  if (contentRedrawn)
+    render({0, 34, 240, 174});
   if (!contentRedrawn && previous.name != current.name)
     render(contentRect(FieldDamageRect(42)));
   if (!contentRedrawn && previous.tempo != current.tempo)
@@ -145,10 +146,9 @@ void UiProjectView::RenderDelta(const UiProjectViewData &previous,
 
   const RectI16 oldCursor = contentRect(ResolvedCursorRect(previous));
   const RectI16 newCursor = contentRect(ResolvedCursorRect(current));
-  if (!contentRedrawn && (oldCursor != newCursor ||
-                          previous.cursor != current.cursor ||
-                          previous.cursorInkVisible !=
-                              current.cursorInkVisible)) {
+  if (!contentRedrawn &&
+      (oldCursor != newCursor || previous.cursor != current.cursor ||
+       previous.cursorInkVisible != current.cursorInkVisible)) {
     render(ExpandedCursorDamage(oldCursor));
     render(ExpandedCursorDamage(newCursor));
   }
@@ -191,9 +191,8 @@ UiBuildStatus UiProjectView::Build(const UiProjectViewData &data, UiPalette &,
     bottom.actions.actions = {"NEW", "LOAD", "SAVE", "RENAME"};
     bottom.actions.count = 4;
     bottom.actions.active = std::min<std::uint8_t>(data.nameAction, 3);
-  } else if (data.enterHeld &&
-             (data.cursor == UiProjectCursor::Tempo ||
-              data.cursor == UiProjectCursor::Transpose)) {
+  } else if (data.enterHeld && (data.cursor == UiProjectCursor::Tempo ||
+                                data.cursor == UiProjectCursor::Transpose)) {
     bottom.kind = UiBottomBarKind::AdjustmentLegend;
     bottom.adjustment.fineStep = 1U;
     bottom.adjustment.coarseStep =

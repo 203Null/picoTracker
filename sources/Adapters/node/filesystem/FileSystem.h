@@ -11,8 +11,8 @@
 #include "System/Console/Trace.h"
 #include "System/FileSystem/FileSystem.h"
 #include "System/FileSystem/I_File.h"
-#include <stdio.h>
 #include <mutex>
+#include <stdio.h>
 #include <string>
 #include <vector>
 
@@ -23,8 +23,8 @@ public:
 
   FileHandle Open(const char *name, const char *mode) override;
   bool chdir(const char *path) override;
-  void list(etl::ivector<int> *fileIndexes, const char *filter,
-            bool subDirOnly, bool includeHidden = false) override;
+  void list(etl::ivector<int> *fileIndexes, const char *filter, bool subDirOnly,
+            bool includeHidden = false) override;
   bool listChecked(etl::ivector<int> *fileIndexes, const char *filter,
                    bool subDirOnly, bool includeHidden = false) override;
   bool listBrowserChecked(etl::ivector<int> *fileIndexes, const char *filter,

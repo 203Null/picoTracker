@@ -29,8 +29,8 @@ enum InstrumentType {
   IT_STACK,
   IT_LAST
 };
-static const char *InstrumentTypeNames[IT_LAST] = {"NONE", "SAMPLE", "MIDI",
-                                                   "SID", "OPAL", "DRUM", "STACK"};
+static const char *InstrumentTypeNames[IT_LAST] = {
+    "NONE", "SAMPLE", "MIDI", "SID", "OPAL", "DRUM", "STACK"};
 
 class I_Instrument : public VariableContainer,
                      public Observable,
@@ -43,7 +43,7 @@ public:
                const char *nodeName = "INSTRUMENT",
                bool registerWithPersistence = false)
       : VariableContainer(variables),
-        Persistent(nodeName, registerWithPersistence) {};
+        Persistent(nodeName, registerWithPersistence){};
   virtual ~I_Instrument();
 
   // Initialisation routine

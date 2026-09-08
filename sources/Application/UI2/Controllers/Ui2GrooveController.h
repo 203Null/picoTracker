@@ -56,13 +56,12 @@ struct Ui2GrooveStepPolicy {
   static constexpr std::uint8_t Empty = 0xFFU;
   static constexpr std::uint8_t Initial = 6U;
 
-  [[nodiscard]] static constexpr std::uint8_t
-  Initialize(std::uint8_t current) {
+  [[nodiscard]] static constexpr std::uint8_t Initialize(std::uint8_t current) {
     return current == Empty ? Initial : current;
   }
 
-  [[nodiscard]] static constexpr std::uint8_t
-  Adjust(std::uint8_t current, std::int16_t delta) {
+  [[nodiscard]] static constexpr std::uint8_t Adjust(std::uint8_t current,
+                                                     std::int16_t delta) {
     const int value = current == Empty ? 0 : current;
     const int adjusted = value + delta;
     if (adjusted < 1)
@@ -78,17 +77,15 @@ public:
   static constexpr std::uint8_t RowCount = 16U;
   static constexpr std::uint8_t DefaultGrooveCount = 32U;
 
-  constexpr Ui2GrooveController(std::uint8_t number = 0,
-                                std::uint8_t row = 0,
+  constexpr Ui2GrooveController(std::uint8_t number = 0, std::uint8_t row = 0,
                                 std::uint8_t grooveCount = DefaultGrooveCount,
                                 bool grooveWrap = true)
-      : number_(grooveCount == 0U
-                    ? 0U
-                    : number < grooveCount ? number
-                                           : static_cast<std::uint8_t>(
-                                                 grooveCount - 1U)),
-        row_(row < RowCount ? row : RowCount - 1U),
-        grooveCount_(grooveCount), grooveWrap_(grooveWrap) {}
+      : number_(grooveCount == 0U ? 0U
+                : number < grooveCount
+                    ? number
+                    : static_cast<std::uint8_t>(grooveCount - 1U)),
+        row_(row < RowCount ? row : RowCount - 1U), grooveCount_(grooveCount),
+        grooveWrap_(grooveWrap) {}
 
   [[nodiscard]] constexpr std::uint8_t Number() const { return number_; }
   [[nodiscard]] constexpr std::uint8_t Row() const { return row_; }
@@ -123,16 +120,14 @@ public:
     }
 
     const Ui2GrooveDirection direction = DirectionFor(action);
-    if (action == TrackerAction::Play &&
-        input_.Held(TrackerAction::Option) &&
+    if (action == TrackerAction::Play && input_.Held(TrackerAction::Option) &&
         !input_.Held(TrackerAction::Enter)) {
       copyPending_ = false;
       return MakeCommand(input_.Held(TrackerAction::Shift)
                              ? Ui2GrooveCommandType::UnmuteAll
                              : Ui2GrooveCommandType::ToggleSolo);
     }
-    if (action == TrackerAction::Play &&
-        input_.Held(TrackerAction::Shift) &&
+    if (action == TrackerAction::Play && input_.Held(TrackerAction::Shift) &&
         !input_.Held(TrackerAction::Option) &&
         !input_.Held(TrackerAction::Enter)) {
       Ui2GrooveCommand command =
@@ -140,20 +135,17 @@ public:
       command.songTransport = true;
       return command;
     }
-    if (action == TrackerAction::Shift &&
-        input_.Held(TrackerAction::Option)) {
+    if (action == TrackerAction::Shift && input_.Held(TrackerAction::Option)) {
       copyPending_ = false;
       return MakeCommand(Ui2GrooveCommandType::ToggleMute);
     }
     if (selection_.active)
       return HandleSelection(action, direction);
-    if (action == TrackerAction::Option &&
-        input_.Held(TrackerAction::Shift)) {
+    if (action == TrackerAction::Option && input_.Held(TrackerAction::Shift)) {
       selection_.Begin(0U, row_);
       return {};
     }
-    if (action == TrackerAction::Option &&
-        input_.Held(TrackerAction::Enter))
+    if (action == TrackerAction::Option && input_.Held(TrackerAction::Enter))
       return MakeCommand(Ui2GrooveCommandType::ClearStep);
     if (input_.Held(TrackerAction::Option)) {
       if (direction != Ui2GrooveDirection::None)
@@ -161,8 +153,7 @@ public:
       return {};
     }
 
-    if (action == TrackerAction::Enter &&
-        input_.Held(TrackerAction::Shift))
+    if (action == TrackerAction::Enter && input_.Held(TrackerAction::Shift))
       return MakeCommand(Ui2GrooveCommandType::PasteSelection);
 
     if (input_.Held(TrackerAction::Enter)) {
@@ -188,8 +179,7 @@ public:
       return {};
 
     if (action == TrackerAction::Up) {
-      row_ = row_ == 0U ? RowCount - 1U
-                        : static_cast<std::uint8_t>(row_ - 1U);
+      row_ = row_ == 0U ? RowCount - 1U : static_cast<std::uint8_t>(row_ - 1U);
     } else if (action == TrackerAction::Down) {
       row_ = static_cast<std::uint8_t>((row_ + 1U) % RowCount);
     } else if (action == TrackerAction::Play) {
@@ -220,8 +210,8 @@ private:
     return {.type = type, .row = row_};
   }
 
-  constexpr Ui2GrooveCommand
-  HandleSelection(TrackerAction action, Ui2GrooveDirection direction) {
+  constexpr Ui2GrooveCommand HandleSelection(TrackerAction action,
+                                             Ui2GrooveDirection direction) {
     copyPending_ = false;
     if (action == TrackerAction::Play) {
       if (input_.Held(TrackerAction::Enter))
@@ -231,13 +221,11 @@ private:
       command.songTransport = input_.Held(TrackerAction::Shift);
       return command;
     }
-    if (action == TrackerAction::Option &&
-        input_.Held(TrackerAction::Shift)) {
+    if (action == TrackerAction::Option && input_.Held(TrackerAction::Shift)) {
       selection_.ExpandColumnsThenRows(0U, 0U, RowCount - 1U);
       return {};
     }
-    if (action == TrackerAction::Option &&
-        input_.Held(TrackerAction::Enter)) {
+    if (action == TrackerAction::Option && input_.Held(TrackerAction::Enter)) {
       Ui2GrooveCommand command =
           MakeCommand(Ui2GrooveCommandType::CutSelection);
       command.selection = selection_;
@@ -249,8 +237,7 @@ private:
       copyPending_ = true;
       return {};
     }
-    if (action == TrackerAction::Enter &&
-        input_.Held(TrackerAction::Shift)) {
+    if (action == TrackerAction::Enter && input_.Held(TrackerAction::Shift)) {
       Ui2GrooveCommand command =
           MakeCommand(Ui2GrooveCommandType::InterpolateSelection);
       command.selection = selection_;
@@ -262,8 +249,7 @@ private:
     const std::uint8_t previous = row_;
     if (direction == Ui2GrooveDirection::Up && row_ > 0U) {
       --row_;
-    } else if (direction == Ui2GrooveDirection::Down &&
-               row_ + 1U < RowCount) {
+    } else if (direction == Ui2GrooveDirection::Down && row_ + 1U < RowCount) {
       ++row_;
     }
     if (row_ != previous)

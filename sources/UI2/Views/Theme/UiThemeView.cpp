@@ -39,7 +39,8 @@ UiThemeViewData UiThemeViewState::ToViewData() const {
 }
 
 RectI16 UiThemeView::CursorTargetRect(const UiThemeViewData &data) {
-  if (data.selectedColor < 0) return CursorTargetRect();
+  if (data.selectedColor < 0)
+    return CursorTargetRect();
   return ColorCursorTargetRect(static_cast<std::uint8_t>(data.selectedColor));
 }
 
@@ -64,8 +65,7 @@ void UiThemeView::RenderDelta(const UiThemeViewData &previous,
     render({0, 34, 240, 174});
   }
   if (!contentRedrawn && previous.name != current.name)
-    render(UiVerticalList::VisualRect({5, 40, 230, 11},
-                                      current.scrollOffset));
+    render(UiVerticalList::VisualRect({5, 40, 230, 11}, current.scrollOffset));
   if (!contentRedrawn &&
       (ResolvedCursorRect(previous) != ResolvedCursorRect(current) ||
        previous.cursorInkVisible != current.cursorInkVisible)) {
@@ -85,13 +85,12 @@ UiBuildStatus UiThemeView::Build(const UiThemeViewData &data, UiPalette &,
   scene.topHeight = 34;
   scene.bottomTop = 208;
   scene.bottomVisible = true;
-  scene.contentOffsetY = UiVerticalList::Clamp(data.scrollOffset,
-                                                kRevealBottom,
-                                                kContentBottom);
+  scene.contentOffsetY =
+      UiVerticalList::Clamp(data.scrollOffset, kRevealBottom, kContentBottom);
   scene.topBackground = UiColorToken::SurfaceTopBar;
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
-  const UiTopBarModel top{.title = "THEME", .power = data.power,
-                          .backNavigation = true};
+  const UiTopBarModel top{
+      .title = "THEME", .power = data.power, .backNavigation = true};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;
@@ -115,11 +114,10 @@ UiBuildStatus UiThemeView::Build(const UiThemeViewData &data, UiPalette &,
   builder.Text("NAME", 9, 42, UiColorToken::TextDim);
   builder.UserText(data.name, 92, 42, UiColorToken::TextNormal);
   for (std::uint8_t index = 0; index < kUiThemeColors.size(); ++index) {
-    const std::int16_t topY = static_cast<std::int16_t>(
-        kColorFirstTop + index * kColorRowPitch);
+    const std::int16_t topY =
+        static_cast<std::int16_t>(kColorFirstTop + index * kColorRowPitch);
     builder.Text(kUiThemeColors[index].label, 9,
-                 static_cast<std::int16_t>(topY + 2),
-                 UiColorToken::TextDim);
+                 static_cast<std::int16_t>(topY + 2), UiColorToken::TextDim);
     builder.Fill({151, topY, 78, 10}, kUiThemeColors[index].token);
   }
   builder.Selection(ResolvedCursorRect(data));
@@ -130,8 +128,8 @@ UiBuildStatus UiThemeView::Build(const UiThemeViewData &data, UiPalette &,
     } else if (static_cast<std::size_t>(data.selectedColor) <
                kUiThemeColors.size()) {
       const std::uint8_t index = static_cast<std::uint8_t>(data.selectedColor);
-      const std::int16_t topY = static_cast<std::int16_t>(
-          kColorFirstTop + index * kColorRowPitch);
+      const std::int16_t topY =
+          static_cast<std::int16_t>(kColorFirstTop + index * kColorRowPitch);
       builder.Text(kUiThemeColors[index].label, 9,
                    static_cast<std::int16_t>(topY + 2),
                    UiColorToken::TextHighlighted);

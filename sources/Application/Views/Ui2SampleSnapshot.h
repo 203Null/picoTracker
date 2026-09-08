@@ -73,8 +73,7 @@ struct Ui2WaveformSnapshot {
     };
 
     std::uint8_t divisor = 1U;
-    while (divisor < targetHeight &&
-           encodedSize(divisor) > MaxEncodedBytes)
+    while (divisor < targetHeight && encodedSize(divisor) > MaxEncodedBytes)
       ++divisor;
 
     std::size_t cursor = 0;
@@ -141,9 +140,8 @@ template <std::size_t Capacity> struct Ui2WaveformMarkersSnapshot {
   }
 };
 
-inline std::uint8_t Ui2WaveformX(std::uint32_t sample,
-                                std::uint32_t viewStart,
-                                std::uint32_t viewEnd) {
+inline std::uint8_t Ui2WaveformX(std::uint32_t sample, std::uint32_t viewStart,
+                                 std::uint32_t viewEnd) {
   if (viewEnd <= viewStart || sample <= viewStart)
     return 0U;
   if (sample >= viewEnd)

@@ -7,8 +7,8 @@
 #include "UI2/Views/Phrase/UiPhraseView.h"
 
 #include "UI2/Render/UiFrameRenderer.h"
-#include "UI2/Views/Tracker/UiFxSelector.h"
 #include "UI2/Text/UiFont5x7.h"
+#include "UI2/Views/Tracker/UiFxSelector.h"
 #include "UI2/Views/Tracker/UiTrackerGridMetrics.h"
 
 #include <algorithm>
@@ -97,23 +97,26 @@ RectI16 UiPhraseView::CursorTargetRect(const UiPhraseViewData &data) {
   if (data.editRow >= 16U || data.editColumn >= kColumnX.size())
     return {};
   const std::string_view value = data.rows[data.editRow][data.editColumn];
-  if (data.fxSelector) return FxSelectorCursorRect(value);
+  if (data.fxSelector)
+    return FxSelectorCursorRect(value);
   if (data.enterDigitFocus && IsParameterColumn(data.editColumn) &&
       !value.empty()) {
     const std::uint8_t digit = std::min<std::uint8_t>(
         data.editDigit, static_cast<std::uint8_t>(value.size() - 1U));
     return {static_cast<std::int16_t>(
-                kColumnX[data.editColumn] + digit * UiTrackerGridMetrics::kCharacterAdvance - 2),
+                kColumnX[data.editColumn] +
+                digit * UiTrackerGridMetrics::kCharacterAdvance - 2),
             UiTrackerGridMetrics::RowBoundsY(data.editRow),
             static_cast<std::int16_t>(UiFont5x7::kGlyphWidth + 4), 9};
   }
   return {static_cast<std::int16_t>(kColumnX[data.editColumn] - 2),
           UiTrackerGridMetrics::RowBoundsY(data.editRow),
-          static_cast<std::int16_t>(UiTrackerGridMetrics::TextWidth(value.size()) + 4), 9};
+          static_cast<std::int16_t>(
+              UiTrackerGridMetrics::TextWidth(value.size()) + 4),
+          9};
 }
 
-RectI16 UiPhraseView::SelectionTargetRect(std::int16_t left,
-                                          std::int16_t top,
+RectI16 UiPhraseView::SelectionTargetRect(std::int16_t left, std::int16_t top,
                                           std::int16_t right,
                                           std::int16_t bottom) {
   left = std::clamp<std::int16_t>(left, 0, 5);
@@ -146,8 +149,8 @@ RectI16 UiPhraseView::PlaybackTickRect(std::uint8_t row) {
   if (row >= 16U)
     return {};
   return {static_cast<std::int16_t>(kColumnX[0] - 3),
-          static_cast<std::int16_t>(UiTrackerGridMetrics::RowTextY(row) + 1),
-          2, 5};
+          static_cast<std::int16_t>(UiTrackerGridMetrics::RowTextY(row) + 1), 2,
+          5};
 }
 
 bool UiPhraseView::RequiresFullInvalidation(const UiPhraseViewData &previous,
@@ -256,8 +259,7 @@ void UiPhraseView::RenderDelta(const UiPhraseViewData &previous,
       previous.adjustmentFocus != current.adjustmentFocus ||
       previous.enterDigitFocus != current.enterDigitFocus ||
       previous.selectionActive != current.selectionActive ||
-      previous.selectionNextExpansionAll !=
-          current.selectionNextExpansionAll ||
+      previous.selectionNextExpansionAll != current.selectionNextExpansionAll ||
       previous.clipboardReady != current.clipboardReady ||
       previous.clipboardPasted != current.clipboardPasted ||
       previous.clipboardWidth != current.clipboardWidth ||
@@ -272,7 +274,8 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
   if (data.fxSelector)
     return BuildFxSelector(data.rows[data.editRow][data.editColumn], false,
                            data.cursorBottom, data.power, data.elapsed, scene,
-                           data.cursorVisualRect, data.cursorVisualOverride, data.cursorInkVisible);
+                           data.cursorVisualRect, data.cursorVisualOverride,
+                           data.cursorInkVisible);
   scene.Clear();
   scene.topHeight = 34;
   scene.bottomTop = 208;
@@ -304,8 +307,10 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
       .fineLabel = "NOTE",
       .coarseLabel = "OCT",
   };
-  const UiAdjustmentLegendModel instrumentAdjustment{.fineStep = 1, .coarseStep = 16};
-  const UiAdjustmentLegendModel parameterAdjustment{.fineLabel = "DIGIT", .coarseLabel = "VALUE"};
+  const UiAdjustmentLegendModel instrumentAdjustment{.fineStep = 1,
+                                                     .coarseStep = 16};
+  const UiAdjustmentLegendModel parameterAdjustment{.fineLabel = "DIGIT",
+                                                    .coarseLabel = "VALUE"};
   const UiBottomBarModel *cursorContext =
       !data.numberFocus && data.cursorBottom.kind != UiBottomBarKind::Hidden
           ? &data.cursorBottom
@@ -315,9 +320,12 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
       .pageDefault = pageBottom,
       .cursorContext = cursorContext,
       .enterHeldTracks = &editTracks,
-      .enterHeldAdjustment = data.enterDigitFocus ? &parameterAdjustment
-          : data.adjustmentFocus && data.editColumn <= 1U ? (data.editColumn == 0U ? &noteAdjustment : &instrumentAdjustment)
-          : nullptr,
+      .enterHeldAdjustment =
+          data.enterDigitFocus ? &parameterAdjustment
+          : data.adjustmentFocus && data.editColumn <= 1U
+              ? (data.editColumn == 0U ? &noteAdjustment
+                                       : &instrumentAdjustment)
+              : nullptr,
       .selectionActive = data.selectionActive,
       .selectionNextExpansionAll = data.selectionNextExpansionAll,
       .clipboardReady = data.clipboardReady,
@@ -339,13 +347,13 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
 
   UiSceneBuilder<256, 1024> builder(scene.content);
   builder.GridText("NOTE", kColumnX[0], UiTrackerGridMetrics::kHeaderTextY,
-               HeaderColor(data.activeHeader, UiPhraseHeader::Note));
+                   HeaderColor(data.activeHeader, UiPhraseHeader::Note));
   builder.GridText("INST", kColumnX[1], UiTrackerGridMetrics::kHeaderTextY,
-               HeaderColor(data.activeHeader, UiPhraseHeader::Instrument));
+                   HeaderColor(data.activeHeader, UiPhraseHeader::Instrument));
   builder.GridText("FX1", kColumnX[2], UiTrackerGridMetrics::kHeaderTextY,
-               HeaderColor(data.activeHeader, UiPhraseHeader::Fx1));
+                   HeaderColor(data.activeHeader, UiPhraseHeader::Fx1));
   builder.GridText("FX2", kColumnX[4], UiTrackerGridMetrics::kHeaderTextY,
-               HeaderColor(data.activeHeader, UiPhraseHeader::Fx2));
+                   HeaderColor(data.activeHeader, UiPhraseHeader::Fx2));
 
   if (!data.numberFocus && !data.selectionVisualRect.Empty()) {
     builder.SelectionHighlight(data.selectionVisualRect);
@@ -358,14 +366,14 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
     const auto rowLabel =
         HexByte(static_cast<std::uint8_t>(data.rowOffset + row));
     builder.GridText(rowLabel.data(), UiTrackerGridMetrics::kRowLabelX, y,
-                 !data.numberFocus && row == data.editRow
-                     ? UiColorToken::TextColored
-                     : UiColorToken::DerivedTextFaint);
+                     !data.numberFocus && row == data.editRow
+                         ? UiColorToken::TextColored
+                         : UiColorToken::DerivedTextFaint);
     for (std::uint8_t column = 0; column < kColumnX.size(); ++column) {
       const std::string_view value = data.rows[row][column];
       builder.GridText(value, kColumnX[column], y,
-                   IsDimValue(value) ? UiColorToken::DerivedTextFaint
-                                     : UiColorToken::TextNormal);
+                       IsDimValue(value) ? UiColorToken::DerivedTextFaint
+                                         : UiColorToken::TextNormal);
     }
   }
   for (std::uint8_t row = 0U; row < 16U; ++row) {
@@ -393,9 +401,8 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
           !Intersect(cursor,
                      PlaybackTickRect(static_cast<std::uint8_t>(playbackRow)))
                .Empty()) {
-        cursorStyle = data.mutedTracks[track]
-                          ? UiSelectionStyle::MutedPlayback
-                          : UiSelectionStyle::Playback;
+        cursorStyle = data.mutedTracks[track] ? UiSelectionStyle::MutedPlayback
+                                              : UiSelectionStyle::Playback;
         if (cursorStyle == UiSelectionStyle::Playback)
           break;
       }
@@ -403,22 +410,21 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
     builder.Selection(cursor, cursorStyle);
     if (data.cursorInkVisible && data.editRow < 16U &&
         data.editColumn < kColumnX.size()) {
-      const std::string_view value =
-          data.rows[data.editRow][data.editColumn];
+      const std::string_view value = data.rows[data.editRow][data.editColumn];
       if (data.enterDigitFocus && IsParameterColumn(data.editColumn) &&
           !value.empty()) {
         const std::uint8_t digit = std::min<std::uint8_t>(
             data.editDigit, static_cast<std::uint8_t>(value.size() - 1U));
         builder.GridText(value.substr(digit, 1),
-                     static_cast<std::int16_t>(
-                         kColumnX[data.editColumn] +
-                         digit * UiTrackerGridMetrics::kCharacterAdvance),
-                     UiTrackerGridMetrics::RowTextY(data.editRow),
-                     UiColorToken::TextHighlighted);
+                         static_cast<std::int16_t>(
+                             kColumnX[data.editColumn] +
+                             digit * UiTrackerGridMetrics::kCharacterAdvance),
+                         UiTrackerGridMetrics::RowTextY(data.editRow),
+                         UiColorToken::TextHighlighted);
       } else {
         builder.GridText(value, kColumnX[data.editColumn],
-                     UiTrackerGridMetrics::RowTextY(data.editRow),
-                     UiColorToken::TextHighlighted);
+                         UiTrackerGridMetrics::RowTextY(data.editRow),
+                         UiColorToken::TextHighlighted);
       }
     }
   }

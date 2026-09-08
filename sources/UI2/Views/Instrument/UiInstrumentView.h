@@ -19,7 +19,15 @@
 
 namespace ui2 {
 
-enum class UiInstrumentKind : std::uint8_t { None, Sample, Midi, Sid, Opal, Drum, Stack };
+enum class UiInstrumentKind : std::uint8_t {
+  None,
+  Sample,
+  Midi,
+  Sid,
+  Opal,
+  Drum,
+  Stack
+};
 enum class UiInstrumentCursor : std::uint8_t {
   None,
   Name,
@@ -120,8 +128,7 @@ public:
   [[nodiscard]] static std::int16_t
   ContentBottom(const UiInstrumentViewData &data);
   [[nodiscard]] static std::int16_t
-  RevealCursor(std::int16_t currentOffset,
-               const UiInstrumentViewData &data);
+  RevealCursor(std::int16_t currentOffset, const UiInstrumentViewData &data);
   [[nodiscard]] static RectI16 FieldDamageRect(std::int16_t y);
 
 private:

@@ -50,8 +50,8 @@ enum class UiNavTarget : std::uint8_t {
 using UiNavTargetMask = std::uint16_t;
 
 [[nodiscard]] constexpr UiNavTargetMask UiNavTargetBit(UiNavTarget target) {
-  return static_cast<UiNavTargetMask>(
-      UiNavTargetMask{1U} << static_cast<std::uint8_t>(target));
+  return static_cast<UiNavTargetMask>(UiNavTargetMask{1U}
+                                      << static_cast<std::uint8_t>(target));
 }
 
 // A NAV map is an explicit visibility set. The renderer keeps the horizontal

@@ -56,10 +56,12 @@ std::int16_t DirectionDelta(Ui2TrackerEditDirection direction,
 
 FourCC AdjustCommand(FourCC current, Ui2TrackerEditDirection direction,
                      bool table) {
-  const int dx = direction == Ui2TrackerEditDirection::Left ? -1 :
-                 direction == Ui2TrackerEditDirection::Right ? 1 : 0;
-  const int dy = direction == Ui2TrackerEditDirection::Up ? -1 :
-                 direction == Ui2TrackerEditDirection::Down ? 1 : 0;
+  const int dx = direction == Ui2TrackerEditDirection::Left    ? -1
+                 : direction == Ui2TrackerEditDirection::Right ? 1
+                                                               : 0;
+  const int dy = direction == Ui2TrackerEditDirection::Up     ? -1
+                 : direction == Ui2TrackerEditDirection::Down ? 1
+                                                              : 0;
   return CommandList::MoveGrid(current, dx, dy, table);
 }
 
@@ -353,9 +355,8 @@ void Ui2TrackerSessionModelPort::ApplyGridCommand(
     } else if (command.sourcePage == Ui2TrackerPage::Phrase) {
       TrackerSessionState &editor = session_.EditorState();
       const int previousChainRow = editor.chainRow_;
-      const int targetChainRow =
-          std::clamp(previousChainRow + command.value, 0,
-                     PHRASES_PER_CHAIN - 1);
+      const int targetChainRow = std::clamp(previousChainRow + command.value, 0,
+                                            PHRASES_PER_CHAIN - 1);
       if (targetChainRow != previousChainRow &&
           ResolveTargetPage(Ui2TrackerPage::Phrase, command.track,
                             static_cast<std::uint8_t>(targetChainRow))) {
@@ -365,8 +366,8 @@ void Ui2TrackerSessionModelPort::ApplyGridCommand(
         // current row and therefore do not satisfy these edge predicates.
         if (!command.flag && command.row == 0U && command.value < 0)
           phraseRow_ = STEPS_PER_PHRASE - 1U;
-        else if (!command.flag &&
-                 command.row == STEPS_PER_PHRASE - 1U && command.value > 0)
+        else if (!command.flag && command.row == STEPS_PER_PHRASE - 1U &&
+                 command.value > 0)
           phraseRow_ = 0U;
       }
     }
@@ -519,21 +520,20 @@ void Ui2TrackerSessionModelPort::ApplyAdjustCell(
     switch (command.column) {
     case 0: {
       const bool playableCell = phrase.note_[index] != NO_NOTE;
-      phrase.note_[index] = AdjustPhraseNote(
-          session_.ProjectModel(), phrase,
-          static_cast<std::uint8_t>(editor.currentPhrase_), command.row,
-          phrase.note_[index], noteDelta);
+      phrase.note_[index] =
+          AdjustPhraseNote(session_.ProjectModel(), phrase,
+                           static_cast<std::uint8_t>(editor.currentPhrase_),
+                           command.row, phrase.note_[index], noteDelta);
       if (playableCell)
         lastNote_ = phrase.note_[index];
       break;
     }
     case 1:
-      phrase.instr_[index] =
-          AdjustByte(phrase.instr_[index],
-                     DirectionDelta(command.direction, 16),
-                     MAX_INSTRUMENT_COUNT - 1U,
-                     command.direction == Ui2TrackerEditDirection::Left ||
-                         command.direction == Ui2TrackerEditDirection::Right);
+      phrase.instr_[index] = AdjustByte(
+          phrase.instr_[index], DirectionDelta(command.direction, 16),
+          MAX_INSTRUMENT_COUNT - 1U,
+          command.direction == Ui2TrackerEditDirection::Left ||
+              command.direction == Ui2TrackerEditDirection::Right);
       lastInstrument_ = phrase.instr_[index];
       break;
     case 2:
@@ -808,8 +808,7 @@ void Ui2TrackerSessionModelPort::ApplyPasteLast(
           command.column == 2U ? phrase.param1_[index] : phrase.param2_[index];
       if (cell == FourCC::InstrumentCommandNone) {
         cell = lastCommand_;
-        parameter =
-            CommandList::RangeLimitCommandParam(cell, lastParameter_);
+        parameter = CommandList::RangeLimitCommandParam(cell, lastParameter_);
       } else {
         lastCommand_ = cell;
         lastParameter_ = parameter;
@@ -817,8 +816,8 @@ void Ui2TrackerSessionModelPort::ApplyPasteLast(
     } else if (command.column == 3U || command.column == 5U) {
       const FourCC effect =
           command.column == 3U ? phrase.cmd1_[index] : phrase.cmd2_[index];
-      std::uint16_t &cell = command.column == 3U ? phrase.param1_[index]
-                                                : phrase.param2_[index];
+      std::uint16_t &cell =
+          command.column == 3U ? phrase.param1_[index] : phrase.param2_[index];
       if (cell == 0U)
         cell = CommandList::RangeLimitCommandParam(effect, lastParameter_);
       else
@@ -840,8 +839,7 @@ void Ui2TrackerSessionModelPort::ApplyPasteLast(
       std::uint16_t &parameter = parameters[group][command.row];
       if (cell == FourCC::InstrumentCommandNone) {
         cell = lastCommand_;
-        parameter =
-            CommandList::RangeLimitCommandParam(cell, lastParameter_);
+        parameter = CommandList::RangeLimitCommandParam(cell, lastParameter_);
       } else {
         lastCommand_ = cell;
         lastParameter_ = parameter;
@@ -849,8 +847,8 @@ void Ui2TrackerSessionModelPort::ApplyPasteLast(
     } else {
       std::uint16_t &cell = parameters[group][command.row];
       if (cell == 0U) {
-        cell = CommandList::RangeLimitCommandParam(
-            commands[group][command.row], lastParameter_);
+        cell = CommandList::RangeLimitCommandParam(commands[group][command.row],
+                                                   lastParameter_);
       } else {
         lastParameter_ = cell;
       }
@@ -890,8 +888,8 @@ bool Ui2TrackerSessionModelPort::ApplyAllocateNext(
       const unsigned short slot = bank->GetNextFreeInstrumentSlotId();
       if (slot == NO_MORE_INSTRUMENT)
         return false;
-      const unsigned short next = bank->GetNextAndAssignID(
-          IT_NONE, static_cast<unsigned char>(slot));
+      const unsigned short next =
+          bank->GetNextAndAssignID(IT_NONE, static_cast<unsigned char>(slot));
       if (next == NO_MORE_INSTRUMENT)
         return false;
       song.phrase_.instr_[index] = static_cast<std::uint8_t>(next);
@@ -906,9 +904,9 @@ bool Ui2TrackerSessionModelPort::ApplyAllocateNext(
       const unsigned short next = TableHolder::GetInstance()->GetNext();
       if (next == NO_MORE_TABLE)
         return false;
-      std::uint16_t &parameter =
-          command.column == 3U ? song.phrase_.param1_[index]
-                               : song.phrase_.param2_[index];
+      std::uint16_t &parameter = command.column == 3U
+                                     ? song.phrase_.param1_[index]
+                                     : song.phrase_.param2_[index];
       parameter = next;
       lastParameter_ = next;
       return true;
@@ -1014,9 +1012,9 @@ bool Ui2TrackerSessionModelPort::ApplyCloneCell(
     const int index = editor.currentPhrase_ * STEPS_PER_PHRASE + command.row;
     FourCC &effect = command.column == 3U ? song.phrase_.cmd1_[index]
                                           : song.phrase_.cmd2_[index];
-    std::uint16_t &parameter =
-        command.column == 3U ? song.phrase_.param1_[index]
-                             : song.phrase_.param2_[index];
+    std::uint16_t &parameter = command.column == 3U
+                                   ? song.phrase_.param1_[index]
+                                   : song.phrase_.param2_[index];
     return cloneTableReference(effect, parameter);
   } else if ((command.sourcePage == Ui2TrackerPage::PhraseTable ||
               command.sourcePage == Ui2TrackerPage::InstrumentTable) &&
@@ -1080,8 +1078,8 @@ bool Ui2TrackerSessionModelPort::ClipboardCompatible(
          phraseTableTransfer;
 }
 
-Ui2TrackerClipboardState Ui2TrackerSessionModelPort::ClipboardState(
-    Ui2TrackerPage target) const {
+Ui2TrackerClipboardState
+Ui2TrackerSessionModelPort::ClipboardState(Ui2TrackerPage target) const {
   const bool ready = selectionClipboardWidth_ != 0U &&
                      selectionClipboardHeight_ != 0U &&
                      ClipboardCompatible(target);
@@ -1093,8 +1091,7 @@ Ui2TrackerClipboardState Ui2TrackerSessionModelPort::ClipboardState(
 bool Ui2TrackerSessionModelPort::ApplyPasteSelection(
     const Ui2TrackerCommand &command) {
   if (!ClipboardCompatible(command.sourcePage) ||
-      selectionClipboardWidth_ == 0U ||
-      selectionClipboardHeight_ == 0U)
+      selectionClipboardWidth_ == 0U || selectionClipboardHeight_ == 0U)
     return false;
   GridBounds bounds{};
   if (!ResolveGridBounds(command.sourcePage, bounds) ||
@@ -1159,8 +1156,10 @@ bool Ui2TrackerSessionModelPort::ApplyPasteSelection(
     }
     if (command.sourcePage == Ui2TrackerPage::Chain) {
       if (column == 0U) {
-        const std::uint8_t phrase = song.chain_.data_[
-            session_.EditorState().currentChain_ * PHRASES_PER_CHAIN + row];
+        const std::uint8_t phrase =
+            song.chain_.data_[session_.EditorState().currentChain_ *
+                                  PHRASES_PER_CHAIN +
+                              row];
         if (phrase < PHRASE_COUNT)
           song.phrase_.SetUsed(phrase);
       }
@@ -1171,12 +1170,11 @@ bool Ui2TrackerSessionModelPort::ApplyPasteSelection(
     if (command.sourcePage == Ui2TrackerPage::Phrase) {
       if (column < 2U)
         return;
-      const int index = session_.EditorState().currentPhrase_ *
-                            STEPS_PER_PHRASE +
-                        row;
+      const int index =
+          session_.EditorState().currentPhrase_ * STEPS_PER_PHRASE + row;
       const std::uint8_t group = static_cast<std::uint8_t>((column - 2U) / 2U);
-      effect = group == 0U ? song.phrase_.cmd1_[index]
-                           : song.phrase_.cmd2_[index];
+      effect =
+          group == 0U ? song.phrase_.cmd1_[index] : song.phrase_.cmd2_[index];
       parameter = group == 0U ? song.phrase_.param1_[index]
                               : song.phrase_.param2_[index];
     } else {
@@ -1188,7 +1186,7 @@ bool Ui2TrackerSessionModelPort::ApplyPasteSelection(
       const std::uint8_t group = column / 2U;
       const FourCC *commands[3] = {table.cmd1_, table.cmd2_, table.cmd3_};
       const std::uint16_t *parameters[3] = {table.param1_, table.param2_,
-                                           table.param3_};
+                                            table.param3_};
       effect = commands[group][row];
       parameter = parameters[group][row];
     }
@@ -1406,9 +1404,9 @@ void Ui2TrackerSessionModelPort::ApplyTransport(
       const std::uint8_t chainPosition =
           command.sourcePage == Ui2TrackerPage::Chain
               ? command.row
-              : static_cast<std::uint8_t>(std::clamp(
-                    session_.EditorState().chainRow_, 0,
-                    PHRASES_PER_CHAIN - 1));
+              : static_cast<std::uint8_t>(
+                    std::clamp(session_.EditorState().chainRow_, 0,
+                               PHRASES_PER_CHAIN - 1));
       player->OnStartButton(
           command.sourcePage == Ui2TrackerPage::Chain ? PM_CHAIN : PM_PHRASE,
           command.track, false, chainPosition);
@@ -1428,23 +1426,20 @@ void Ui2TrackerSessionModelPort::ApplyTransport(
       auditionOwned_ = false;
     }
     break;
-  case Ui2TrackerCommandType::ToggleMute:
-    {
-      const std::uint8_t from =
-          command.sourcePage == Ui2TrackerPage::Song && command.selection.active
-              ? std::min<std::uint8_t>(command.selection.Left(),
-                                       SONG_CHANNEL_COUNT - 1U)
-              : std::min<std::uint8_t>(command.track,
-                                       SONG_CHANNEL_COUNT - 1U);
-      const std::uint8_t to =
-          command.sourcePage == Ui2TrackerPage::Song && command.selection.active
-              ? std::min<std::uint8_t>(command.selection.Right(),
-                                       SONG_CHANNEL_COUNT - 1U)
-              : from;
-      for (std::uint8_t track = from; track <= to; ++track)
-        player->SetChannelMute(track, !player->IsChannelMuted(track));
-    }
-    break;
+  case Ui2TrackerCommandType::ToggleMute: {
+    const std::uint8_t from =
+        command.sourcePage == Ui2TrackerPage::Song && command.selection.active
+            ? std::min<std::uint8_t>(command.selection.Left(),
+                                     SONG_CHANNEL_COUNT - 1U)
+            : std::min<std::uint8_t>(command.track, SONG_CHANNEL_COUNT - 1U);
+    const std::uint8_t to =
+        command.sourcePage == Ui2TrackerPage::Song && command.selection.active
+            ? std::min<std::uint8_t>(command.selection.Right(),
+                                     SONG_CHANNEL_COUNT - 1U)
+            : from;
+    for (std::uint8_t track = from; track <= to; ++track)
+      player->SetChannelMute(track, !player->IsChannelMuted(track));
+  } break;
   case Ui2TrackerCommandType::ToggleSolo: {
     if (soloActive_) {
       for (std::uint8_t track = 0; track < SONG_CHANNEL_COUNT; ++track)
@@ -1489,8 +1484,8 @@ void Ui2TrackerSessionModelPort::ApplyTransport(
       player->Stop();
     player->OnStartButton(
         PM_AUDITION, command.track, false,
-        static_cast<std::uint8_t>(std::clamp(
-            session_.EditorState().chainRow_, 0, PHRASES_PER_CHAIN - 1)));
+        static_cast<std::uint8_t>(std::clamp(session_.EditorState().chainRow_,
+                                             0, PHRASES_PER_CHAIN - 1)));
     auditionOwned_ = true;
     break;
   default:
@@ -1519,10 +1514,9 @@ bool Ui2TrackerSessionModelPort::ResolveTableTrack(Ui2TrackerPage page,
     instrumentTableNumber_ = savedInstrumentTable;
   };
 
-  if (!ResolveTargetPage(
-          Ui2TrackerPage::Phrase, track,
-          static_cast<std::uint8_t>(
-              std::clamp(editor.chainRow_, 0, PHRASES_PER_CHAIN - 1)))) {
+  if (!ResolveTargetPage(Ui2TrackerPage::Phrase, track,
+                         static_cast<std::uint8_t>(std::clamp(
+                             editor.chainRow_, 0, PHRASES_PER_CHAIN - 1)))) {
     rollback();
     return false;
   }
@@ -1531,16 +1525,15 @@ bool Ui2TrackerSessionModelPort::ResolveTableTrack(Ui2TrackerPage page,
       std::min<std::uint8_t>(phraseRow_, STEPS_PER_PHRASE - 1U);
   bool resolved = false;
   if (page == Ui2TrackerPage::PhraseTable) {
-    resolved = PreparePageNavigation(Ui2TrackerPage::Phrase,
-                                     Ui2TrackerPage::PhraseTable, track,
-                                     phraseRow);
+    resolved = PreparePageNavigation(
+        Ui2TrackerPage::Phrase, Ui2TrackerPage::PhraseTable, track, phraseRow);
   } else {
-    resolved = PreparePageNavigation(Ui2TrackerPage::Phrase,
-                                     Ui2TrackerPage::Instrument, track,
-                                     phraseRow) &&
-               PreparePageNavigation(Ui2TrackerPage::Instrument,
-                                     Ui2TrackerPage::InstrumentTable, track,
-                                     phraseRow);
+    resolved =
+        PreparePageNavigation(Ui2TrackerPage::Phrase,
+                              Ui2TrackerPage::Instrument, track, phraseRow) &&
+        PreparePageNavigation(Ui2TrackerPage::Instrument,
+                              Ui2TrackerPage::InstrumentTable, track,
+                              phraseRow);
   }
   if (!resolved)
     rollback();
@@ -1553,9 +1546,8 @@ bool Ui2TrackerSessionModelPort::WarpChainSongPosition(std::uint8_t track,
   Song &song = session_.ProjectModel().song_;
   const int previousAbsolute =
       std::clamp(editor.songOffset_ + editor.songY_, 0, SONG_ROW_COUNT - 1);
-  const int targetAbsolute =
-      std::clamp(previousAbsolute + static_cast<int>(delta), 0,
-                 SONG_ROW_COUNT - 1);
+  const int targetAbsolute = std::clamp(
+      previousAbsolute + static_cast<int>(delta), 0, SONG_ROW_COUNT - 1);
   if (targetAbsolute == previousAbsolute)
     return false;
 
@@ -1607,8 +1599,8 @@ bool Ui2TrackerSessionModelPort::PreparePageNavigation(Ui2TrackerPage source,
                                          phrase.param2_[index]};
     for (std::uint8_t effect = 0U; effect < 2U; ++effect) {
       if (commands[effect] == FourCC::InstrumentCommandTable) {
-        phraseTableNumber_ = static_cast<std::uint8_t>(
-            parameters[effect] & (TABLE_COUNT - 1U));
+        phraseTableNumber_ =
+            static_cast<std::uint8_t>(parameters[effect] & (TABLE_COUNT - 1U));
         editor.currentTable_ = phraseTableNumber_;
         return true;
       }

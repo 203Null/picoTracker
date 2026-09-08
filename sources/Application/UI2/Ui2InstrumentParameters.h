@@ -88,8 +88,8 @@ Ui2InstrumentSampleOpenOutcomeFor(int sampleIndex, bool filenameAvailable,
                        : Ui2InstrumentSampleOpenOutcome::Available;
 }
 
-[[nodiscard]] constexpr const char *Ui2InstrumentSampleOpenFailureText(
-    Ui2InstrumentSampleOpenOutcome outcome) {
+[[nodiscard]] constexpr const char *
+Ui2InstrumentSampleOpenFailureText(Ui2InstrumentSampleOpenOutcome outcome) {
   switch (outcome) {
   case Ui2InstrumentSampleOpenOutcome::MissingSample:
     return "NO SAMPLE LOADED";
@@ -103,17 +103,14 @@ Ui2InstrumentSampleOpenOutcomeFor(int sampleIndex, bool filenameAvailable,
 
 namespace detail {
 
-constexpr Ui2InstrumentParameterDescriptor
-Parameter(const char *label, FourCC::enum_type primary, std::int16_t minimum,
-          std::int32_t maximum, std::uint16_t fineStep,
-          std::uint16_t coarseStep, std::int16_t y, std::uint8_t width,
-          Ui2InstrumentValueFormat format, bool wrap = false,
-          bool offValue = false, bool editable = true,
-          FourCC::enum_type secondary = FourCC::Default,
-          bool userData = false,
-          Ui2InstrumentSubfieldMode subfieldMode =
-              Ui2InstrumentSubfieldMode::None,
-          std::uint8_t subfieldTextOffset = 0U) {
+constexpr Ui2InstrumentParameterDescriptor Parameter(
+    const char *label, FourCC::enum_type primary, std::int16_t minimum,
+    std::int32_t maximum, std::uint16_t fineStep, std::uint16_t coarseStep,
+    std::int16_t y, std::uint8_t width, Ui2InstrumentValueFormat format,
+    bool wrap = false, bool offValue = false, bool editable = true,
+    FourCC::enum_type secondary = FourCC::Default, bool userData = false,
+    Ui2InstrumentSubfieldMode subfieldMode = Ui2InstrumentSubfieldMode::None,
+    std::uint8_t subfieldTextOffset = 0U) {
   return {.label = label,
           .primary = primary,
           .secondary = secondary,
@@ -179,8 +176,8 @@ inline constexpr std::array<Ui2InstrumentParameterDescriptor, 13>
         Parameter("WAVE", FourCC::StackWave, 0, 6, 1, 1, 68, 0,
                   Ui2InstrumentValueFormat::Choice, true),
         Parameter("CHORD", FourCC::StackChord, 0, 0xFFFF, 1, 1, 78, 4,
-                  Ui2InstrumentValueFormat::Hex, false, false, true, FourCC::Default, false,
-                  Ui2InstrumentSubfieldMode::HexDigit),
+                  Ui2InstrumentValueFormat::Hex, false, false, true,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
         Parameter("SPREAD", FourCC::StackSpread, 0, 255, 1, 16, 88, 2,
                   Ui2InstrumentValueFormat::Hex),
         Parameter("TRANSPOSE", FourCC::StackTranspose, -24, 24, 1, 12, 98, 3,
@@ -199,8 +196,8 @@ inline constexpr std::array<Ui2InstrumentParameterDescriptor, 13>
                   Ui2InstrumentValueFormat::Hex),
         Parameter("RELEASE", FourCC::StackRelease, 0, 255, 1, 16, 168, 2,
                   Ui2InstrumentValueFormat::Hex),
-        Parameter("TABLE", FourCC::StackTable, 0, TABLE_COUNT - 1, 1, 16, 178, 2,
-                  Ui2InstrumentValueFormat::OffHex, false, true),
+        Parameter("TABLE", FourCC::StackTable, 0, TABLE_COUNT - 1, 1, 16, 178,
+                  2, Ui2InstrumentValueFormat::OffHex, false, true),
         Parameter("AUTOMATION", FourCC::StackTableAuto, 0, 1, 1, 1, 188, 0,
                   Ui2InstrumentValueFormat::Boolean),
     };
@@ -210,15 +207,15 @@ static_assert(IT_LAST == kUiInstrumentTypeCount);
 
 inline constexpr std::array<Ui2InstrumentParameterDescriptor, 19>
     kSampleParameters{
-        Parameter("SAMPLE", FourCC::SampleInstrumentSample, 0, 0, 1, 1, 66,
-                  0, Ui2InstrumentValueFormat::UserText, false, false, false,
+        Parameter("SAMPLE", FourCC::SampleInstrumentSample, 0, 0, 1, 1, 66, 0,
+                  Ui2InstrumentValueFormat::UserText, false, false, false,
                   FourCC::Default, true),
         Parameter("SLICES", FourCC::Default, 0, 0, 1, 1, 76, 0,
                   Ui2InstrumentValueFormat::SliceCount, false, false, false),
         Parameter("VOLUME", FourCC::SampleInstrumentVolume,
                   SampleInstrumentParameterLimits::VolumeMinimum,
-                  SampleInstrumentParameterLimits::VolumeMaximum, 1, 10,
-                  86, 2, Ui2InstrumentValueFormat::Hex),
+                  SampleInstrumentParameterLimits::VolumeMaximum, 1, 10, 86, 2,
+                  Ui2InstrumentValueFormat::Hex),
         Parameter("PAN", FourCC::SampleInstrumentPan,
                   SampleInstrumentParameterLimits::PanMinimum,
                   SampleInstrumentParameterLimits::PanMaximum, 1, 0x10, 96, 2,
@@ -241,23 +238,23 @@ inline constexpr std::array<Ui2InstrumentParameterDescriptor, 19>
                   Ui2InstrumentValueFormat::Decimal),
         Parameter("DOWNSAMPLE", FourCC::SampleInstrumentDownsample,
                   SampleInstrumentParameterLimits::DownsampleMinimum,
-                  SampleInstrumentParameterLimits::DownsampleMaximum, 1, 4,
-                  146, 0, Ui2InstrumentValueFormat::Decimal),
+                  SampleInstrumentParameterLimits::DownsampleMaximum, 1, 4, 146,
+                  0, Ui2InstrumentValueFormat::Decimal),
         Parameter("FILTER", FourCC::SampleInstrumentFilterCutOff,
                   SampleInstrumentParameterLimits::FilterMinimum,
-                  SampleInstrumentParameterLimits::FilterMaximum, 1, 0x10,
-                  156, 2, Ui2InstrumentValueFormat::SampleFilter, false, false,
-                  true, FourCC::SampleInstrumentFilterResonance),
+                  SampleInstrumentParameterLimits::FilterMaximum, 1, 0x10, 156,
+                  2, Ui2InstrumentValueFormat::SampleFilter, false, false, true,
+                  FourCC::SampleInstrumentFilterResonance),
         Parameter("FILTER TYPE", FourCC::SampleInstrumentFilterType,
                   SampleInstrumentParameterLimits::FilterMinimum,
-                  SampleInstrumentParameterLimits::FilterMaximum, 1, 0x10,
-                  166, 2, Ui2InstrumentValueFormat::Hex),
-        Parameter("FILTER MODE", FourCC::SampleInstrumentFilterMode, 0, 2, 1,
-                  1, 176, 0, Ui2InstrumentValueFormat::Choice),
-        Parameter("INTERPOLATION", FourCC::SampleInstrumentInterpolation, 0,
-                  1, 1, 1, 186, 0, Ui2InstrumentValueFormat::Choice),
-        Parameter("LOOP", FourCC::SampleInstrumentLoopMode, 0, 4, 1, 1, 196,
-                  0, Ui2InstrumentValueFormat::SampleLoop),
+                  SampleInstrumentParameterLimits::FilterMaximum, 1, 0x10, 166,
+                  2, Ui2InstrumentValueFormat::Hex),
+        Parameter("FILTER MODE", FourCC::SampleInstrumentFilterMode, 0, 2, 1, 1,
+                  176, 0, Ui2InstrumentValueFormat::Choice),
+        Parameter("INTERPOLATION", FourCC::SampleInstrumentInterpolation, 0, 1,
+                  1, 1, 186, 0, Ui2InstrumentValueFormat::Choice),
+        Parameter("LOOP", FourCC::SampleInstrumentLoopMode, 0, 4, 1, 1, 196, 0,
+                  Ui2InstrumentValueFormat::SampleLoop),
         // Position maxima are resolved to sampleSize-1 immediately before
         // mutation. 0x0FFFFFFF is only the seven-digit format ceiling.
         Parameter("START", FourCC::SampleInstrumentStart,
@@ -269,9 +266,8 @@ inline constexpr std::array<Ui2InstrumentParameterDescriptor, 19>
         Parameter("LOOP START", FourCC::SampleInstrumentLoopStart,
                   SampleInstrumentParameterLimits::PositionMinimum,
                   SampleInstrumentParameterLimits::PositionPersistedMaximum, 1,
-                  0x10, 216, 7,
-                  Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false,
+                  0x10, 216, 7, Ui2InstrumentValueFormat::Hex, false, false,
+                  true, FourCC::Default, false,
                   Ui2InstrumentSubfieldMode::HexDigit),
         Parameter("LOOP END", FourCC::SampleInstrumentEnd,
                   SampleInstrumentParameterLimits::PositionMinimum,
@@ -279,107 +275,100 @@ inline constexpr std::array<Ui2InstrumentParameterDescriptor, 19>
                   0x10, 226, 7, Ui2InstrumentValueFormat::Hex, false, false,
                   true, FourCC::Default, false,
                   Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("TABLE", FourCC::SampleInstrumentTable, 0, 0x1F, 1, 0x10,
-                  236, 2, Ui2InstrumentValueFormat::OffHex, false, true),
-        Parameter("AUTOMATION", FourCC::SampleInstrumentTableAutomation, 0,
-                  1, 1, 1, 246, 0, Ui2InstrumentValueFormat::Boolean),
+        Parameter("TABLE", FourCC::SampleInstrumentTable, 0, 0x1F, 1, 0x10, 236,
+                  2, Ui2InstrumentValueFormat::OffHex, false, true),
+        Parameter("AUTOMATION", FourCC::SampleInstrumentTableAutomation, 0, 1,
+                  1, 1, 246, 0, Ui2InstrumentValueFormat::Boolean),
     };
 
 inline constexpr std::array<Ui2InstrumentParameterDescriptor, 6>
     kMidiParameters{
-        Parameter("CHANNEL", FourCC::MidiInstrumentChannel, 0, 0x0F, 1, 4,
-                  66, 2, Ui2InstrumentValueFormat::DecimalOneBased),
-        Parameter("VOLUME", FourCC::MidiInstrumentVolume, 0, 0xFF, 1, 0x10,
-                  76, 2, Ui2InstrumentValueFormat::Hex),
-        Parameter("LENGTH", FourCC::MidiInstrumentNoteLength, 0, 0xFF, 1,
-                  0x10, 86, 2, Ui2InstrumentValueFormat::Hex),
+        Parameter("CHANNEL", FourCC::MidiInstrumentChannel, 0, 0x0F, 1, 4, 66,
+                  2, Ui2InstrumentValueFormat::DecimalOneBased),
+        Parameter("VOLUME", FourCC::MidiInstrumentVolume, 0, 0xFF, 1, 0x10, 76,
+                  2, Ui2InstrumentValueFormat::Hex),
+        Parameter("LENGTH", FourCC::MidiInstrumentNoteLength, 0, 0xFF, 1, 0x10,
+                  86, 2, Ui2InstrumentValueFormat::Hex),
         Parameter("PROGRAM", FourCC::MidiInstrumentProgram, 0, 0x7F, 1, 0x10,
                   96, 2, Ui2InstrumentValueFormat::OffHex, false, true),
-        Parameter("AUTOMATION", FourCC::MidiInstrumentTableAutomation, 0, 1,
-                  1, 1, 106, 0, Ui2InstrumentValueFormat::Boolean),
+        Parameter("AUTOMATION", FourCC::MidiInstrumentTableAutomation, 0, 1, 1,
+                  1, 106, 0, Ui2InstrumentValueFormat::Boolean),
         Parameter("TABLE", FourCC::MidiInstrumentTable, 0, TABLE_COUNT - 1, 1,
                   0x10, 116, 2, Ui2InstrumentValueFormat::OffHex, false, true),
     };
 
 inline constexpr std::array<Ui2InstrumentParameterDescriptor, 11>
     kSidParameters{
-        Parameter("OSCILLATOR", FourCC::SIDInstrumentOSCNumber, 0, 2, 1, 1,
-                  66, 1, Ui2InstrumentValueFormat::Hex),
+        Parameter("OSCILLATOR", FourCC::SIDInstrumentOSCNumber, 0, 2, 1, 1, 66,
+                  1, Ui2InstrumentValueFormat::Hex),
         Parameter("PULSEWIDTH", FourCC::SIDInstrumentPulseWidth, 0, 0xFFF, 1,
                   0x10, 76, 3, Ui2InstrumentValueFormat::Hex),
-        Parameter("WAVEFORM", FourCC::SIDInstrumentWaveform, 0, 8, 1, 1, 86,
-                  0, Ui2InstrumentValueFormat::SidWaveform),
+        Parameter("WAVEFORM", FourCC::SIDInstrumentWaveform, 0, 8, 1, 1, 86, 0,
+                  Ui2InstrumentValueFormat::SidWaveform),
         Parameter("OSC SYNC", FourCC::SIDInstrumentVSync, 0, 1, 1, 1, 96, 0,
                   Ui2InstrumentValueFormat::Boolean),
         Parameter("RING MOD", FourCC::SIDInstrumentRingModulator, 0, 1, 1, 1,
                   106, 0, Ui2InstrumentValueFormat::Boolean),
         Parameter("ENV ADSR", FourCC::SIDInstrumentADSR, 0, 0xFFFF, 1, 0x10,
                   116, 4, Ui2InstrumentValueFormat::Hex, true, false, true,
-                  FourCC::Default, false,
-                  Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("FILTER", FourCC::SIDInstrumentFilterOn, 0, 1, 1, 1, 126,
-                  0, Ui2InstrumentValueFormat::Boolean),
-        Parameter("CUTOFF", FourCC::SIDInstrument1FilterCut, 0, 0x7FF, 1,
-                  0x10, 136, 3, Ui2InstrumentValueFormat::Hex),
-        Parameter("RESONANCE", FourCC::SIDInstrument1FilterResonance, 0, 0xF,
-                  1, 1, 146, 1, Ui2InstrumentValueFormat::Hex),
-        Parameter("MODE", FourCC::SIDInstrument1FilterMode, 0, 3, 1, 1, 156,
-                  0, Ui2InstrumentValueFormat::Choice),
-        Parameter("VOLUME", FourCC::SIDInstrument1Volume, 0, 0xF, 1, 1, 166,
-                  1, Ui2InstrumentValueFormat::Hex),
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+        Parameter("FILTER", FourCC::SIDInstrumentFilterOn, 0, 1, 1, 1, 126, 0,
+                  Ui2InstrumentValueFormat::Boolean),
+        Parameter("CUTOFF", FourCC::SIDInstrument1FilterCut, 0, 0x7FF, 1, 0x10,
+                  136, 3, Ui2InstrumentValueFormat::Hex),
+        Parameter("RESONANCE", FourCC::SIDInstrument1FilterResonance, 0, 0xF, 1,
+                  1, 146, 1, Ui2InstrumentValueFormat::Hex),
+        Parameter("MODE", FourCC::SIDInstrument1FilterMode, 0, 3, 1, 1, 156, 0,
+                  Ui2InstrumentValueFormat::Choice),
+        Parameter("VOLUME", FourCC::SIDInstrument1Volume, 0, 0xF, 1, 1, 166, 1,
+                  Ui2InstrumentValueFormat::Hex),
     };
 
 inline constexpr std::array<Ui2InstrumentParameterDescriptor, 3>
     kOpalParameters{
-        Parameter("ALGORITHM", FourCC::OPALInstrumentAlgorithm, 0, 1, 1, 1,
-                  82, 0, Ui2InstrumentValueFormat::OpalAlgorithm),
-        Parameter("DEEP TREM/VIB", FourCC::OPALInstrumentDeepTremeloVibrato,
-                  0, 3, 1, 1, 93, 2, Ui2InstrumentValueFormat::Bitmask,
-                  false, false, true, FourCC::Default, false,
-                  Ui2InstrumentSubfieldMode::Bit),
-        Parameter("FEEDBACK", FourCC::OPALInstrumentFeedback, 0, 7, 1, 1,
-                  104, 1, Ui2InstrumentValueFormat::Hex),
-    };
-
-inline constexpr std::array<Ui2InstrumentParameterDescriptor, 6>
-    kOpalOperator1{
-        Parameter("LEVEL", FourCC::OPALInstrumentOp1Level, 0, 63, 1, 1, 144,
-                  2, Ui2InstrumentValueFormat::Hex),
-        Parameter("MULTIPLIER", FourCC::OPALInstrumentOp1Multiplier, 0, 15, 1,
-                  1, 153, 1, Ui2InstrumentValueFormat::Hex),
-        Parameter("A/D/S/R", FourCC::OPALInstrumentOp1ADSR, 0, 0xFFFF, 1,
-                  0x10, 162, 4, Ui2InstrumentValueFormat::Hex, true, false,
-                  true, FourCC::Default, false,
-                  Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("SHAPE", FourCC::OPALInstrumentOp1WaveShape, 0, 7, 1, 1,
-                  171, 0, Ui2InstrumentValueFormat::OpalWave),
-        Parameter("TR/VB/SU/KSR", FourCC::OPALInstrumentOp1TremVibSusKSR, 0,
-                  15, 1, 1, 180, 4, Ui2InstrumentValueFormat::Bitmask, false,
+        Parameter("ALGORITHM", FourCC::OPALInstrumentAlgorithm, 0, 1, 1, 1, 82,
+                  0, Ui2InstrumentValueFormat::OpalAlgorithm),
+        Parameter("DEEP TREM/VIB", FourCC::OPALInstrumentDeepTremeloVibrato, 0,
+                  3, 1, 1, 93, 2, Ui2InstrumentValueFormat::Bitmask, false,
                   false, true, FourCC::Default, false,
                   Ui2InstrumentSubfieldMode::Bit),
-        Parameter("KEYSCALE", FourCC::OPALInstrumentOp1KeyScaleLevel, 0, 3, 1,
-                  1, 189, 0, Ui2InstrumentValueFormat::OpalKeyscale),
+        Parameter("FEEDBACK", FourCC::OPALInstrumentFeedback, 0, 7, 1, 1, 104,
+                  1, Ui2InstrumentValueFormat::Hex),
     };
 
-inline constexpr std::array<Ui2InstrumentParameterDescriptor, 6>
-    kOpalOperator2{
-        Parameter("LEVEL", FourCC::OPALInstrumentOp2Level, 0, 63, 1, 1, 144,
-                  2, Ui2InstrumentValueFormat::Hex),
-        Parameter("MULTIPLIER", FourCC::OPALInstrumentOp2Multiplier, 0, 15, 1,
-                  1, 153, 1, Ui2InstrumentValueFormat::Hex),
-        Parameter("A/D/S/R", FourCC::OPALInstrumentOp2ADSR, 0, 0xFFFF, 1,
-                  0x10, 162, 4, Ui2InstrumentValueFormat::Hex, true, false,
-                  true, FourCC::Default, false,
-                  Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("SHAPE", FourCC::OPALInstrumentOp2WaveShape, 0, 7, 1, 1,
-                  171, 0, Ui2InstrumentValueFormat::OpalWave),
-        Parameter("TR/VB/SU/KSR", FourCC::OPALInstrumentOp2TremVibSusKSR, 0,
-                  15, 1, 1, 180, 4, Ui2InstrumentValueFormat::Bitmask, false,
-                  false, true, FourCC::Default, false,
-                  Ui2InstrumentSubfieldMode::Bit),
-        Parameter("KEYSCALE", FourCC::OPALInstrumentOp2KeyScaleLevel, 0, 3, 1,
-                  1, 189, 0, Ui2InstrumentValueFormat::OpalKeyscale),
-    };
+inline constexpr std::array<Ui2InstrumentParameterDescriptor, 6> kOpalOperator1{
+    Parameter("LEVEL", FourCC::OPALInstrumentOp1Level, 0, 63, 1, 1, 144, 2,
+              Ui2InstrumentValueFormat::Hex),
+    Parameter("MULTIPLIER", FourCC::OPALInstrumentOp1Multiplier, 0, 15, 1, 1,
+              153, 1, Ui2InstrumentValueFormat::Hex),
+    Parameter("A/D/S/R", FourCC::OPALInstrumentOp1ADSR, 0, 0xFFFF, 1, 0x10, 162,
+              4, Ui2InstrumentValueFormat::Hex, true, false, true,
+              FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+    Parameter("SHAPE", FourCC::OPALInstrumentOp1WaveShape, 0, 7, 1, 1, 171, 0,
+              Ui2InstrumentValueFormat::OpalWave),
+    Parameter("TR/VB/SU/KSR", FourCC::OPALInstrumentOp1TremVibSusKSR, 0, 15, 1,
+              1, 180, 4, Ui2InstrumentValueFormat::Bitmask, false, false, true,
+              FourCC::Default, false, Ui2InstrumentSubfieldMode::Bit),
+    Parameter("KEYSCALE", FourCC::OPALInstrumentOp1KeyScaleLevel, 0, 3, 1, 1,
+              189, 0, Ui2InstrumentValueFormat::OpalKeyscale),
+};
+
+inline constexpr std::array<Ui2InstrumentParameterDescriptor, 6> kOpalOperator2{
+    Parameter("LEVEL", FourCC::OPALInstrumentOp2Level, 0, 63, 1, 1, 144, 2,
+              Ui2InstrumentValueFormat::Hex),
+    Parameter("MULTIPLIER", FourCC::OPALInstrumentOp2Multiplier, 0, 15, 1, 1,
+              153, 1, Ui2InstrumentValueFormat::Hex),
+    Parameter("A/D/S/R", FourCC::OPALInstrumentOp2ADSR, 0, 0xFFFF, 1, 0x10, 162,
+              4, Ui2InstrumentValueFormat::Hex, true, false, true,
+              FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+    Parameter("SHAPE", FourCC::OPALInstrumentOp2WaveShape, 0, 7, 1, 1, 171, 0,
+              Ui2InstrumentValueFormat::OpalWave),
+    Parameter("TR/VB/SU/KSR", FourCC::OPALInstrumentOp2TremVibSusKSR, 0, 15, 1,
+              1, 180, 4, Ui2InstrumentValueFormat::Bitmask, false, false, true,
+              FourCC::Default, false, Ui2InstrumentSubfieldMode::Bit),
+    Parameter("KEYSCALE", FourCC::OPALInstrumentOp2KeyScaleLevel, 0, 3, 1, 1,
+              189, 0, Ui2InstrumentValueFormat::OpalKeyscale),
+};
 
 static_assert(kSampleParameters.size() <= kUiInstrumentMaximumFields);
 static_assert(kMidiParameters.size() <= kUiInstrumentMaximumFields);
@@ -398,9 +387,8 @@ inline void CopyText(char *destination, std::size_t capacity,
   std::size_t index = 0U;
   while (index + 1U < capacity && source[index] != '\0') {
     const unsigned char character = static_cast<unsigned char>(source[index]);
-    destination[index] = uppercase
-                             ? static_cast<char>(std::toupper(character))
-                             : static_cast<char>(character);
+    destination[index] = uppercase ? static_cast<char>(std::toupper(character))
+                                   : static_cast<char>(character);
     ++index;
   }
   destination[index] = '\0';
@@ -519,8 +507,7 @@ struct Ui2InstrumentAdjustmentSpec {
 };
 
 [[nodiscard]] constexpr Ui2InstrumentSubfieldSpec
-Ui2InstrumentSubfields(
-    const Ui2InstrumentParameterDescriptor &descriptor) {
+Ui2InstrumentSubfields(const Ui2InstrumentParameterDescriptor &descriptor) {
   if (!descriptor.Valid() || !descriptor.editable || descriptor.width == 0U ||
       descriptor.subfieldMode == Ui2InstrumentSubfieldMode::None)
     return {};
@@ -533,18 +520,17 @@ Ui2InstrumentSubfields(
 // Digit/bit fields communicate focus in their value bubble; selectors,
 // combined values and action rows keep their existing bottom-bar contract.
 [[nodiscard]] constexpr Ui2InstrumentAdjustmentSpec
-Ui2InstrumentAdjustment(
-    const Ui2InstrumentParameterDescriptor &descriptor) {
+Ui2InstrumentAdjustment(const Ui2InstrumentParameterDescriptor &descriptor) {
   if (!descriptor.Valid() || !descriptor.editable ||
       descriptor.subfieldMode != Ui2InstrumentSubfieldMode::None)
     return {};
 
   const bool note = descriptor.format == Ui2InstrumentValueFormat::Note;
-  const bool numeric = descriptor.format == Ui2InstrumentValueFormat::Hex ||
-                       descriptor.format == Ui2InstrumentValueFormat::Decimal ||
-                       descriptor.format ==
-                           Ui2InstrumentValueFormat::DecimalOneBased ||
-                       descriptor.format == Ui2InstrumentValueFormat::OffHex;
+  const bool numeric =
+      descriptor.format == Ui2InstrumentValueFormat::Hex ||
+      descriptor.format == Ui2InstrumentValueFormat::Decimal ||
+      descriptor.format == Ui2InstrumentValueFormat::DecimalOneBased ||
+      descriptor.format == Ui2InstrumentValueFormat::OffHex;
   if (!note && !numeric)
     return {};
 
@@ -572,19 +558,19 @@ Ui2ResolveSamplePositionMaximum(Ui2InstrumentParameterDescriptor descriptor,
     // START and LOOP START address a frame, while END is the exclusive bound
     // consumed by SampleInstrument. Assignment and project restore both keep
     // a full-sample END at sampleSize.
-    const bool exclusiveEnd =
-        descriptor.primary == FourCC::SampleInstrumentEnd;
+    const bool exclusiveEnd = descriptor.primary == FourCC::SampleInstrumentEnd;
     const std::int32_t resolved =
         sampleSize > 0 ? sampleSize - (exclusiveEnd ? 0 : 1) : 0;
-    descriptor.maximum = std::clamp<std::int32_t>(
-        resolved, descriptor.minimum, descriptor.maximum);
+    descriptor.maximum = std::clamp<std::int32_t>(resolved, descriptor.minimum,
+                                                  descriptor.maximum);
   }
   return descriptor;
 }
 
-[[nodiscard]] constexpr int Ui2AdjustInstrumentParameter(
-    const Ui2InstrumentParameterDescriptor &descriptor, int current,
-    Ui2InstrumentValueDirection direction) {
+[[nodiscard]] constexpr int
+Ui2AdjustInstrumentParameter(const Ui2InstrumentParameterDescriptor &descriptor,
+                             int current,
+                             Ui2InstrumentValueDirection direction) {
   if (!descriptor.Valid() || !descriptor.editable ||
       direction == Ui2InstrumentValueDirection::None)
     return current;
@@ -625,12 +611,11 @@ Ui2ResolveSamplePositionMaximum(Ui2InstrumentParameterDescriptor descriptor,
     return count <= 0
                ? current
                : static_cast<int>(
-                     ((adjusted - descriptor.minimum) % count + count) %
-                         count +
+                     ((adjusted - descriptor.minimum) % count + count) % count +
                      descriptor.minimum);
   }
-  return static_cast<int>(std::clamp<std::int64_t>(
-      adjusted, descriptor.minimum, descriptor.maximum));
+  return static_cast<int>(std::clamp<std::int64_t>(adjusted, descriptor.minimum,
+                                                   descriptor.maximum));
 }
 
 [[nodiscard]] constexpr int Ui2AdjustInstrumentSubfieldParameter(
@@ -648,19 +633,18 @@ Ui2ResolveSamplePositionMaximum(Ui2InstrumentParameterDescriptor descriptor,
       static_cast<std::uint8_t>(spec.count - leftToRightSubfield - 1U);
   if (mode == Ui2InstrumentSubfieldMode::Bit) {
     const std::uint32_t mask = std::uint32_t{1U} << rightToLeft;
-    const auto sanitized = static_cast<std::uint32_t>(std::clamp(
-        current, static_cast<int>(descriptor.minimum),
-        static_cast<int>(descriptor.maximum)));
+    const auto sanitized = static_cast<std::uint32_t>(
+        std::clamp(current, static_cast<int>(descriptor.minimum),
+                   static_cast<int>(descriptor.maximum)));
     return static_cast<int>(sanitized ^ mask);
   }
 
   std::int64_t step = 1;
   for (std::uint8_t digit = 0; digit < rightToLeft; ++digit)
     step *= 16;
-  std::int64_t adjusted = static_cast<std::int64_t>(current) +
-                          (direction == Ui2InstrumentValueDirection::Up
-                               ? step
-                               : -step);
+  std::int64_t adjusted =
+      static_cast<std::int64_t>(current) +
+      (direction == Ui2InstrumentValueDirection::Up ? step : -step);
   if (descriptor.wrap) {
     const std::int64_t count =
         descriptor.maximum - descriptor.minimum + std::int64_t{1};
@@ -668,14 +652,13 @@ Ui2ResolveSamplePositionMaximum(Ui2InstrumentParameterDescriptor descriptor,
       adjusted = ((adjusted - descriptor.minimum) % count + count) % count +
                  descriptor.minimum;
   }
-  return static_cast<int>(std::clamp<std::int64_t>(
-      adjusted, descriptor.minimum, descriptor.maximum));
+  return static_cast<int>(std::clamp<std::int64_t>(adjusted, descriptor.minimum,
+                                                   descriptor.maximum));
 }
 
 [[nodiscard]] constexpr Ui2InstrumentEditSideEffect
-Ui2InstrumentSideEffectFor(
-    const Ui2InstrumentParameterDescriptor &descriptor, bool playerRunning,
-    bool valueChanged) {
+Ui2InstrumentSideEffectFor(const Ui2InstrumentParameterDescriptor &descriptor,
+                           bool playerRunning, bool valueChanged) {
   return playerRunning && valueChanged &&
                  descriptor.primary == FourCC::MidiInstrumentProgram
              ? Ui2InstrumentEditSideEffect::SendMidiProgramChange
@@ -694,10 +677,10 @@ bool Ui2ApplyInstrumentSideEffect(
   return true;
 }
 
-inline void Ui2FormatInstrumentParameter(
-    const Ui2InstrumentParameterDescriptor &descriptor, int current,
-    int secondary, const char *text, char *destination,
-    std::size_t capacity) {
+inline void
+Ui2FormatInstrumentParameter(const Ui2InstrumentParameterDescriptor &descriptor,
+                             int current, int secondary, const char *text,
+                             char *destination, std::size_t capacity) {
   if (destination == nullptr || capacity == 0U)
     return;
   destination[0] = '\0';
@@ -719,8 +702,7 @@ inline void Ui2FormatInstrumentParameter(
     break;
   case Ui2InstrumentValueFormat::Note: {
     static constexpr std::array<const char *, 12> names{
-        "C",  "C#", "D",  "D#", "E",  "F",
-        "F#", "G",  "G#", "A",  "A#", "B"};
+        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
     if (current < 0)
       detail::CopyText(destination, capacity, "--");
     else
@@ -777,8 +759,8 @@ inline void Ui2FormatInstrumentParameter(
     break;
   case Ui2InstrumentValueFormat::SidWaveform: {
     static constexpr std::array<const char *, 9> names{
-        "--", "A", "/", "A/", "PULSE", "A PULSE", "/ PULSE",
-        "A/ PULSE", "NOISE"};
+        "--",      "A",       "/",        "A/",   "PULSE",
+        "A PULSE", "/ PULSE", "A/ PULSE", "NOISE"};
     detail::CopyText(destination, capacity,
                      current >= 0 && current < static_cast<int>(names.size())
                          ? names[current]
@@ -787,7 +769,9 @@ inline void Ui2FormatInstrumentParameter(
   }
   case Ui2InstrumentValueFormat::OpalAlgorithm:
     detail::CopyText(destination, capacity,
-                     current == 0 ? "1*2" : current == 1 ? "1+2" : "--");
+                     current == 0   ? "1*2"
+                     : current == 1 ? "1+2"
+                                    : "--");
     break;
   case Ui2InstrumentValueFormat::OpalWave: {
     static constexpr std::array<const char *, 8> names{

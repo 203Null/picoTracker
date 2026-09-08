@@ -22,9 +22,9 @@
  * THE SOFTWARE.
  *
  */
-#include "tusb.h"
-#include "esp_system.h"
 #include "esp_mac.h"
+#include "esp_system.h"
+#include "tusb.h"
 
 #define USB_VID 0x0203
 #define USB_PID 0x2040
@@ -134,7 +134,7 @@ char const *string_desc_arr[] = {
     "203 Systems",              // 1: Manufacturer
     "NullTracker",              // 2: Product
     serial_str,                 // 3: Serials, populated from efuse
-    "NullTracker Serial",          // 4: CDC Interface
+    "NullTracker Serial",       // 4: CDC Interface
 };
 static uint16_t _desc_str[32];
 // Invoked when received GET STRING DESCRIPTOR request
@@ -154,8 +154,9 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     if (index == 3 && serial_str[0] == 0) {
       uint8_t mac[6] = {0};
       esp_efuse_mac_get_default(mac);
-      static const char char_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
-                                          '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+      static const char char_table[16] = {'0', '1', '2', '3', '4', '5',
+                                          '6', '7', '8', '9', 'A', 'B',
+                                          'C', 'D', 'E', 'F'};
       for (uint8_t i = 0; i < 6; i++) {
         serial_str[2 * i] = char_table[mac[i] >> 4];
         serial_str[2 * i + 1] = char_table[mac[i] & 0x0F];
@@ -182,18 +183,13 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
 //--------------------------------------------------------------------+
 
 // Invoked when device is mounted
-void tud_mount_cb(void) {
-}
+void tud_mount_cb(void) {}
 
 // Invoked when device is unmounted
-void tud_umount_cb(void) {
-}
+void tud_umount_cb(void) {}
 
 // Invoked when usb bus is suspended
-void tud_suspend_cb(bool remote_wakeup_en) {
-  (void)remote_wakeup_en;
-}
+void tud_suspend_cb(bool remote_wakeup_en) { (void)remote_wakeup_en; }
 
 // Invoked when usb bus is resumed
-void tud_resume_cb(void) {
-}
+void tud_resume_cb(void) {}

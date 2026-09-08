@@ -23,8 +23,8 @@ struct Ui2ChainTranspose {
   }
 
   [[nodiscard]] static constexpr std::uint8_t Encode(int value) {
-    return static_cast<std::uint8_t>(static_cast<std::int8_t>(
-        std::clamp(value, kMinimum, kMaximum)));
+    return static_cast<std::uint8_t>(
+        static_cast<std::int8_t>(std::clamp(value, kMinimum, kMaximum)));
   }
 
   [[nodiscard]] static constexpr std::uint8_t Adjust(std::uint8_t encoded,
@@ -35,8 +35,7 @@ struct Ui2ChainTranspose {
   [[nodiscard]] static std::array<char, 4> Format(std::uint8_t encoded) {
     const int value = std::clamp(Decode(encoded), kMinimum, kMaximum);
     const int magnitude = value < 0 ? -value : value;
-    return {value < 0 ? '-' : '+',
-            static_cast<char>('0' + magnitude / 10),
+    return {value < 0 ? '-' : '+', static_cast<char>('0' + magnitude / 10),
             static_cast<char>('0' + magnitude % 10), 0};
   }
 };

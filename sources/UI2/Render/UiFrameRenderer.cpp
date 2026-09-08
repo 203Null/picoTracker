@@ -18,10 +18,10 @@ void UiFrameRenderer::RenderStatic(const UiFrameScene &scene,
 
 void UiFrameRenderer::RenderRegion(const UiFrameScene &scene,
                                    UiIndexedSurface &surface,
-                                   const UiPalette &palette,
-                                   RectI16 region) {
+                                   const UiPalette &palette, RectI16 region) {
   region = Intersect(region, RectI16::Screen());
-  if (region.Empty()) return;
+  if (region.Empty())
+    return;
 
   // The background clear writes the complete clipped region, so every later
   // command is already covered by this one damage mark. Avoid repeating tile
@@ -32,16 +32,15 @@ void UiFrameRenderer::RenderRegion(const UiFrameScene &scene,
                    palette.Index(scene.topBackground), region);
   const std::int16_t contentBottom =
       scene.bottomVisible ? scene.bottomTop : kScreenHeight;
-  UiRasterizer::Render(scene.content.Stream(), surface, &palette,
-                       {0, static_cast<std::int16_t>(-scene.contentOffsetY)},
-                       Intersect(region,
-                                 {0, scene.topHeight, kScreenWidth,
-                                  static_cast<std::int16_t>(
-                                      contentBottom - scene.topHeight)}),
-                       scene.textCase);
+  UiRasterizer::Render(
+      scene.content.Stream(), surface, &palette,
+      {0, static_cast<std::int16_t>(-scene.contentOffsetY)},
+      Intersect(region,
+                {0, scene.topHeight, kScreenWidth,
+                 static_cast<std::int16_t>(contentBottom - scene.topHeight)}),
+      scene.textCase);
   UiRasterizer::Render(scene.top.Stream(), surface, &palette, {},
-                       Intersect(region,
-                                 {0, 0, kScreenWidth, scene.topHeight}),
+                       Intersect(region, {0, 0, kScreenWidth, scene.topHeight}),
                        scene.textCase);
   if (scene.bottomVisible) {
     surface.FillRect(
@@ -52,8 +51,7 @@ void UiFrameRenderer::RenderRegion(const UiFrameScene &scene,
         scene.bottom.Stream(), surface, &palette, {},
         Intersect(region,
                   {0, scene.bottomTop, kScreenWidth,
-                   static_cast<std::int16_t>(kScreenHeight -
-                                             scene.bottomTop)}),
+                   static_cast<std::int16_t>(kScreenHeight - scene.bottomTop)}),
         scene.textCase);
   }
   // Overlay commands use absolute screen coordinates and are intentionally

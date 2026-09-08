@@ -31,8 +31,7 @@ public:
     Accept(commands_.FillRect(bounds, Index(color)));
   }
 
-  void RoundedFill(RectI16 bounds, UiColorToken color,
-                   UiColorToken corner) {
+  void RoundedFill(RectI16 bounds, UiColorToken color, UiColorToken corner) {
     Accept(commands_.FillRoundedRect(bounds, Index(color), Index(corner)));
   }
 
@@ -64,8 +63,7 @@ public:
     Accept(commands_.FillVerticalPaletteRamp(bounds, firstColor));
   }
 
-  void SparseCoverageMask(RectI16 bounds,
-                          std::span<const std::uint8_t> encoded,
+  void SparseCoverageMask(RectI16 bounds, std::span<const std::uint8_t> encoded,
                           UiCoverage coverage, UiColorToken background) {
     Accept(commands_.SparseCoverageMask(bounds, encoded, Index(background),
                                         coverage));
@@ -101,9 +99,8 @@ public:
     Accept(commands_.Text({x, y}, text, Index(color), scale, true));
   }
 
-  void CenteredText(std::string_view text, std::int16_t center,
-                    std::int16_t y, UiColorToken color,
-                    std::uint8_t scale = 1) {
+  void CenteredText(std::string_view text, std::int16_t center, std::int16_t y,
+                    UiColorToken color, std::uint8_t scale = 1) {
     const std::int16_t width = UiFont5x7::TextWidth(text.size(), scale);
     // This is Math.round(center - width / 2) for integral center values.
     const std::int16_t x =

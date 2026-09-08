@@ -17,19 +17,17 @@ UiBottomBarModel UiBarResolver::SelectionMode(bool nextExpansionAll,
       .text = "SELECTION MODE", .color = UiColorToken::TextColored, .x = 79};
   bottom.context.secondLineCount = 1U;
   bottom.context.secondLine[0] = {
-      .text = supportsInterpolation
-                  ? "OPTION: COPY  SHIFT+ENTER: INTERPOLATE"
-                  : nextExpansionAll
-                        ? "OPTION: COPY  SHIFT+OPTION: ALL"
-                        : "OPTION: COPY  SHIFT+OPTION: ROW",
+      .text = supportsInterpolation ? "OPTION: COPY  SHIFT+ENTER: INTERPOLATE"
+              : nextExpansionAll    ? "OPTION: COPY  SHIFT+OPTION: ALL"
+                                    : "OPTION: COPY  SHIFT+OPTION: ROW",
       .color = UiColorToken::TextNormal,
       .x = static_cast<std::int16_t>(supportsInterpolation ? 6 : 28)};
   return bottom;
 }
 
-UiBottomBarModel UiBarResolver::ClipboardNotice(std::uint8_t width,
-                                                std::uint8_t height,
-                                                UiClipboardBarModel::Notice notice) {
+UiBottomBarModel
+UiBarResolver::ClipboardNotice(std::uint8_t width, std::uint8_t height,
+                               UiClipboardBarModel::Notice notice) {
   UiBottomBarModel bottom{};
   bottom.kind = UiBottomBarKind::Clipboard;
   bottom.clipboard = {
@@ -42,7 +40,8 @@ UiBottomBarModel UiBarResolver::ClipboardNotice(std::uint8_t width,
 
 UiResolvedChrome UiBarResolver::Resolve(const UiBarInputs &inputs) {
   UiResolvedChrome resolved{inputs.pageTop, inputs.pageDefault};
-  if (inputs.cursorContext != nullptr) resolved.bottom = *inputs.cursorContext;
+  if (inputs.cursorContext != nullptr)
+    resolved.bottom = *inputs.cursorContext;
 
   if (inputs.enterHeldNumber && inputs.enterHeldTracks != nullptr) {
     resolved.top.metaSelected = true;
@@ -69,7 +68,8 @@ UiResolvedChrome UiBarResolver::Resolve(const UiBarInputs &inputs) {
                                : UiClipboardBarModel::Notice::Copied);
   }
 
-  if (inputs.criticalModal != nullptr) resolved.bottom = *inputs.criticalModal;
+  if (inputs.criticalModal != nullptr)
+    resolved.bottom = *inputs.criticalModal;
   return resolved;
 }
 

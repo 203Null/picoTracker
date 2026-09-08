@@ -15,9 +15,9 @@ namespace ui2 {
 // performance commands must share the same Player-facing model port.
 [[nodiscard]] constexpr Ui2TrackerCommand
 Ui2GrooveTrackerCommand(Ui2GrooveCommand command, int track) {
-  Ui2TrackerCommand trackerCommand = Ui2MakeTrackerCommand(
-      Ui2TrackerCommandType::None, Ui2TrackerPage::Groove, command.row, 0U,
-      Ui2ClampTrack(track));
+  Ui2TrackerCommand trackerCommand =
+      Ui2MakeTrackerCommand(Ui2TrackerCommandType::None, Ui2TrackerPage::Groove,
+                            command.row, 0U, Ui2ClampTrack(track));
   switch (command.type) {
   case Ui2GrooveCommandType::StartPlayback:
     trackerCommand.type = Ui2TrackerCommandType::StartPlayback;

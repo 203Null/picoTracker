@@ -62,8 +62,8 @@ WasmGUIWindowImp::WasmGUIWindowImp()
   SDL_SetHint(SDL_HINT_EMSCRIPTEN_CANVAS_SELECTOR, "#picotracker-canvas");
 #endif
   window_ = SDL_CreateWindow("PicoTracker", SDL_WINDOWPOS_UNDEFINED,
-                             SDL_WINDOWPOS_UNDEFINED, CanvasWidth,
-                             CanvasHeight, SDL_WINDOW_SHOWN);
+                             SDL_WINDOWPOS_UNDEFINED, CanvasWidth, CanvasHeight,
+                             SDL_WINDOW_SHOWN);
   if (window_ == nullptr) {
     return;
   }
@@ -89,16 +89,18 @@ WasmGUIWindowImp::~WasmGUIWindowImp() {
 
 bool WasmGUIWindowImp::HasPresentedFrame() const { return hasPresentedFrame_; }
 
-ui2::PresentResult WasmGUIWindowImp::Present(
-    const ui2::UiIndexedSurface &surface, const ui2::UiPalette &palette,
-    std::span<const ui2::DirtyStrip> strips) {
+ui2::PresentResult
+WasmGUIWindowImp::Present(const ui2::UiIndexedSurface &surface,
+                          const ui2::UiPalette &palette,
+                          std::span<const ui2::DirtyStrip> strips) {
   std::lock_guard<std::recursive_mutex> lock(mutex_);
   return ui2Presenter_.Present(surface, palette, strips);
 }
 
 bool WasmGUIWindowImp::CommitUi2Frame(void *context) {
   auto *window = static_cast<WasmGUIWindowImp *>(context);
-  if (window == nullptr || window->context_ <= 0) return false;
+  if (window == nullptr || window->context_ <= 0)
+    return false;
   if (!window->PresentFrame(window->ui2Frame_)) {
     InputFrameLatencyTracker::ObserveNoPresentation();
     return false;
@@ -119,14 +121,16 @@ bool WasmGUIWindowImp::InitializePresenter() {
   attributes.explicitSwapControl = EM_TRUE;
   attributes.proxyContextToMainThread = EMSCRIPTEN_WEBGL_CONTEXT_PROXY_DISALLOW;
   attributes.majorVersion = 1;
-  context_ = emscripten_webgl_create_context("#picotracker-canvas", &attributes);
-  if (context_ <= 0 ||
-      emscripten_webgl_make_context_current(context_) != EMSCRIPTEN_RESULT_SUCCESS) {
+  context_ =
+      emscripten_webgl_create_context("#picotracker-canvas", &attributes);
+  if (context_ <= 0 || emscripten_webgl_make_context_current(context_) !=
+                           EMSCRIPTEN_RESULT_SUCCESS) {
     context_ = 0;
     return false;
   }
 
-  const unsigned int vertexShader = CompileShader(GL_VERTEX_SHADER, VertexShaderSource);
+  const unsigned int vertexShader =
+      CompileShader(GL_VERTEX_SHADER, VertexShaderSource);
   const unsigned int fragmentShader =
       CompileShader(GL_FRAGMENT_SHADER, FragmentShaderSource);
   if (vertexShader == 0 || fragmentShader == 0) {
@@ -157,7 +161,7 @@ bool WasmGUIWindowImp::InitializePresenter() {
 
   constexpr float vertices[] = {
       -1.0f, -1.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
-      -1.0f, 1.0f, 0.0f, 0.0f,  1.0f, 1.0f, 1.0f, 0.0f,
+      -1.0f, 1.0f,  0.0f, 0.0f, 1.0f, 1.0f,  1.0f, 0.0f,
   };
   glGenBuffers(1, &vertexBuffer_);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer_);
@@ -168,8 +172,8 @@ bool WasmGUIWindowImp::InitializePresenter() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, CanvasWidth, CanvasHeight, 0,
-               GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, CanvasWidth, CanvasHeight, 0, GL_RGBA,
+               GL_UNSIGNED_BYTE, nullptr);
   return glGetError() == GL_NO_ERROR;
 }
 
@@ -194,7 +198,8 @@ void WasmGUIWindowImp::DestroyPresenter() {
 }
 
 bool WasmGUIWindowImp::PresentFrame(const RgbaFrame &frame) {
-  if (emscripten_webgl_make_context_current(context_) != EMSCRIPTEN_RESULT_SUCCESS) {
+  if (emscripten_webgl_make_context_current(context_) !=
+      EMSCRIPTEN_RESULT_SUCCESS) {
     return false;
   }
   glViewport(0, 0, CanvasWidth, CanvasHeight);
@@ -202,10 +207,10 @@ bool WasmGUIWindowImp::PresentFrame(const RgbaFrame &frame) {
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer_);
   glEnableVertexAttribArray(static_cast<unsigned int>(positionLocation_));
   glEnableVertexAttribArray(static_cast<unsigned int>(textureLocation_));
-  glVertexAttribPointer(static_cast<unsigned int>(positionLocation_), 2, GL_FLOAT,
-                        GL_FALSE, 4 * sizeof(float), nullptr);
-  glVertexAttribPointer(static_cast<unsigned int>(textureLocation_), 2, GL_FLOAT,
-                        GL_FALSE, 4 * sizeof(float),
+  glVertexAttribPointer(static_cast<unsigned int>(positionLocation_), 2,
+                        GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+  glVertexAttribPointer(static_cast<unsigned int>(textureLocation_), 2,
+                        GL_FLOAT, GL_FALSE, 4 * sizeof(float),
                         reinterpret_cast<const void *>(2 * sizeof(float)));
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture_);

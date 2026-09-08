@@ -22,11 +22,7 @@ class FileSystem;
 // filename, and does not recursively hex-encode long names.
 class SampleEditorFileJournal final {
 public:
-  enum class Generation : char {
-    Working = 'w',
-    Operation = 'o',
-    Backup = 'b'
-  };
+  enum class Generation : char { Working = 'w', Operation = 'o', Backup = 'b' };
 
   static bool BuildPath(const char *source, Generation generation,
                         char *destination, std::size_t capacity) {
@@ -89,7 +85,7 @@ private:
   enum class RecoveryStatus : std::uint8_t { Complete, NotOwned, Failed };
 
   static RecoveryStatus RecoverDestinationStatus(FileSystem &fileSystem,
-                                                  const char *destination);
+                                                 const char *destination);
 
   static bool DecodePath(const char *journal, Generation generation,
                          char *destination, std::size_t capacity) {
@@ -137,9 +133,8 @@ private:
   }
 
   static constexpr char Lower(char value) {
-    return value >= 'A' && value <= 'Z'
-               ? static_cast<char>(value + ('a' - 'A'))
-               : value;
+    return value >= 'A' && value <= 'Z' ? static_cast<char>(value + ('a' - 'A'))
+                                        : value;
   }
 
   static constexpr bool IsUpper(char value) {

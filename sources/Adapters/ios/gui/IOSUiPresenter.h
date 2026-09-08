@@ -27,10 +27,9 @@ public:
   static constexpr std::size_t Height = ui2::kScreenHeight;
 
   IOSUiPresenter();
-  ui2::PresentResult
-  Present(const ui2::UiIndexedSurface &surface,
-          const ui2::UiPalette &palette,
-          std::span<const ui2::DirtyStrip> strips) override;
+  ui2::PresentResult Present(const ui2::UiIndexedSurface &surface,
+                             const ui2::UiPalette &palette,
+                             std::span<const ui2::DirtyStrip> strips) override;
   bool DrainFrame(std::uint32_t afterSequence, IOSUiFramePacket &packet);
 
 private:

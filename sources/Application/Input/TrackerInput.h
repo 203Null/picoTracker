@@ -39,8 +39,6 @@ static_assert(static_cast<std::uint8_t>(TrackerAction::Power) == 10U);
 static_assert(!TrackerActionIdIsValid(8U));
 static_assert(!TrackerActionIdIsValid(9U));
 
-[[nodiscard]] constexpr std::uint16_t
-TrackerActionBit(TrackerAction action) {
-  return static_cast<std::uint16_t>(
-      1U << static_cast<std::uint8_t>(action));
+[[nodiscard]] constexpr std::uint16_t TrackerActionBit(TrackerAction action) {
+  return static_cast<std::uint16_t>(1U << static_cast<std::uint8_t>(action));
 }

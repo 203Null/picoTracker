@@ -137,9 +137,8 @@ public:
     return dialogInstanceId_;
   }
 
-  void BeginApplyProgress(
-      Ui2SampleEditorOperation operation,
-      TrackerAction trigger = TrackerAction::Count) {
+  void BeginApplyProgress(Ui2SampleEditorOperation operation,
+                          TrackerAction trigger = TrackerAction::Count) {
     pendingOperation_ = operation;
     dialogProgress_ = true;
     dialogProgressPercent_ = 0U;
@@ -172,10 +171,9 @@ public:
     return dialogActive_ && dialogProgress_;
   }
 
-  void RequestApplyConfirmation(
-      Ui2SampleEditorOperation operation, std::uint32_t start,
-      std::uint32_t end,
-      TrackerAction trigger = TrackerAction::Count) {
+  void RequestApplyConfirmation(Ui2SampleEditorOperation operation,
+                                std::uint32_t start, std::uint32_t end,
+                                TrackerAction trigger = TrackerAction::Count) {
     if (!active_ || !rewriteAvailable_ || end < start)
       return;
     pendingOperation_ = operation;
@@ -328,8 +326,8 @@ public:
 
     // OPTION controls marker selection and zoom from every editor focus, as it
     // did in SampleEditorView.
-    if (option && (action == TrackerAction::Up ||
-                   action == TrackerAction::Down)) {
+    if (option &&
+        (action == TrackerAction::Up || action == TrackerAction::Down)) {
       const std::int8_t delta = action == TrackerAction::Up ? 1 : -1;
       if (waveform_.AdjustZoom(delta, SelectedMarkerSample()))
         RebuildWaveform();
@@ -360,16 +358,15 @@ public:
         --focusDigit_;
       else if (action == TrackerAction::Right && focusDigit_ < 6U)
         ++focusDigit_;
-      else if (action == TrackerAction::Up ||
-               action == TrackerAction::Down)
+      else if (action == TrackerAction::Up || action == TrackerAction::Down)
         MoveFocus(action == TrackerAction::Down ? 1 : -1);
       return {};
     }
 
     if (focus_ == SampleEditorViewUi2Focus::Operation &&
         (action == TrackerAction::Left || action == TrackerAction::Right ||
-         (enter && (action == TrackerAction::Up ||
-                   action == TrackerAction::Down)))) {
+         (enter &&
+          (action == TrackerAction::Up || action == TrackerAction::Down)))) {
       operation_ = operation_ == Ui2SampleEditorOperation::Trim
                        ? Ui2SampleEditorOperation::Normalize
                        : Ui2SampleEditorOperation::Trim;
@@ -410,8 +407,7 @@ public:
                  : Ui2SampleEditorCommand{};
     case SampleEditorViewUi2Focus::SaveAndLoad:
       return FocusAvailable(focus_)
-                 ? MakeCommand(
-                       Ui2SampleEditorCommandType::RequestSaveAndLoad)
+                 ? MakeCommand(Ui2SampleEditorCommandType::RequestSaveAndLoad)
                  : Ui2SampleEditorCommand{};
     case SampleEditorViewUi2Focus::Discard:
       return MakeCommand(Ui2SampleEditorCommandType::RequestDiscard);
@@ -578,9 +574,9 @@ private:
     std::uint32_t step = 1U;
     for (std::uint8_t digit = focusDigit_; digit < 6U; ++digit)
       step *= 16U;
-    const std::int64_t delta =
-        action == TrackerAction::Up ? static_cast<std::int64_t>(step)
-                                    : -static_cast<std::int64_t>(step);
+    const std::int64_t delta = action == TrackerAction::Up
+                                   ? static_cast<std::int64_t>(step)
+                                   : -static_cast<std::int64_t>(step);
     selectedMarker_ = focus_ == SampleEditorViewUi2Focus::Start ? 0U : 1U;
     return SetEndpoint(selectedMarker_ == 0U, delta);
   }
@@ -590,8 +586,8 @@ private:
         static_cast<std::int64_t>(waveform_.FrameCount() - 1U);
     if (startEndpoint) {
       const std::uint32_t next = static_cast<std::uint32_t>(
-          std::clamp<std::int64_t>(static_cast<std::int64_t>(start_) + delta,
-                                   0, static_cast<std::int64_t>(end_)));
+          std::clamp<std::int64_t>(static_cast<std::int64_t>(start_) + delta, 0,
+                                   static_cast<std::int64_t>(end_)));
       if (next == start_)
         return {};
       start_ = next;
@@ -628,9 +624,9 @@ private:
         break;
       }
     }
-    const int next = (static_cast<int>(current) + delta +
-                      static_cast<int>(count)) %
-                     static_cast<int>(count);
+    const int next =
+        (static_cast<int>(current) + delta + static_cast<int>(count)) %
+        static_cast<int>(count);
     focus_ = order[static_cast<std::size_t>(next)];
     if (focus_ == SampleEditorViewUi2Focus::Start)
       selectedMarker_ = 0U;
@@ -650,8 +646,7 @@ private:
       return;
     }
     constexpr std::array<SampleEditorViewUi2Focus, 3> library{
-        SampleEditorViewUi2Focus::Save,
-        SampleEditorViewUi2Focus::SaveAndLoad,
+        SampleEditorViewUi2Focus::Save, SampleEditorViewUi2Focus::SaveAndLoad,
         SampleEditorViewUi2Focus::Discard};
     constexpr std::array<SampleEditorViewUi2Focus, 2> pool{
         SampleEditorViewUi2Focus::Save, SampleEditorViewUi2Focus::Discard};
@@ -659,15 +654,14 @@ private:
       const std::size_t current = focus_ == pool[1] ? 1U : 0U;
       focus_ = pool[(static_cast<int>(current) + delta + 2) % 2];
     } else {
-      std::size_t current = focus_ == library[1] ? 1U : focus_ == library[2]
-                                                            ? 2U
-                                                            : 0U;
+      std::size_t current = focus_ == library[1]   ? 1U
+                            : focus_ == library[2] ? 2U
+                                                   : 0U;
       focus_ = library[(static_cast<int>(current) + delta + 3) % 3];
     }
   }
 
-  Ui2SampleEditorCommand
-  MakeCommand(Ui2SampleEditorCommandType type) const {
+  Ui2SampleEditorCommand MakeCommand(Ui2SampleEditorCommandType type) const {
     Ui2SampleEditorCommand command;
     command.type = type;
     command.operation = operation_;

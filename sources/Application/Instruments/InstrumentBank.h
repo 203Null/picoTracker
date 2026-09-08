@@ -13,13 +13,13 @@
 #include "Application/Instruments/I_Instrument.h"
 #include "Application/Model/Song.h"
 #include "Application/Persistency/Persistent.h"
+#include "DrumInstrument.h"
 #include "Externals/etl/include/etl/pool.h"
 #include "MidiInstrument.h"
 #include "NoneInstrument.h"
 #include "OpalInstrument.h"
 #include "SIDInstrument.h"
 #include "SampleInstrument.h"
-#include "DrumInstrument.h"
 #include "StackInstrument.h"
 
 #define NO_MORE_INSTRUMENT 0x100

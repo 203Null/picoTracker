@@ -45,11 +45,11 @@ void RunBrowserTimer(void *argument) {
   std::unique_ptr<BrowserTimerContext> context;
   {
     std::lock_guard<std::mutex> lock(browserTimersMutex);
-    const auto iterator = std::find_if(
-        browserTimers.begin(), browserTimers.end(),
-        [scheduled](const auto &entry) {
-          return entry.second.get() == scheduled;
-        });
+    const auto iterator =
+        std::find_if(browserTimers.begin(), browserTimers.end(),
+                     [scheduled](const auto &entry) {
+                       return entry.second.get() == scheduled;
+                     });
     if (iterator == browserTimers.end()) {
       return;
     }
@@ -140,9 +140,8 @@ bool WasmTimer::ScheduleNext(std::uint64_t generation) {
     running_.store(false, std::memory_order_release);
     return false;
   }
-  timerId_ = schedule_(period_, [this, generation] {
-    OnScheduledTick(generation);
-  });
+  timerId_ =
+      schedule_(period_, [this, generation] { OnScheduledTick(generation); });
   if (timerId_ == 0) {
     running_.store(false, std::memory_order_release);
     return false;

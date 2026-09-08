@@ -7,8 +7,8 @@
 #include "UI2/Views/Table/UiTableView.h"
 
 #include "UI2/Render/UiFrameRenderer.h"
-#include "UI2/Views/Tracker/UiFxSelector.h"
 #include "UI2/Text/UiFont5x7.h"
+#include "UI2/Views/Tracker/UiFxSelector.h"
 #include "UI2/Views/Tracker/UiTrackerGridMetrics.h"
 
 #include <algorithm>
@@ -82,19 +82,23 @@ RectI16 UiTableView::CursorTargetRect(const UiTableViewData &data) {
   if (data.editRow >= 16U || data.editColumn >= kColumnX.size())
     return {};
   const std::string_view value = data.rows[data.editRow][data.editColumn];
-  if (data.fxSelector) return FxSelectorCursorRect(value);
+  if (data.fxSelector)
+    return FxSelectorCursorRect(value);
   if (data.enterDigitFocus && IsParameterColumn(data.editColumn) &&
       !value.empty()) {
     const std::uint8_t digit = std::min<std::uint8_t>(
         data.editDigit, static_cast<std::uint8_t>(value.size() - 1U));
     return {static_cast<std::int16_t>(
-                kColumnX[data.editColumn] + digit * UiTrackerGridMetrics::kCharacterAdvance - 2),
+                kColumnX[data.editColumn] +
+                digit * UiTrackerGridMetrics::kCharacterAdvance - 2),
             UiTrackerGridMetrics::RowBoundsY(data.editRow),
             static_cast<std::int16_t>(UiFont5x7::kGlyphWidth + 4), 9};
   }
   return {static_cast<std::int16_t>(kColumnX[data.editColumn] - 2),
           UiTrackerGridMetrics::RowBoundsY(data.editRow),
-          static_cast<std::int16_t>(UiTrackerGridMetrics::TextWidth(value.size()) + 4), 9};
+          static_cast<std::int16_t>(
+              UiTrackerGridMetrics::TextWidth(value.size()) + 4),
+          9};
 }
 
 RectI16 UiTableView::SelectionTargetRect(std::int16_t left, std::int16_t top,
@@ -126,13 +130,12 @@ RectI16 UiTableView::RowDamageRect(std::uint8_t row) {
       row, UiTrackerGridMetrics::kGridRightFull + 2);
 }
 
-RectI16 UiTableView::PlaybackTickRect(std::uint8_t group,
-                                      std::uint8_t row) {
+RectI16 UiTableView::PlaybackTickRect(std::uint8_t group, std::uint8_t row) {
   if (group >= 3U || row >= 16U)
     return {};
   return {static_cast<std::int16_t>(kColumnX[group * 2U] - 3),
-          static_cast<std::int16_t>(UiTrackerGridMetrics::RowTextY(row) + 1),
-          2, 5};
+          static_cast<std::int16_t>(UiTrackerGridMetrics::RowTextY(row) + 1), 2,
+          5};
 }
 
 bool UiTableView::RequiresFullInvalidation(const UiTableViewData &previous,
@@ -190,8 +193,7 @@ void UiTableView::RenderDelta(const UiTableViewData &previous,
       if (previousRows[group] == currentRows[group])
         continue;
       if (previousRows[group] >= 0 && previousRows[group] < 16)
-        render(RowDamageRect(
-            static_cast<std::uint8_t>(previousRows[group])));
+        render(RowDamageRect(static_cast<std::uint8_t>(previousRows[group])));
       if (currentRows[group] >= 0 && currentRows[group] < 16)
         render(RowDamageRect(static_cast<std::uint8_t>(currentRows[group])));
     }
@@ -200,7 +202,8 @@ void UiTableView::RenderDelta(const UiTableViewData &previous,
   renderPlaybackChanges(previous.automationPlaybackRows,
                         current.automationPlaybackRows);
   if (previous.selectedTrackMuted != current.selectedTrackMuted) {
-    for (std::uint8_t group = 0U; group < current.playbackRows.size(); ++group) {
+    for (std::uint8_t group = 0U; group < current.playbackRows.size();
+         ++group) {
       const std::array<std::int8_t, 4> rows{
           previous.playbackRows[group], previous.automationPlaybackRows[group],
           current.playbackRows[group], current.automationPlaybackRows[group]};
@@ -245,8 +248,7 @@ void UiTableView::RenderDelta(const UiTableViewData &previous,
       previous.adjustmentFocus != current.adjustmentFocus ||
       previous.enterDigitFocus != current.enterDigitFocus ||
       previous.selectionActive != current.selectionActive ||
-      previous.selectionNextExpansionAll !=
-          current.selectionNextExpansionAll ||
+      previous.selectionNextExpansionAll != current.selectionNextExpansionAll ||
       previous.clipboardReady != current.clipboardReady ||
       previous.clipboardPasted != current.clipboardPasted ||
       previous.clipboardWidth != current.clipboardWidth ||
@@ -261,7 +263,8 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
   if (data.fxSelector)
     return BuildFxSelector(data.rows[data.editRow][data.editColumn], true,
                            data.cursorBottom, data.power, data.elapsed, scene,
-                           data.cursorVisualRect, data.cursorVisualOverride, data.cursorInkVisible);
+                           data.cursorVisualRect, data.cursorVisualOverride,
+                           data.cursorInkVisible);
   scene.Clear();
   scene.topHeight = 34;
   scene.bottomTop = 208;
@@ -289,7 +292,8 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
   tracks.trackSelectionRect = data.bottomTrackVisualRect;
   tracks.trackSelectionOverride = data.bottomTrackVisualOverride;
   tracks.trackInkVisible = data.bottomTrackInkVisible;
-  const UiAdjustmentLegendModel parameterAdjustment{.fineLabel = "DIGIT", .coarseLabel = "VALUE"};
+  const UiAdjustmentLegendModel parameterAdjustment{.fineLabel = "DIGIT",
+                                                    .coarseLabel = "VALUE"};
   const UiBottomBarModel *cursorContext =
       !data.numberFocus && data.cursorBottom.kind != UiBottomBarKind::Hidden
           ? &data.cursorBottom
@@ -299,7 +303,8 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
       .pageDefault = pageBottom,
       .cursorContext = cursorContext,
       .enterHeldTracks = &tracks,
-      .enterHeldAdjustment = data.enterDigitFocus ? &parameterAdjustment : nullptr,
+      .enterHeldAdjustment =
+          data.enterDigitFocus ? &parameterAdjustment : nullptr,
       .selectionActive = data.selectionActive,
       .selectionNextExpansionAll = data.selectionNextExpansionAll,
       .clipboardReady = data.clipboardReady,
@@ -325,8 +330,8 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
       UiTableHeader::Fx1, UiTableHeader::Fx2, UiTableHeader::Fx3};
   for (std::uint8_t group = 0; group < headers.size(); ++group) {
     builder.GridText(headers[group], kColumnX[group * 2U],
-                 UiTrackerGridMetrics::kHeaderTextY,
-                 HeaderColor(data.activeHeader, headerKinds[group]));
+                     UiTrackerGridMetrics::kHeaderTextY,
+                     HeaderColor(data.activeHeader, headerKinds[group]));
   }
   if (!data.numberFocus && !data.selectionVisualRect.Empty()) {
     builder.SelectionHighlight(data.selectionVisualRect);
@@ -338,9 +343,9 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
     const std::int16_t y = UiTrackerGridMetrics::RowTextY(row);
     const auto label = HexByte(static_cast<std::uint8_t>(data.rowOffset + row));
     builder.GridText(label.data(), UiTrackerGridMetrics::kRowLabelX, y,
-                 !data.numberFocus && row == data.editRow
-                     ? UiColorToken::TextColored
-                     : UiColorToken::DerivedTextFaint);
+                     !data.numberFocus && row == data.editRow
+                         ? UiColorToken::TextColored
+                         : UiColorToken::DerivedTextFaint);
     for (std::uint8_t column = 0; column < kColumnX.size(); ++column) {
       const std::string_view value = data.rows[row][column];
       UiColorToken color = UiColorToken::TextNormal;
@@ -372,8 +377,8 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
       for (const std::int8_t playbackRow : playbackRows) {
         if (playbackRow >= 0 && playbackRow < 16 &&
             !Intersect(cursor,
-                       PlaybackTickRect(
-                           group, static_cast<std::uint8_t>(playbackRow)))
+                       PlaybackTickRect(group,
+                                        static_cast<std::uint8_t>(playbackRow)))
                  .Empty()) {
           cursorOverPlayback = true;
           break;
@@ -383,29 +388,27 @@ UiBuildStatus UiTableView::Build(const UiTableViewData &data, UiPalette &,
         break;
     }
     const UiSelectionStyle cursorStyle =
-        !cursorOverPlayback
-            ? UiSelectionStyle::Cursor
-            : data.selectedTrackMuted ? UiSelectionStyle::MutedPlayback
-                                      : UiSelectionStyle::Playback;
+        !cursorOverPlayback       ? UiSelectionStyle::Cursor
+        : data.selectedTrackMuted ? UiSelectionStyle::MutedPlayback
+                                  : UiSelectionStyle::Playback;
     builder.Selection(cursor, cursorStyle);
     if (data.cursorInkVisible && data.editRow < 16U &&
         data.editColumn < kColumnX.size()) {
-      const std::string_view value =
-          data.rows[data.editRow][data.editColumn];
+      const std::string_view value = data.rows[data.editRow][data.editColumn];
       if (data.enterDigitFocus && IsParameterColumn(data.editColumn) &&
           !value.empty()) {
         const std::uint8_t digit = std::min<std::uint8_t>(
             data.editDigit, static_cast<std::uint8_t>(value.size() - 1U));
         builder.GridText(value.substr(digit, 1),
-                     static_cast<std::int16_t>(
-                         kColumnX[data.editColumn] +
-                         digit * UiTrackerGridMetrics::kCharacterAdvance),
-                     UiTrackerGridMetrics::RowTextY(data.editRow),
-                     UiColorToken::TextHighlighted);
+                         static_cast<std::int16_t>(
+                             kColumnX[data.editColumn] +
+                             digit * UiTrackerGridMetrics::kCharacterAdvance),
+                         UiTrackerGridMetrics::RowTextY(data.editRow),
+                         UiColorToken::TextHighlighted);
       } else {
         builder.GridText(value, kColumnX[data.editColumn],
-                     UiTrackerGridMetrics::RowTextY(data.editRow),
-                     UiColorToken::TextHighlighted);
+                         UiTrackerGridMetrics::RowTextY(data.editRow),
+                         UiColorToken::TextHighlighted);
       }
     }
   }

@@ -1,8 +1,8 @@
 #include "USBMidiDevice.h"
 #include "Adapters/node/platform/platform.h"
 #include "System/Console/Trace.h"
-#include <stdlib.h>
 #include "usb_utils.h"
+#include <stdlib.h>
 
 NodeUSBMidiOutDevice::NodeUSBMidiOutDevice(const char *name)
     : MidiOutDevice(name) {}

@@ -18,9 +18,8 @@ enum class InstrumentExportTransactionResult {
 
 template <typename FileSystemType, typename Validator>
 bool RecoverInstrumentExportFile(FileSystemType &fileSystem,
-                                 const char *destination,
-                                 const char *temporary, const char *backup,
-                                 Validator &&validate) {
+                                 const char *destination, const char *temporary,
+                                 const char *backup, Validator &&validate) {
   if (destination == nullptr || temporary == nullptr || backup == nullptr ||
       destination[0] == '\0' || temporary[0] == '\0' || backup[0] == '\0' ||
       std::strcmp(destination, temporary) == 0 ||
@@ -32,8 +31,7 @@ bool RecoverInstrumentExportFile(FileSystemType &fileSystem,
   // A temporary payload is only prepared state. If power was lost before its
   // install, roll back to the last committed file instead of guessing whether
   // the user intended the replacement to complete.
-  if (fileSystem.exists(temporary) &&
-      !fileSystem.DeleteFile(temporary)) {
+  if (fileSystem.exists(temporary) && !fileSystem.DeleteFile(temporary)) {
     return false;
   }
   if (!fileSystem.exists(backup))
@@ -58,10 +56,11 @@ bool RecoverInstrumentExportFile(FileSystemType &fileSystem,
 // validation outside this allocation-free journal so it can be fault-tested
 // without constructing the complete instrument graph.
 template <typename FileSystemType, typename Writer, typename Validator>
-InstrumentExportTransactionResult ExportInstrumentFileAtomically(
-    FileSystemType &fileSystem, const char *destination, const char *temporary,
-    const char *backup, bool overwrite, Writer &&writeTemporary,
-    Validator &&validate) {
+InstrumentExportTransactionResult
+ExportInstrumentFileAtomically(FileSystemType &fileSystem,
+                               const char *destination, const char *temporary,
+                               const char *backup, bool overwrite,
+                               Writer &&writeTemporary, Validator &&validate) {
   if (!RecoverInstrumentExportFile(fileSystem, destination, temporary, backup,
                                    validate)) {
     return InstrumentExportTransactionResult::Error;

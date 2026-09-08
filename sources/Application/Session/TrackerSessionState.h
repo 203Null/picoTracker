@@ -34,8 +34,8 @@ public:
 protected:
   void checkSongBoundaries();
 
-  inline void updateData(unsigned char *value, int offset,
-                         unsigned char limit, bool wrap) {
+  inline void updateData(unsigned char *value, int offset, unsigned char limit,
+                         bool wrap) {
     int next = *value;
     if ((next == 0xFF) && (limit != 0xFF))
       next = 0;

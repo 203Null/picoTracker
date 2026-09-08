@@ -44,8 +44,7 @@ public:
     static constexpr std::size_t kCapacity = 32U;
 
     [[nodiscard]] bool Push(TrackerAction action, bool pressed,
-                            std::uint8_t count = 1U,
-                            bool repeat = false);
+                            std::uint8_t count = 1U, bool repeat = false);
 
     std::array<Event, kCapacity> events{};
     std::size_t size = 0U;
@@ -60,8 +59,8 @@ public:
   // presses observed inside the 5 ms transition-kill window remain candidates
   // until a later sample confirms them. This keeps the legacy timing while
   // making an observed release impossible to drop.
-  void PublishSample(std::uint16_t physicalHeldMask,
-                     bool headphoneConnected, std::uint32_t nowMs);
+  void PublishSample(std::uint16_t physicalHeldMask, bool headphoneConnected,
+                     std::uint32_t nowMs);
 
   // Called by the sole UI2 application task. Events are ordered as releases,
   // modifier presses, direction/ordinary presses, then aggregated repeats.
@@ -85,8 +84,7 @@ private:
       TrackerActionBit(TrackerAction::Option) |
       TrackerActionBit(TrackerAction::Enter);
   static constexpr std::uint16_t kSupportedMask =
-      kDirectionMask | kModifierMask |
-      TrackerActionBit(TrackerAction::Play) |
+      kDirectionMask | kModifierMask | TrackerActionBit(TrackerAction::Play) |
       TrackerActionBit(TrackerAction::Power);
 
   [[nodiscard]] static constexpr bool TimeReached(std::uint32_t nowMs,

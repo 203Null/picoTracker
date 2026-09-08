@@ -68,8 +68,8 @@ RectI16 UiMixerView::CursorTargetRect(const UiMixerViewData &data) {
   if (data.volumes[channel].empty())
     return {};
   const auto width = UiFont5x7::TextWidth(data.volumes[channel].size());
-  return {static_cast<std::int16_t>(kCenters[channel] - width / 2 - 2),
-          206, static_cast<std::int16_t>(width + 4), 9};
+  return {static_cast<std::int16_t>(kCenters[channel] - width / 2 - 2), 206,
+          static_cast<std::int16_t>(width + 4), 9};
 }
 
 RectI16 UiMixerView::LabelDamageRect(std::uint8_t channel) {
@@ -90,9 +90,11 @@ void UiMixerView::RenderDelta(const UiMixerViewData &previous,
     UiFrameRenderer::RenderRegion(currentScene, surface, palette, rect);
   };
   const auto previousCursor = previous.cursorVisualOverride
-                                  ? previous.cursorVisualRect : CursorTargetRect(previous);
+                                  ? previous.cursorVisualRect
+                                  : CursorTargetRect(previous);
   const auto currentCursor = current.cursorVisualOverride
-                                 ? current.cursorVisualRect : CursorTargetRect(current);
+                                 ? current.cursorVisualRect
+                                 : CursorTargetRect(current);
   if (previousCursor != currentCursor) {
     render(previousCursor);
     render(currentCursor);
@@ -148,7 +150,7 @@ UiBuildStatus UiMixerView::Build(const UiMixerViewData &data,
   }
   UiSceneBuilder<256, 1024> builder(scene.content);
   const auto cursor = data.cursorVisualOverride ? data.cursorVisualRect
-                                                 : CursorTargetRect(data);
+                                                : CursorTargetRect(data);
   if (!cursor.Empty())
     builder.Selection(cursor);
   for (std::uint8_t channel = 0; channel < kChannelCount; ++channel) {

@@ -85,7 +85,7 @@ unsigned char *TrackerSessionState::GetCurrentSongPointer() {
 }
 
 unsigned char TrackerSessionState::UpdateChainCursorValue(int offset, int dx,
-                                                           int dy) {
+                                                          int dy) {
   unsigned char *value = nullptr;
   unsigned char limit = 0;
   bool wrap = false;

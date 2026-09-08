@@ -21,8 +21,8 @@
 
 class SysMutex {
 public:
-  SysMutex() {};
-  ~SysMutex() {};
+  SysMutex(){};
+  ~SysMutex(){};
   virtual bool Lock() = 0;
   virtual void Unlock() = 0;
 };

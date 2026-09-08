@@ -39,8 +39,7 @@ struct RecordViewUi2Snapshot {
   bool operator==(const RecordViewUi2Snapshot &) const = default;
 
   [[nodiscard]] ui2::UiRecordViewData
-  ViewData(ui2::UiPowerState power =
-               ui2::UiPowerState::BatteryNormal) const {
+  ViewData(ui2::UiPowerState power = ui2::UiPowerState::BatteryNormal) const {
     ui2::UiRecordViewData data;
     data.source = source.data();
     data.elapsed = elapsed.data();

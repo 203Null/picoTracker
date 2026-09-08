@@ -173,7 +173,7 @@ public:
   }
 
   [[nodiscard]] Ui2TrackerCommandBatch<> Handle(TrackerAction action,
-                                                  bool pressed) {
+                                                bool pressed) {
     const std::uint8_t actionIndex = static_cast<std::uint8_t>(action);
     if (!TrackerActionIsValid(action))
       return {};
@@ -235,9 +235,9 @@ public:
                               state.songRowOffset, state.liveMode);
     chain_ = Ui2ChainController(state.chainNumber, state.track, state.chainRow,
                                 state.chainColumn);
-    phrase_ = Ui2PhraseController(state.phraseNumber, state.track,
-                                  state.phraseRow, state.phraseColumn,
-                                  state.phraseDigit);
+    phrase_ =
+        Ui2PhraseController(state.phraseNumber, state.track, state.phraseRow,
+                            state.phraseColumn, state.phraseDigit);
     phraseTable_ = Ui2TableController(
         Ui2TrackerPage::PhraseTable, state.phraseTableNumber, state.track,
         state.phraseTableRow, state.phraseTableColumn, state.phraseTableDigit);
@@ -338,15 +338,14 @@ private:
                                   chain_.Column());
       break;
     case Ui2TrackerPage::Phrase:
-      phrase_ = Ui2PhraseController(
-          phrase_.Number(), track, phrase_.Row(), phrase_.Column(),
-          phrase_.ParameterDigit());
+      phrase_ = Ui2PhraseController(phrase_.Number(), track, phrase_.Row(),
+                                    phrase_.Column(), phrase_.ParameterDigit());
       break;
     case Ui2TrackerPage::PhraseTable:
-      phraseTable_ = Ui2TableController(
-          Ui2TrackerPage::PhraseTable, phraseTable_.Number(), track,
-          phraseTable_.Row(), phraseTable_.Column(),
-          phraseTable_.ParameterDigit());
+      phraseTable_ =
+          Ui2TableController(Ui2TrackerPage::PhraseTable, phraseTable_.Number(),
+                             track, phraseTable_.Row(), phraseTable_.Column(),
+                             phraseTable_.ParameterDigit());
       break;
     case Ui2TrackerPage::InstrumentTable:
       instrumentTable_ = Ui2TableController(
@@ -370,8 +369,7 @@ private:
   Ui2TableController phraseTable_{Ui2TrackerPage::PhraseTable};
   Ui2TableController instrumentTable_{Ui2TrackerPage::InstrumentTable};
   bool navigationHeld_ = false;
-  std::array<Ui2TrackerPage,
-             static_cast<std::size_t>(TrackerAction::Count)>
+  std::array<Ui2TrackerPage, static_cast<std::size_t>(TrackerAction::Count)>
       pressOwners_{};
   Ui2TrackerPage activePage_ = Ui2TrackerPage::Song;
 };
@@ -418,9 +416,7 @@ public:
     return batch;
   }
 
-  bool SynchronizeFromPort() {
-    return hub_.Synchronize(port_.LoadGridState());
-  }
+  bool SynchronizeFromPort() { return hub_.Synchronize(port_.LoadGridState()); }
 
 private:
   IUi2TrackerModelPort &port_;

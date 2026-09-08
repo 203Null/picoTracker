@@ -39,7 +39,8 @@ class WasmBenchmark {
 public:
   using NowFunction = std::uint64_t (*)();
   static constexpr std::uint32_t MaximumIterations = 2048;
-  static WasmBenchmarkResult Run(WasmBenchmarkConfig config, NowFunction now = nullptr) noexcept;
+  static WasmBenchmarkResult Run(WasmBenchmarkConfig config,
+                                 NowFunction now = nullptr) noexcept;
 };
 
 #endif

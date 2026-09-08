@@ -139,9 +139,9 @@ bool OpalInstrument::Start(int channel, unsigned char note, bool retrigger) {
 
   // Level occupies the bottom six bits and each operator owns its own
   // keyscale in the top two bits.
-  const OpalOutputLevelRegisters outputLevels = EncodeOpalOutputLevels(
-      op1KeyScaleLevel_.GetInt(), op1Level_.GetInt(),
-      op2KeyScaleLevel_.GetInt(), op2Level_.GetInt());
+  const OpalOutputLevelRegisters outputLevels =
+      EncodeOpalOutputLevels(op1KeyScaleLevel_.GetInt(), op1Level_.GetInt(),
+                             op2KeyScaleLevel_.GetInt(), op2Level_.GetInt());
 
   uint16_t adsr1 = op1ADSR_.GetInt();
   uint16_t adsr2 = op2ADSR_.GetInt();

@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "WasmAudioState.h"
 #include "Services/Audio/Audio.h"
+#include "WasmAudioState.h"
 
-#include <atomic>
 #include <array>
+#include <atomic>
 #include <cstdint>
 
 class WasmAudioDriver;
@@ -91,14 +91,16 @@ private:
   static std::atomic<std::uint32_t> configuredAudio_;
   static_assert(std::atomic<std::uint32_t>::is_always_lock_free,
                 "Wasm audio state requires lock-free 32-bit atomics");
-  static constexpr std::size_t MetricsWords = sizeof(WasmAudioMetrics) / sizeof(std::uint32_t);
+  static constexpr std::size_t MetricsWords =
+      sizeof(WasmAudioMetrics) / sizeof(std::uint32_t);
   // Sequence followed by the fixed metrics payload. Writers publish odd,
   // write every payload word, then release an even sequence. Browser readers
   // retry unless both sequence reads match and are even.
   static constexpr std::size_t MetricsSnapshotWords = MetricsWords + 1U;
   static constexpr std::size_t ErrorBytes = 160U;
   static constexpr std::size_t ErrorWords = ErrorBytes / sizeof(std::uint32_t);
-  static std::array<std::atomic<std::uint32_t>, MetricsSnapshotWords> metricsSnapshot_;
+  static std::array<std::atomic<std::uint32_t>, MetricsSnapshotWords>
+      metricsSnapshot_;
   static std::array<std::atomic<std::uint32_t>, ErrorWords> errorSnapshot_;
   static thread_local std::array<char, ErrorBytes> errorCopy_;
 };

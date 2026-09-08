@@ -48,8 +48,9 @@ public:
   }
   [[nodiscard]] constexpr bool TrackFocus() const { return NumberFocus(); }
   [[nodiscard]] constexpr bool FxSelectorActive() const {
-    return (grid_.Column() % 2U == 0U) && !selection_.active && !NumberFocus() &&
-           input_.Held(TrackerAction::Enter) && !input_.Held(TrackerAction::Shift) &&
+    return (grid_.Column() % 2U == 0U) && !selection_.active &&
+           !NumberFocus() && input_.Held(TrackerAction::Enter) &&
+           !input_.Held(TrackerAction::Shift) &&
            !input_.Held(TrackerAction::Option);
   }
 

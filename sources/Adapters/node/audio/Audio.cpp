@@ -1,8 +1,8 @@
 
 #include "Audio.h"
+#include "AudioDriver.h"
 #include "Services/Audio/AudioOutDriver.h"
 #include "System/Console/Trace.h"
-#include "AudioDriver.h"
 #include <cstdint>
 
 NodeAudio::NodeAudio(AudioSettings &hints) : Audio(hints) {}

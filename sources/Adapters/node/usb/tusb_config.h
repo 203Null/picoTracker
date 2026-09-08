@@ -50,7 +50,7 @@ extern "C" {
 #endif
 
 #if TUP_MCU_ESPRESSIF
-#define CFG_TUSB_OS_INC_PATH  freertos/
+#define CFG_TUSB_OS_INC_PATH freertos /
 #endif
 
 // CFG_TUSB_DEBUG is defined by compiler in DEBUG build

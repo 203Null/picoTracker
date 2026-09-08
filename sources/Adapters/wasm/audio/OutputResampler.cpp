@@ -115,8 +115,9 @@ bool OutputResampler::DrainSegment(std::span<StereoF32> output,
   const std::uint64_t segmentEnd =
       (previousFrameIndex_ + 1U) * static_cast<std::uint64_t>(destinationRate_);
   while (produced < output.size() && phaseNumerator_ < segmentEnd) {
-    const float fraction = static_cast<float>(phaseNumerator_ % destinationRate_) /
-                           static_cast<float>(destinationRate_);
+    const float fraction =
+        static_cast<float>(phaseNumerator_ % destinationRate_) /
+        static_cast<float>(destinationRate_);
     output[produced++] = Interpolate(fraction);
     phaseNumerator_ += sourceRate_;
   }
@@ -139,7 +140,9 @@ bool OutputResampler::DrainSegment(std::span<StereoF32> output,
 }
 
 StereoF32 OutputResampler::Interpolate(float fraction) const noexcept {
-  const float left = previous_.left + (current_.left - previous_.left) * fraction;
-  const float right = previous_.right + (current_.right - previous_.right) * fraction;
+  const float left =
+      previous_.left + (current_.left - previous_.left) * fraction;
+  const float right =
+      previous_.right + (current_.right - previous_.right) * fraction;
   return {std::clamp(left, -1.0F, 1.0F), std::clamp(right, -1.0F, 1.0F)};
 }

@@ -26,7 +26,7 @@ struct ProjectParameterRestorePacket {
 };
 
 using ProjectParameterResolver = Variable *(*)(void *context,
-                                                const char *name);
+                                               const char *name);
 
 // Parses bounded legacy PicoTracker versions such as "2.3-Beta3" into
 // hundredths without floating conversion or exponent/overflow ambiguity.

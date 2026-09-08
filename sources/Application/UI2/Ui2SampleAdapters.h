@@ -57,15 +57,15 @@ MapSampleMarkerKind(Ui2WaveformMarkerKind kind) {
 }
 
 template <std::size_t Capacity>
-inline std::uint8_t CopySampleMarkers(
-    const Ui2WaveformMarkersSnapshot<Capacity> &source,
-    std::array<UiSampleWaveformMarker, Capacity> &destination) {
+inline std::uint8_t
+CopySampleMarkers(const Ui2WaveformMarkersSnapshot<Capacity> &source,
+                  std::array<UiSampleWaveformMarker, Capacity> &destination) {
   const std::uint8_t count = static_cast<std::uint8_t>(
       std::min<std::size_t>(source.count, destination.size()));
   for (std::uint8_t index = 0; index < count; ++index) {
     const Ui2WaveformMarkerSnapshot marker = source.markers[index];
-    destination[index] = {
-        marker.x, MapSampleMarkerKind(marker.kind), marker.selected};
+    destination[index] = {marker.x, MapSampleMarkerKind(marker.kind),
+                          marker.selected};
   }
   return count;
 }
@@ -89,8 +89,7 @@ inline bool EqualEditorCapture(const SampleEditorViewUi2Snapshot &left,
 inline bool EqualSlicesCapture(const SampleSlicesViewUi2Snapshot &left,
                                const SampleSlicesViewUi2Snapshot &right) {
   return left.slice == right.slice && left.start == right.start &&
-         left.zoom == right.zoom &&
-         left.waveform.size == right.waveform.size &&
+         left.zoom == right.zoom && left.waveform.size == right.waveform.size &&
          left.waveform.revision == right.waveform.revision &&
          left.markers.markers == right.markers.markers &&
          left.markers.count == right.markers.count &&
@@ -180,12 +179,12 @@ inline UiSampleEditorControllerState MakeUiSampleEditorControllerState(
     UiSampleControllerModifiers modifiers = {}) {
   UiSampleEditorControllerState state;
   state.capture = snapshot;
-  state.markerCount = detail::CopySampleMarkers(snapshot.markers, state.markers);
+  state.markerCount =
+      detail::CopySampleMarkers(snapshot.markers, state.markers);
   state.power = snapshot.playing ? UiPowerState::Playing : power;
-  state.enterDigitFocus =
-      modifiers.enterHeld &&
-      (snapshot.focus == SampleEditorViewUi2Focus::Start ||
-       snapshot.focus == SampleEditorViewUi2Focus::End);
+  state.enterDigitFocus = modifiers.enterHeld &&
+                          (snapshot.focus == SampleEditorViewUi2Focus::Start ||
+                           snapshot.focus == SampleEditorViewUi2Focus::End);
 
   std::string_view help;
   switch (snapshot.focus) {
@@ -201,9 +200,8 @@ inline UiSampleEditorControllerState MakeUiSampleEditorControllerState(
     break;
   case SampleEditorViewUi2Focus::Operation:
     state.cursor = UiSampleEditorCursor::Field3;
-    help = !snapshot.fileMutationAvailable
-               ? "LEFT/RIGHT BROWSE (NO APPLY)"
-               : "ENTER+UP/DOWN SELECT OP";
+    help = !snapshot.fileMutationAvailable ? "LEFT/RIGHT BROWSE (NO APPLY)"
+                                           : "ENTER+UP/DOWN SELECT OP";
     break;
   case SampleEditorViewUi2Focus::Apply:
     if (!snapshot.fileMutationAvailable) {
@@ -234,8 +232,7 @@ inline UiSampleEditorControllerState MakeUiSampleEditorControllerState(
   case SampleEditorViewUi2Focus::Discard:
     state.cursor = UiSampleEditorCursor::Discard;
     state.bottomActive =
-        !snapshot.fileMutationAvailable ? 0U
-                                        : (snapshot.projectPool ? 1U : 2U);
+        !snapshot.fileMutationAvailable ? 0U : (snapshot.projectPool ? 1U : 2U);
     help = "ENTER DISCARD";
     break;
   case SampleEditorViewUi2Focus::Waveform:
@@ -319,7 +316,8 @@ inline UiSampleSlicesControllerState MakeUiSampleSlicesControllerState(
     UiSampleControllerModifiers modifiers = {}) {
   UiSampleSlicesControllerState state;
   state.capture = snapshot;
-  state.markerCount = detail::CopySampleMarkers(snapshot.markers, state.markers);
+  state.markerCount =
+      detail::CopySampleMarkers(snapshot.markers, state.markers);
   state.power = snapshot.previewActive ? UiPowerState::Playing : power;
   const std::uint8_t count = std::min<std::uint8_t>(
       snapshot.autoSliceCount,
@@ -328,11 +326,10 @@ inline UiSampleSlicesControllerState MakeUiSampleSlicesControllerState(
                           static_cast<char>('0' + count % 10U), '\0'};
   const std::uint16_t selectedBit = static_cast<std::uint16_t>(
       1U << std::min<std::uint8_t>(snapshot.selectedSlice, 15U));
-  const bool selectedDefined =
-      (snapshot.definedMask & selectedBit) != 0U;
-  state.bottomActive = modifiers.shiftHeld && selectedDefined
-                           ? 2U
-                           : selectedDefined ? 1U : 0U;
+  const bool selectedDefined = (snapshot.definedMask & selectedBit) != 0U;
+  state.bottomActive = modifiers.shiftHeld && selectedDefined ? 2U
+                       : selectedDefined                      ? 1U
+                                                              : 0U;
 
   std::string_view help;
   switch (snapshot.focus) {
@@ -351,9 +348,8 @@ inline UiSampleSlicesControllerState MakeUiSampleSlicesControllerState(
     break;
   case SampleSlicesViewUi2Focus::AutoSlice:
     state.cursor = UiSampleSlicesCursor::AutoSlice;
-    help = snapshot.autoSliceApplyAvailable
-               ? "ENTER APPLY EVEN SLICES"
-               : "ENTER REPLACE EVEN SLICES";
+    help = snapshot.autoSliceApplyAvailable ? "ENTER APPLY EVEN SLICES"
+                                            : "ENTER REPLACE EVEN SLICES";
     break;
   case SampleSlicesViewUi2Focus::Unknown:
     state.cursor = UiSampleSlicesCursor::None;

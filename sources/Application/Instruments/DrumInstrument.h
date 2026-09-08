@@ -4,10 +4,10 @@
  * Adapted from copingTracker; see Externals/copingSynth/UPSTREAM.txt.
  */
 #pragma once
-#include "I_Instrument.h"
 #include "Application/Model/Song.h"
 #include "Externals/copingSynth/DrumInstrument/DrumEngine.h"
 #include "Externals/etl/include/etl/vector.h"
+#include "I_Instrument.h"
 #include <array>
 
 class DrumInstrument final : public I_Instrument {
@@ -27,6 +27,7 @@ public:
   void GetTableState(TableSaveState &) override {}
   void SetTableState(TableSaveState &) override {}
   etl::ivector<Variable *> *Variables() override { return &variables_; }
+
 private:
   etl::vector<Variable *, 13> variables_;
   std::array<Variable, 13> parameters_;

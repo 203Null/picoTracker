@@ -14,12 +14,12 @@ namespace {
 constexpr std::array<TrackerAction, 3U> kModifierOrder = {
     TrackerAction::Shift, TrackerAction::Option, TrackerAction::Enter};
 constexpr std::array<TrackerAction, 6U> kOrdinaryOrder = {
-    TrackerAction::Left,  TrackerAction::Down, TrackerAction::Right,
-    TrackerAction::Up,    TrackerAction::Play, TrackerAction::Power};
+    TrackerAction::Left, TrackerAction::Down, TrackerAction::Right,
+    TrackerAction::Up,   TrackerAction::Play, TrackerAction::Power};
 constexpr std::array<TrackerAction, 9U> kAllActionOrder = {
-    TrackerAction::Left,  TrackerAction::Down,   TrackerAction::Right,
-    TrackerAction::Up,    TrackerAction::Shift,  TrackerAction::Option,
-    TrackerAction::Enter,  TrackerAction::Play,   TrackerAction::Power};
+    TrackerAction::Left,  TrackerAction::Down,  TrackerAction::Right,
+    TrackerAction::Up,    TrackerAction::Shift, TrackerAction::Option,
+    TrackerAction::Enter, TrackerAction::Play,  TrackerAction::Power};
 constexpr std::array<TrackerAction, 4U> kDirectionOrder = {
     TrackerAction::Left, TrackerAction::Down, TrackerAction::Right,
     TrackerAction::Up};
@@ -32,18 +32,15 @@ bool InputMailbox::Batch::Push(TrackerAction action, bool pressed,
     return true;
   if (size >= events.size())
     return false;
-  events[size++] = {.action = action,
-                    .count = count,
-                    .pressed = pressed,
-                    .repeat = repeat};
+  events[size++] = {
+      .action = action, .count = count, .pressed = pressed, .repeat = repeat};
   return true;
 }
 
-void InputMailbox::SaturatingAdd(std::uint8_t &value,
-                                 std::uint32_t increment) {
+void InputMailbox::SaturatingAdd(std::uint8_t &value, std::uint32_t increment) {
   const std::uint32_t sum = static_cast<std::uint32_t>(value) + increment;
-  value = static_cast<std::uint8_t>(
-      std::min<std::uint32_t>(sum, kMaxRepeatDebt));
+  value =
+      static_cast<std::uint8_t>(std::min<std::uint32_t>(sum, kMaxRepeatDebt));
 }
 
 void InputMailbox::AcceptPresses(std::uint16_t mask, std::uint32_t nowMs) {
@@ -60,8 +57,7 @@ void InputMailbox::AcceptPresses(std::uint16_t mask, std::uint32_t nowMs) {
       continue;
     pendingModifierContext_[static_cast<std::size_t>(action)] =
         static_cast<std::uint8_t>(acceptedWithPresses & kModifierMask);
-    acceptedWithPresses =
-        static_cast<std::uint16_t>(acceptedWithPresses | bit);
+    acceptedWithPresses = static_cast<std::uint16_t>(acceptedWithPresses | bit);
   }
   for (const TrackerAction action : kOrdinaryOrder) {
     if ((mask & Bit(action)) == 0U)
@@ -122,8 +118,7 @@ void InputMailbox::AccumulateRepeats(std::uint32_t nowMs) {
 }
 
 void InputMailbox::PublishSample(std::uint16_t physicalHeldMask,
-                                 bool headphoneConnected,
-                                 std::uint32_t nowMs) {
+                                 bool headphoneConnected, std::uint32_t nowMs) {
   physicalHeldMask &= kSupportedMask;
   latestPhysicalHeldMask_ = physicalHeldMask;
   latestHeadphoneConnected_ = headphoneConnected;
@@ -141,12 +136,11 @@ void InputMailbox::PublishSample(std::uint16_t physicalHeldMask,
   // applying the transition-kill policy to presses. A release/repress pair can
   // therefore be reconstructed even if the UI task was busy transferring LCD
   // rows during both samples.
-  AcceptReleases(static_cast<std::uint16_t>(acceptedHeldMask_ &
-                                            ~physicalHeldMask),
-                 nowMs);
+  AcceptReleases(
+      static_cast<std::uint16_t>(acceptedHeldMask_ & ~physicalHeldMask), nowMs);
 
-  const std::uint16_t candidatePresses = static_cast<std::uint16_t>(
-      physicalHeldMask & ~acceptedHeldMask_);
+  const std::uint16_t candidatePresses =
+      static_cast<std::uint16_t>(physicalHeldMask & ~acceptedHeldMask_);
   const bool killElapsed =
       static_cast<std::uint32_t>(nowMs - lastAcceptedTransitionMs_) >=
       kPressKillMs;
@@ -169,9 +163,9 @@ InputMailbox::Batch InputMailbox::Drain() {
       !headphoneDelivered_ ||
       latestHeadphoneConnected_ != deliveredHeadphoneConnected_;
 
-  const std::uint16_t tappedMask = static_cast<std::uint16_t>(
-      pendingPressedMask_ & pendingReleasedMask_ & ~acceptedHeldMask_ &
-      kSupportedMask);
+  const std::uint16_t tappedMask =
+      static_cast<std::uint16_t>(pendingPressedMask_ & pendingReleasedMask_ &
+                                 ~acceptedHeldMask_ & kSupportedMask);
 
   // A common short chord (for example SHIFT+LEFT navigation) can be pressed
   // and released while the UI task is transferring LCD rows. When exactly one
@@ -195,9 +189,8 @@ InputMailbox::Batch InputMailbox::Drain() {
     completedChordModifiers = context;
   }
   const std::uint16_t completedActionBit =
-      completedChordAction < TrackerAction::Count
-          ? Bit(completedChordAction)
-          : 0U;
+      completedChordAction < TrackerAction::Count ? Bit(completedChordAction)
+                                                  : 0U;
   if (chordActionCount != 1U || completedChordModifiers == 0U ||
       (acceptedHeldMask_ & kModifierMask &
        ~(completedChordModifiers | completedActionBit)) != 0U) {
@@ -209,8 +202,7 @@ InputMailbox::Batch InputMailbox::Drain() {
   const std::uint16_t previouslyDeliveredMask = deliveredHeldMask_;
   const std::uint16_t releaseMask = static_cast<std::uint16_t>(
       deliveredHeldMask_ &
-      (pendingReleasedMask_ |
-       static_cast<std::uint16_t>(~acceptedHeldMask_)));
+      (pendingReleasedMask_ | static_cast<std::uint16_t>(~acceptedHeldMask_)));
   // A key that was already delivered can complete another physical cycle
   // before this drain. Its first release is a real application boundary:
   // ENTER release commits/stops audition and PLAY release transfers ownership.
@@ -218,9 +210,8 @@ InputMailbox::Batch InputMailbox::Drain() {
   // press supplied the context for the queued chord.
   const std::uint16_t recycledDeliveredMask = static_cast<std::uint16_t>(
       previouslyDeliveredMask & pendingReleasedMask_ & pendingPressedMask_);
-  const std::uint16_t deferredChordReleases =
-      static_cast<std::uint16_t>(releaseMask & completedChordModifiers &
-                                 ~recycledDeliveredMask);
+  const std::uint16_t deferredChordReleases = static_cast<std::uint16_t>(
+      releaseMask & completedChordModifiers & ~recycledDeliveredMask);
   const std::uint16_t immediateReleaseMask =
       static_cast<std::uint16_t>(releaseMask & ~deferredChordReleases);
   for (const TrackerAction action : kAllActionOrder) {
@@ -234,8 +225,7 @@ InputMailbox::Batch InputMailbox::Drain() {
   const auto pressStage = [&](const auto &order) {
     for (const TrackerAction action : order) {
       const std::uint16_t bit = Bit(action);
-      if (action == completedChordAction ||
-          (acceptedHeldMask_ & bit) == 0U ||
+      if (action == completedChordAction || (acceptedHeldMask_ & bit) == 0U ||
           (deliveredHeldMask_ & bit) != 0U)
         continue;
 

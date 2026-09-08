@@ -64,8 +64,8 @@ public:
   ValuePlan(Ui2ProjectCommand command) {
     switch (command.type) {
     case Ui2ProjectCommandType::AdjustTempo:
-      return {FourCC::VarTempo, MIN_TEMPO, MAX_TEMPO, command.value, false,
-              true};
+      return {FourCC::VarTempo, MIN_TEMPO, MAX_TEMPO,
+              command.value,    false,     true};
     case Ui2ProjectCommandType::AdjustTranspose:
       return {FourCC::VarTranspose, -48, 48, command.value, false, true};
     case Ui2ProjectCommandType::AdjustScale:

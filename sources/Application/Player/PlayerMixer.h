@@ -31,7 +31,7 @@ class PlayerMixer : public T_Singleton<PlayerMixer>,
                     public I_Observer {
 public:
   PlayerMixer();
-  virtual ~PlayerMixer() {};
+  virtual ~PlayerMixer(){};
 
   bool Start();
   void Stop();

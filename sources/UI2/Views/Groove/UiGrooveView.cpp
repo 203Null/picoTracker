@@ -72,8 +72,8 @@ RectI16 UiGrooveView::PlaybackTickRect(std::uint8_t row) {
   if (row >= 16U)
     return {};
   return {UiTrackerGridMetrics::kContentStartX - 3,
-          static_cast<std::int16_t>(UiTrackerGridMetrics::RowTextY(row) + 1),
-          2, 5};
+          static_cast<std::int16_t>(UiTrackerGridMetrics::RowTextY(row) + 1), 2,
+          5};
 }
 
 void UiGrooveView::RenderDelta(const UiGrooveViewData &previous,
@@ -115,8 +115,7 @@ void UiGrooveView::RenderDelta(const UiGrooveViewData &previous,
       render(RowDamageRect(row));
   }
   if (previous.selectionActive != current.selectionActive ||
-      previous.selectionNextExpansionAll !=
-          current.selectionNextExpansionAll ||
+      previous.selectionNextExpansionAll != current.selectionNextExpansionAll ||
       previous.clipboardReady != current.clipboardReady ||
       previous.clipboardPasted != current.clipboardPasted ||
       previous.interpolationCompleted != current.interpolationCompleted ||
@@ -155,8 +154,7 @@ UiBuildStatus UiGrooveView::Build(const UiGrooveViewData &data, UiPalette &,
   });
   if (data.interpolationCompleted) {
     chrome.bottom = UiBarResolver::ClipboardNotice(
-        1U, data.clipboardHeight,
-        UiClipboardBarModel::Notice::Interpolated);
+        1U, data.clipboardHeight, UiClipboardBarModel::Notice::Interpolated);
   }
   const UiBuildStatus topStatus =
       UiChromeRenderer::BuildTop(chrome.top, scene.top);
@@ -170,7 +168,8 @@ UiBuildStatus UiGrooveView::Build(const UiGrooveViewData &data, UiPalette &,
 
   UiSceneBuilder<256, 1024> builder(scene.content);
   builder.GridText("STEP", UiTrackerGridMetrics::kContentStartX,
-                   UiTrackerGridMetrics::kHeaderTextY, UiColorToken::TextColored);
+                   UiTrackerGridMetrics::kHeaderTextY,
+                   UiColorToken::TextColored);
   const RectI16 cursor = ResolvedCursorRect(data);
   if (!data.selectionVisualRect.Empty())
     builder.SelectionHighlight(data.selectionVisualRect);
@@ -178,13 +177,13 @@ UiBuildStatus UiGrooveView::Build(const UiGrooveViewData &data, UiPalette &,
     const std::int16_t y = UiTrackerGridMetrics::RowTextY(row);
     const auto rowText = HexByte(row);
     builder.GridText(rowText.data(), UiTrackerGridMetrics::kRowLabelX, y,
-                 row == data.editRow ? UiColorToken::TextColored
-                                     : UiColorToken::DerivedTextFaint);
+                     row == data.editRow ? UiColorToken::TextColored
+                                         : UiColorToken::DerivedTextFaint);
     const auto value = HexByte(data.steps[row]);
     const char *display = data.steps[row] == 0xFFU ? "--" : value.data();
     builder.GridText(display, UiTrackerGridMetrics::kContentStartX, y,
-                 data.steps[row] == 0xFFU ? UiColorToken::DerivedTextFaint
-                                          : UiColorToken::TextNormal);
+                     data.steps[row] == 0xFFU ? UiColorToken::DerivedTextFaint
+                                              : UiColorToken::TextNormal);
   }
   if (data.playbackRow >= 0 && data.playbackRow < 16)
     builder.Fill(PlaybackTickRect(static_cast<std::uint8_t>(data.playbackRow)),
@@ -196,10 +195,9 @@ UiBuildStatus UiGrooveView::Build(const UiGrooveViewData &data, UiPalette &,
                  PlaybackTickRect(static_cast<std::uint8_t>(data.playbackRow)))
            .Empty();
   const UiSelectionStyle cursorStyle =
-      !cursorOverPlayback
-          ? UiSelectionStyle::Cursor
-          : data.selectedTrackMuted ? UiSelectionStyle::MutedPlayback
-                                    : UiSelectionStyle::Playback;
+      !cursorOverPlayback       ? UiSelectionStyle::Cursor
+      : data.selectedTrackMuted ? UiSelectionStyle::MutedPlayback
+                                : UiSelectionStyle::Playback;
   builder.Selection(cursor, cursorStyle);
   if (data.cursorInkVisible && data.editRow < 16U) {
     const auto value = HexByte(data.steps[data.editRow]);
@@ -207,7 +205,7 @@ UiBuildStatus UiGrooveView::Build(const UiGrooveViewData &data, UiPalette &,
         data.steps[data.editRow] == 0xFFU ? "--" : value.data();
     builder.GridText(display, UiTrackerGridMetrics::kContentStartX,
                      UiTrackerGridMetrics::RowTextY(data.editRow),
-                 UiColorToken::TextHighlighted);
+                     UiColorToken::TextHighlighted);
   }
   return builder.Ok() ? UiBuildStatus::Built : UiBuildStatus::CommandOverflow;
 }

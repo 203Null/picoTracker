@@ -92,8 +92,8 @@ bool IsContainedWithoutSymlinks(const std::string &mountPoint,
   }
 
   struct stat state {};
-  if (NoFollowStat(mountPoint.c_str(), &state) != 0 ||
-      S_ISLNK(state.st_mode) || !S_ISDIR(state.st_mode)) {
+  if (NoFollowStat(mountPoint.c_str(), &state) != 0 || S_ISLNK(state.st_mode) ||
+      !S_ISDIR(state.st_mode)) {
     return false;
   }
 

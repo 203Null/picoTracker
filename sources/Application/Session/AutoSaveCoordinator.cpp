@@ -100,4 +100,3 @@ void AutoSaveCoordinator::AdvanceCadence(std::uint32_t nowMs) noexcept {
   cadenceStartedMs_ = nowMs;
   cadenceArmed_ = true;
 }
-

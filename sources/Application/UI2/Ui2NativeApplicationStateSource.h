@@ -6,14 +6,14 @@
 
 #pragma once
 
+#include "Application/UI2/Controllers/Ui2ClipboardNoticeController.h"
 #include "Application/UI2/Controllers/Ui2DeviceController.h"
 #include "Application/UI2/Controllers/Ui2DeviceLifecycleController.h"
-#include "Application/UI2/Controllers/Ui2ClipboardNoticeController.h"
 #include "Application/UI2/Controllers/Ui2FeedbackController.h"
 #include "Application/UI2/Controllers/Ui2FontController.h"
 #include "Application/UI2/Controllers/Ui2GrooveController.h"
-#include "Application/UI2/Controllers/Ui2InstrumentController.h"
 #include "Application/UI2/Controllers/Ui2InstrumentBrowserController.h"
+#include "Application/UI2/Controllers/Ui2InstrumentController.h"
 #include "Application/UI2/Controllers/Ui2InstrumentLifecycleController.h"
 #include "Application/UI2/Controllers/Ui2MixerController.h"
 #include "Application/UI2/Controllers/Ui2ProjectBrowserController.h"
@@ -51,18 +51,15 @@ public:
       Ui2FeedbackController &feedback,
       Ui2ProjectLifecycleController &projectLifecycle,
       Ui2ProjectRenderController &projectRender, Ui2GrooveController &groove,
-      Ui2GrooveClipboard &grooveClipboard,
-      Ui2DeviceController &device,
-      Ui2DeviceLifecycleController &deviceLifecycle,
-      Ui2ThemeController &theme, Ui2FontController &font,
-      Ui2RenameController &rename, Ui2MixerController &mixer,
-      Ui2InstrumentController &instrument,
+      Ui2GrooveClipboard &grooveClipboard, Ui2DeviceController &device,
+      Ui2DeviceLifecycleController &deviceLifecycle, Ui2ThemeController &theme,
+      Ui2FontController &font, Ui2RenameController &rename,
+      Ui2MixerController &mixer, Ui2InstrumentController &instrument,
       Ui2InstrumentLifecycleController &instrumentLifecycle,
       Ui2InstrumentBrowserController &instrumentBrowser,
       Ui2SampleBrowserController &sampleBrowser,
       Ui2SampleEditorController &sampleEditor,
-      Ui2SampleSlicesController &sampleSlices,
-      Ui2RecordController &record,
+      Ui2SampleSlicesController &sampleSlices, Ui2RecordController &record,
       FirmwareLifecycleService &firmwareLifecycle,
       const Ui2PersistenceStatus &persistenceStatus)
       : session_(session), tracker_(tracker), project_(project),
@@ -70,9 +67,9 @@ public:
         clipboardNotice_(clipboardNotice), feedback_(feedback),
         projectLifecycle_(projectLifecycle), projectRender_(projectRender),
         groove_(groove), grooveClipboard_(grooveClipboard), device_(device),
-        deviceLifecycle_(deviceLifecycle),
-        theme_(theme), font_(font), rename_(rename), mixer_(mixer),
-        instrument_(instrument), instrumentLifecycle_(instrumentLifecycle),
+        deviceLifecycle_(deviceLifecycle), theme_(theme), font_(font),
+        rename_(rename), mixer_(mixer), instrument_(instrument),
+        instrumentLifecycle_(instrumentLifecycle),
         instrumentBrowser_(instrumentBrowser), sampleBrowser_(sampleBrowser),
         sampleEditor_(sampleEditor), sampleSlices_(sampleSlices),
         record_(record), firmwareLifecycle_(firmwareLifecycle),
@@ -97,8 +94,8 @@ public:
     return projectRender_.Active() || projectLifecycle_.Active() ||
            sampleBrowser_.DialogActive() || deviceLifecycle_.Active() ||
            instrumentLifecycle_.Active() || sampleEditor_.DialogActive() ||
-           sampleSlices_.DialogActive() ||
-           rename_.Active() || feedback_.Active();
+           sampleSlices_.DialogActive() || rename_.Active() ||
+           feedback_.Active();
   }
   [[nodiscard]] Ui2DialogSnapshot DialogSnapshot() const override {
     if (projectRender_.Active())
@@ -173,8 +170,7 @@ public:
   CaptureRecord(UiRecordFrameState &state) override;
 
 private:
-  void CaptureClipboardNotice(bool &active, bool &pasted,
-                              std::uint8_t &width,
+  void CaptureClipboardNotice(bool &active, bool &pasted, std::uint8_t &width,
                               std::uint8_t &height) const;
 
   TrackerApplicationSession &session_;

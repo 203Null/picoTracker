@@ -19,16 +19,13 @@ void board_init();
 
 void platform_init();
 
-esp_err_t audio_codec_write(void* buffer, size_t len, size_t* bytes_written,
+esp_err_t audio_codec_write(void *buffer, size_t len, size_t *bytes_written,
                             uint32_t timeout_ms);
 esp_err_t audio_codec_set_volume(int volume);
 int audio_codec_get_volume(void);
 esp_err_t audio_codec_set_mute(bool enable);
 
-typedef enum {
-    headphone_out,
-    line_in
-} audio_mode;
+typedef enum { headphone_out, line_in } audio_mode;
 
 void switch_audio_mode(audio_mode mode);
 
@@ -43,7 +40,7 @@ uint32_t micros(void);
 
 #ifdef __cplusplus
 }
-SysMutex* platform_mutex();
+SysMutex *platform_mutex();
 #endif
 
 #endif

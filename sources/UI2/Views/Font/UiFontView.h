@@ -39,8 +39,8 @@ struct UiFontViewState {
   static constexpr std::size_t FontCapacity = 41;
   static constexpr std::size_t FeedbackCapacity = 32;
 
-  std::array<char, FontCapacity> font{
-      'R', 'E', 'G', 'U', 'L', 'A', 'R', ' ', '5', 'X', '7', '\0'};
+  std::array<char, FontCapacity> font{'R', 'E', 'G', 'U', 'L', 'A',
+                                      'R', ' ', '5', 'X', '7', '\0'};
   std::array<char, 5> textCase{'C', 'a', 's', 'e', '\0'};
   std::array<char, FeedbackCapacity> feedback{};
   UiFontCursor cursor = UiFontCursor::TextCase;

@@ -102,11 +102,10 @@ inline MidiWireMessage EncodeMidiWireMessage(const MidiMessage &message) {
 
   if (message.status_ < 0xF0) {
     const unsigned char type = message.status_ & 0xF0;
-    encoded.length =
-        (type == MidiMessage::MIDI_PROGRAM_CHANGE ||
-         type == MidiMessage::MIDI_CHANNEL_PRESSURE)
-            ? 2
-            : 3;
+    encoded.length = (type == MidiMessage::MIDI_PROGRAM_CHANGE ||
+                      type == MidiMessage::MIDI_CHANNEL_PRESSURE)
+                         ? 2
+                         : 3;
   } else if (message.status_ == MidiMessage::MIDI_TIME_CODE_QUARTER_FRAME ||
              message.status_ == MidiMessage::MIDI_SONG_SELECT) {
     encoded.length = 2;

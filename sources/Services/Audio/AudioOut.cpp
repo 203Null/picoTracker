@@ -10,9 +10,9 @@
 #include "AudioOut.h"
 #include <cmath>
 
-AudioOut::AudioOut() : AudioMixer("AudioOut"), sampleOffset_(0) {};
+AudioOut::AudioOut() : AudioMixer("AudioOut"), sampleOffset_(0){};
 
-AudioOut::~AudioOut() {};
+AudioOut::~AudioOut(){};
 
 int AudioOut::getPlaySampleCount() {
   const float frames = frameClock_ ? frameClock_() : 0.0F;

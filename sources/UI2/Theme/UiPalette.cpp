@@ -41,7 +41,8 @@ UiPalette::UiPalette() {
 void UiPalette::Set(PaletteIndex index, Rgb888 color) {
   InvalidateVuGradient();
   SetRaw(index, color);
-  if (index < kUserColorCount) RebuildDerivedColors();
+  if (index < kUserColorCount)
+    RebuildDerivedColors();
 }
 
 void UiPalette::SetUserColors(
@@ -61,9 +62,9 @@ Rgb888 UiPalette::Composite(Rgb888 source, std::uint8_t alpha,
                             Rgb888 destination) {
   const auto channel = [alpha](std::uint8_t sourceValue,
                                std::uint8_t destinationValue) {
-    const std::uint32_t value = static_cast<std::uint32_t>(sourceValue) * alpha +
-                                static_cast<std::uint32_t>(destinationValue) *
-                                    (255U - alpha);
+    const std::uint32_t value =
+        static_cast<std::uint32_t>(sourceValue) * alpha +
+        static_cast<std::uint32_t>(destinationValue) * (255U - alpha);
     return static_cast<std::uint8_t>((value + 127U) / 255U);
   };
   return {channel(source.red, destination.red),
@@ -90,12 +91,10 @@ void UiPalette::RebuildDerivedColors() {
          Composite(Get(Index(UiColorToken::TextDim)), 153,
                    Get(Index(UiColorToken::SurfaceBackground))));
   SetRaw(Index(UiColorToken::DerivedVuTrack),
-         Composite(Get(Index(UiColorToken::VuSafe)),
-                   UiVuElement::kTrackAlpha,
+         Composite(Get(Index(UiColorToken::VuSafe)), UiVuElement::kTrackAlpha,
                    Get(Index(UiColorToken::SurfaceBackground))));
   SetRaw(Index(UiColorToken::DerivedVuSafeLow),
-         Composite(Get(Index(UiColorToken::VuSafe)),
-                   UiVuElement::kSafeLowAlpha,
+         Composite(Get(Index(UiColorToken::VuSafe)), UiVuElement::kSafeLowAlpha,
                    Get(Index(UiColorToken::SurfaceBackground))));
   SetRaw(Index(UiColorToken::DerivedCursorRowCorner),
          Composite(Get(Index(UiColorToken::CursorRow)),
@@ -112,9 +111,8 @@ void UiPalette::RebuildDerivedColors() {
 
   // The cursor corner coverage belongs to the cursor element. It is generated
   // once after a theme edit and cached as indexed colors for the ESP32 path.
-  const std::array<Rgb888, 2> sources{
-      Get(Index(UiColorToken::CursorPrimary)),
-      Get(Index(UiColorToken::PlaybackActive))};
+  const std::array<Rgb888, 2> sources{Get(Index(UiColorToken::CursorPrimary)),
+                                      Get(Index(UiColorToken::PlaybackActive))};
   for (std::size_t coverage = 0; coverage < coverage_.size(); ++coverage) {
     for (std::size_t destination = 0; destination < kThemeColorCount;
          ++destination) {
@@ -143,9 +141,8 @@ PaletteIndex UiPalette::CoverageIndex(UiCoverage coverage,
   if (destination < kThemeColorCount) {
     return coverage_[static_cast<std::size_t>(coverage)][destination];
   }
-  return coverage == UiCoverage::Cursor
-             ? Index(UiColorToken::CursorPrimary)
-             : Index(UiColorToken::PlaybackActive);
+  return coverage == UiCoverage::Cursor ? Index(UiColorToken::CursorPrimary)
+                                        : Index(UiColorToken::PlaybackActive);
 }
 
 PaletteIndex UiPalette::AntialiasIndex(UiCoverage coverage,
@@ -153,13 +150,12 @@ PaletteIndex UiPalette::AntialiasIndex(UiCoverage coverage,
   if (quarterCoverage == 0)
     return Index(UiColorToken::DerivedVuTrack);
   if (quarterCoverage >= 4) {
-    return coverage == UiCoverage::Cursor
-               ? Index(UiColorToken::CursorPrimary)
-               : Index(UiColorToken::PlaybackActive);
+    return coverage == UiCoverage::Cursor ? Index(UiColorToken::CursorPrimary)
+                                          : Index(UiColorToken::PlaybackActive);
   }
-  return static_cast<PaletteIndex>(
-      kElementAntialiasStart +
-      static_cast<std::size_t>(coverage) * 3U + quarterCoverage - 1U);
+  return static_cast<PaletteIndex>(kElementAntialiasStart +
+                                   static_cast<std::size_t>(coverage) * 3U +
+                                   quarterCoverage - 1U);
 }
 
 Rgb888 UiPalette::Get(PaletteIndex index) const { return colors_[index]; }

@@ -15,13 +15,13 @@
 #include "Application/Player/SyncMaster.h"
 #include "Foundation/Variables/WatchedVariable.h"
 #include "Groove.h"
+#include "ProductVersion.h"
 #include "ProjectParameterRestore.h"
 #include "Scale.h"
 #include "Services/Midi/MidiService.h"
 #include "System/Console/Trace.h"
 #include "System/io/Status.h"
 #include "Table.h"
-#include "ProductVersion.h"
 
 #define DEFAULT_CHANNEL_VOLUME 99
 #define DEFAULT_PREVIEW_VOLUME 60

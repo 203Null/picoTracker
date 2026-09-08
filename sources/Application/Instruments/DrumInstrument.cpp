@@ -6,32 +6,37 @@
 #include <algorithm>
 
 DrumInstrument::DrumInstrument()
-    : I_Instrument(&variables_), parameters_{Variable(FourCC::DrumVoice0, defaultInstrument0),
-      Variable(FourCC::DrumVoice1, defaultInstrument1),
-      Variable(FourCC::DrumVoice2, defaultInstrument2),
-      Variable(FourCC::DrumVoice3, defaultInstrument3),
-      Variable(FourCC::DrumVoice4, defaultInstrument4),
-      Variable(FourCC::DrumVoice5, defaultInstrument5),
-      Variable(FourCC::DrumVoice6, defaultInstrument6),
-      Variable(FourCC::DrumVoice7, defaultInstrument7),
-      Variable(FourCC::DrumVoice8, defaultInstrument8),
-      Variable(FourCC::DrumVoice9, defaultInstrument9),
-      Variable(FourCC::DrumVoice10, defaultInstrument10),
-      Variable(FourCC::DrumVoice11, defaultInstrument11),
-      Variable(FourCC::DrumCharacter, 0)} {
-  for (auto &parameter : parameters_) variables_.push_back(&parameter);
+    : I_Instrument(&variables_),
+      parameters_{Variable(FourCC::DrumVoice0, defaultInstrument0),
+                  Variable(FourCC::DrumVoice1, defaultInstrument1),
+                  Variable(FourCC::DrumVoice2, defaultInstrument2),
+                  Variable(FourCC::DrumVoice3, defaultInstrument3),
+                  Variable(FourCC::DrumVoice4, defaultInstrument4),
+                  Variable(FourCC::DrumVoice5, defaultInstrument5),
+                  Variable(FourCC::DrumVoice6, defaultInstrument6),
+                  Variable(FourCC::DrumVoice7, defaultInstrument7),
+                  Variable(FourCC::DrumVoice8, defaultInstrument8),
+                  Variable(FourCC::DrumVoice9, defaultInstrument9),
+                  Variable(FourCC::DrumVoice10, defaultInstrument10),
+                  Variable(FourCC::DrumVoice11, defaultInstrument11),
+                  Variable(FourCC::DrumCharacter, 0)} {
+  for (auto &parameter : parameters_)
+    variables_.push_back(&parameter);
 }
 
 void DrumInstrument::OnStart() {
-  for (auto &voice : voices_) voice.stop();
+  for (auto &voice : voices_)
+    voice.stop();
 }
 
 void DrumInstrument::Stop(int channel) {
-  if (channel >= 0 && channel < SONG_CHANNEL_COUNT) voices_[channel].stop();
+  if (channel >= 0 && channel < SONG_CHANNEL_COUNT)
+    voices_[channel].stop();
 }
 
 bool DrumInstrument::Start(int channel, unsigned char note, bool retrigger) {
-  if (channel < 0 || channel >= SONG_CHANNEL_COUNT || note > HIGHEST_NOTE) return false;
+  if (channel < 0 || channel >= SONG_CHANNEL_COUNT || note > HIGHEST_NOTE)
+    return false;
   const unsigned packed = parameters_[note % 12].GetInt();
   drum_parameters_t params{};
   params.wave = packed & 0xF;
@@ -44,15 +49,19 @@ bool DrumInstrument::Start(int channel, unsigned char note, bool retrigger) {
 }
 
 bool DrumInstrument::Render(int channel, fixed *buffer, int size, bool) {
-  if (!buffer || size <= 0 || channel < 0 || channel >= SONG_CHANNEL_COUNT) return false;
+  if (!buffer || size <= 0 || channel < 0 || channel >= SONG_CHANNEL_COUNT)
+    return false;
   auto &voice = voices_[channel];
-  if (voice.wave == drumWaveNone) return false;
-  for (int i = 0; i < size; ++i) voice.sample(buffer + i * 2, buffer + i * 2 + 1);
+  if (voice.wave == drumWaveNone)
+    return false;
+  for (int i = 0; i < size; ++i)
+    voice.sample(buffer + i * 2, buffer + i * 2 + 1);
   return true;
 }
 
 void DrumInstrument::ProcessCommand(int channel, FourCC command, ushort value) {
-  if (channel < 0 || channel >= SONG_CHANNEL_COUNT) return;
+  if (channel < 0 || channel >= SONG_CHANNEL_COUNT)
+    return;
   auto &voice = voices_[channel];
   switch (command) {
   case FourCC::InstrumentCommandKill:

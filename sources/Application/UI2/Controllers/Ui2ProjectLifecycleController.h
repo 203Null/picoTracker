@@ -74,10 +74,9 @@ public:
     return {};
   }
 
-  Ui2ProjectLifecycleCommand RequestLoad(const char *project, bool dirty,
-                                         bool playerRunning,
-                                         TrackerAction trigger =
-                                             TrackerAction::Count) {
+  Ui2ProjectLifecycleCommand
+  RequestLoad(const char *project, bool dirty, bool playerRunning,
+              TrackerAction trigger = TrackerAction::Count) {
     if (playerRunning) {
       ShowInfo("Not while running!", nullptr, false, trigger);
       return {};
@@ -91,11 +90,10 @@ public:
     return {};
   }
 
-  Ui2ProjectLifecycleCommand RequestDelete(const char *project,
-                                           const char *currentProject,
-                                           bool playerRunning,
-                                           TrackerAction trigger =
-                                               TrackerAction::Count) {
+  Ui2ProjectLifecycleCommand
+  RequestDelete(const char *project, const char *currentProject,
+                bool playerRunning,
+                TrackerAction trigger = TrackerAction::Count) {
     if (playerRunning) {
       ShowInfo("Not while running!", nullptr, false, trigger);
       return {};
@@ -112,33 +110,33 @@ public:
     return {};
   }
 
-  void RequestOverwrite(
-      const char *project, TrackerAction trigger = TrackerAction::Count) {
+  void RequestOverwrite(const char *project,
+                        TrackerAction trigger = TrackerAction::Count) {
     if (!CopyProject(project))
       return;
     Show(Purpose::ConfirmOverwrite, "Overwrite EXISTING project?", {},
          UiDialogAction::Ok, UiDialogAction::Cancel, 2U, false, trigger);
   }
 
-  void RequestThemeOverwrite(
-      const char *theme, TrackerAction trigger = TrackerAction::Count) {
+  void RequestThemeOverwrite(const char *theme,
+                             TrackerAction trigger = TrackerAction::Count) {
     if (!CopyProject(theme))
       return;
-    Show(Purpose::ConfirmThemeOverwrite, "Theme already exists",
-         "Overwrite?", UiDialogAction::Yes, UiDialogAction::No, 2U, false,
-         trigger);
+    Show(Purpose::ConfirmThemeOverwrite, "Theme already exists", "Overwrite?",
+         UiDialogAction::Yes, UiDialogAction::No, 2U, false, trigger);
   }
 
-  void RequestPurgeUnusedSamples(
-      bool audioActive, TrackerAction trigger = TrackerAction::Count) {
+  void RequestPurgeUnusedSamples(bool audioActive,
+                                 TrackerAction trigger = TrackerAction::Count) {
     RequestPurge(Purpose::ConfirmPurgeSamples, "Remove unused samples?",
                  audioActive, trigger);
   }
 
-  void RequestPurgeUnusedInstruments(
-      bool audioActive, TrackerAction trigger = TrackerAction::Count) {
-    RequestPurge(Purpose::ConfirmPurgeInstruments,
-                 "Remove unused instruments?", audioActive, trigger);
+  void
+  RequestPurgeUnusedInstruments(bool audioActive,
+                                TrackerAction trigger = TrackerAction::Count) {
+    RequestPurge(Purpose::ConfirmPurgeInstruments, "Remove unused instruments?",
+                 audioActive, trigger);
   }
 
   void WarnPendingRename() { ShowInfo("Save project rename first"); }
@@ -213,8 +211,7 @@ public:
     case Purpose::ConfirmPurgeSamples:
       return {.type = Ui2ProjectLifecycleCommandType::PurgeUnusedSamples};
     case Purpose::ConfirmPurgeInstruments:
-      return {.type =
-                  Ui2ProjectLifecycleCommandType::PurgeUnusedInstruments};
+      return {.type = Ui2ProjectLifecycleCommandType::PurgeUnusedInstruments};
     case Purpose::None:
     case Purpose::Info:
       return {};
@@ -262,8 +259,8 @@ private:
     return project_[0] != '\0';
   }
 
-  void RequestPurge(Purpose purpose, const char *prompt,
-                    bool audioActive, TrackerAction trigger) {
+  void RequestPurge(Purpose purpose, const char *prompt, bool audioActive,
+                    TrackerAction trigger) {
     // Legacy exposed these actions while playback was active, even though
     // they can release live instruments or delete sample files. UI2 keeps the
     // established prompt when idle and reuses its existing running guard so

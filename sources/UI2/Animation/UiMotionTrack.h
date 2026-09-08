@@ -32,15 +32,18 @@ public:
   }
 
   [[nodiscard]] std::int32_t Sample(std::uint32_t nowMs) const {
-    if (!active_) return from_;
+    if (!active_)
+      return from_;
     const std::uint32_t elapsed = nowMs - startMs_;
-    if (elapsed == 0U) return from_;
-    if (elapsed >= durationMs_) return to_;
+    if (elapsed == 0U)
+      return from_;
+    if (elapsed >= durationMs_)
+      return to_;
     const UnitQ16 time = static_cast<UnitQ16>(
         (static_cast<std::uint64_t>(elapsed) * 65'535U) / durationMs_);
     const std::int64_t delta = static_cast<std::int64_t>(to_) - from_;
-    return static_cast<std::int32_t>(
-        from_ + ((delta * EaseOutCubic(time)) >> 16U));
+    return static_cast<std::int32_t>(from_ +
+                                     ((delta * EaseOutCubic(time)) >> 16U));
   }
 
   [[nodiscard]] bool Active(std::uint32_t nowMs) const {

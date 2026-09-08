@@ -44,16 +44,18 @@ bool NodeSamplePool::ensureDedicatedPsramStore() {
     return false;
   }
 
-  const size_t largestBlock = heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM);
-  const size_t reserveBytes =
-      largestBlock >= kDedicatedSampleStoreSize ? kDedicatedSampleStoreSize
-                                                : largestBlock;
+  const size_t largestBlock =
+      heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM);
+  const size_t reserveBytes = largestBlock >= kDedicatedSampleStoreSize
+                                  ? kDedicatedSampleStoreSize
+                                  : largestBlock;
   if (reserveBytes == 0) {
     Trace::Error("SAMPLEPOOL", "No free PSRAM block available for sample pool");
     return false;
   }
 
-  void *ptr = heap_caps_malloc(reserveBytes, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  void *ptr =
+      heap_caps_malloc(reserveBytes, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (ptr == nullptr) {
     Trace::Error("SAMPLEPOOL",
                  "Failed reserving %u bytes of PSRAM for sample pool",
@@ -127,8 +129,7 @@ std::optional<void *> NodeSamplePool::allocSampleBuffer(size_t bytes) {
 
   // PSRAM-less boards retain a tightly bounded compatibility path.
   if (canUseInternalSampleStorage(bytes)) {
-    void *ptr =
-        heap_caps_malloc(bytes, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    void *ptr = heap_caps_malloc(bytes, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
     if (ptr != nullptr) {
       return ptr;
     }
@@ -158,8 +159,7 @@ bool NodeSamplePool::CheckSampleFits(int sampleSize) {
   if (has_psram()) {
     if (ensureDedicatedPsramStore()) {
       uint32_t alignedOffset = (writeOffset_ + 3U) & ~3U;
-      return (alignedOffset + static_cast<uint32_t>(sampleSize)) <=
-             storeLimit_;
+      return (alignedOffset + static_cast<uint32_t>(sampleSize)) <= storeLimit_;
     }
 
     // A failed arena reservation may still leave a smaller external block,
@@ -339,7 +339,8 @@ bool NodeSamplePool::unloadSample(uint32_t index) {
     uint32_t bytesToMove = 0;
     if (moveSrc != nullptr) {
       shift = static_cast<uint32_t>(moveSrc - moveDst);
-      bytesToMove = writeOffset_ - static_cast<uint32_t>(moveSrc - sampleStore_);
+      bytesToMove =
+          writeOffset_ - static_cast<uint32_t>(moveSrc - sampleStore_);
     } else {
       shift = writeOffset_ - moveDstOffset;
     }
@@ -356,7 +357,8 @@ bool NodeSamplePool::unloadSample(uint32_t index) {
           continue;
         }
         auto *buf = static_cast<uint8_t *>(wav_[j].GetSampleBuffer(0));
-        if (buf != nullptr && buf >= moveSrc && buf < sampleStore_ + storeLimit_) {
+        if (buf != nullptr && buf >= moveSrc &&
+            buf < sampleStore_ + storeLimit_) {
           wav_[j].SetSampleBuffer(reinterpret_cast<int16_t *>(buf - shift));
         }
       }

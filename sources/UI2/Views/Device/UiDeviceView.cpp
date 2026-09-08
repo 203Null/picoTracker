@@ -72,10 +72,8 @@ DeviceLayout LayoutFor(const UiDeviceViewData &data) {
   layout.contentBottom = static_cast<std::int16_t>(layout.version + 9);
   if (data.showUpdateFirmware) {
     layout.maintenance = static_cast<std::int16_t>(layout.version + 22);
-    layout.updateFirmware =
-        static_cast<std::int16_t>(layout.maintenance + 12);
-    layout.contentBottom =
-        static_cast<std::int16_t>(layout.updateFirmware + 9);
+    layout.updateFirmware = static_cast<std::int16_t>(layout.maintenance + 12);
+    layout.contentBottom = static_cast<std::int16_t>(layout.updateFirmware + 9);
   }
   return layout;
 }
@@ -127,53 +125,45 @@ void DrawSection(UiSceneBuilder<256, 1024> &builder, std::string_view label,
 }
 
 void DrawSelectedInk(UiSceneBuilder<256, 1024> &builder,
-                     const UiDeviceViewData &data,
-                     const DeviceLayout &layout) {
+                     const UiDeviceViewData &data, const DeviceLayout &layout) {
   switch (data.cursor) {
   case UiDeviceCursor::MidiDevice:
     DrawField(builder, "MIDI DEVICE", data.midiDevice, layout.midiDevice,
-              UiColorToken::TextHighlighted,
-              UiColorToken::TextHighlighted);
+              UiColorToken::TextHighlighted, UiColorToken::TextHighlighted);
     break;
   case UiDeviceCursor::MidiSync:
     DrawField(builder, "MIDI SYNC", data.midiSync, layout.midiSync,
-              UiColorToken::TextHighlighted,
-              UiColorToken::TextHighlighted);
+              UiColorToken::TextHighlighted, UiColorToken::TextHighlighted);
     break;
   case UiDeviceCursor::LineOut:
     DrawField(builder, "LINE OUT", data.lineOut, layout.lineOut,
-              UiColorToken::TextHighlighted,
-              UiColorToken::TextHighlighted);
+              UiColorToken::TextHighlighted, UiColorToken::TextHighlighted);
     break;
   case UiDeviceCursor::Resampler:
     DrawField(builder, "RESAMPLER", data.resampler, layout.resampler,
-              UiColorToken::TextHighlighted,
-              UiColorToken::TextHighlighted);
+              UiColorToken::TextHighlighted, UiColorToken::TextHighlighted);
     break;
   case UiDeviceCursor::Volume:
     DrawField(builder, "VOLUME", data.volume, layout.volume,
-              UiColorToken::TextHighlighted,
-              UiColorToken::TextHighlighted);
+              UiColorToken::TextHighlighted, UiColorToken::TextHighlighted);
     break;
   case UiDeviceCursor::Brightness:
     DrawField(builder, "BRIGHTNESS", data.brightness, layout.brightness,
-              UiColorToken::TextHighlighted,
-              UiColorToken::TextHighlighted);
+              UiColorToken::TextHighlighted, UiColorToken::TextHighlighted);
     break;
   case UiDeviceCursor::Theme:
     DrawField(builder, "THEME", data.theme, layout.theme,
-              UiColorToken::TextHighlighted,
-              UiColorToken::TextHighlighted, true);
+              UiColorToken::TextHighlighted, UiColorToken::TextHighlighted,
+              true);
     break;
   case UiDeviceCursor::Font:
     DrawField(builder, "FONT", data.font, layout.font,
-              UiColorToken::TextHighlighted,
-              UiColorToken::TextHighlighted, true);
+              UiColorToken::TextHighlighted, UiColorToken::TextHighlighted,
+              true);
     break;
   case UiDeviceCursor::UpdateFirmware:
     DrawField(builder, "UPDATE FIRMWARE", {}, layout.updateFirmware,
-              UiColorToken::TextHighlighted,
-              UiColorToken::TextHighlighted);
+              UiColorToken::TextHighlighted, UiColorToken::TextHighlighted);
     break;
   }
 }
@@ -311,8 +301,8 @@ UiBuildStatus UiDeviceView::Build(const UiDeviceViewData &data, UiPalette &,
   scene.Clear();
   scene.topHeight = 34;
   scene.bottomTop = 208;
-  scene.contentOffsetY = UiVerticalList::Clamp(
-      data.scrollOffset, 208, ContentBottom(data));
+  scene.contentOffsetY =
+      UiVerticalList::Clamp(data.scrollOffset, 208, ContentBottom(data));
   scene.topBackground = UiColorToken::SurfaceTopBar;
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
   const UiTopBarModel top{.title = "DEVICE",
@@ -327,7 +317,7 @@ UiBuildStatus UiDeviceView::Build(const UiDeviceViewData &data, UiPalette &,
   UiBottomBarModel bottom{.kind = UiBottomBarKind::Hidden};
   const bool numericAdjustment =
       data.enterHeld && (data.cursor == UiDeviceCursor::Volume ||
-                        data.cursor == UiDeviceCursor::Brightness);
+                         data.cursor == UiDeviceCursor::Brightness);
   if (numericAdjustment) {
     bottom.kind = UiBottomBarKind::AdjustmentLegend;
     bottom.adjustment.fineStep = 1U;

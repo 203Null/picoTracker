@@ -138,8 +138,8 @@ public:
     if (name.empty())
       return Ui2InstrumentExportOutcome::MissingName;
 
-    switch (std::forward<Exporter>(exporter)(instrument, name.c_str(),
-                                              overwrite)) {
+    switch (
+        std::forward<Exporter>(exporter)(instrument, name.c_str(), overwrite)) {
     case Ui2InstrumentStorageResult::Saved:
       return Ui2InstrumentExportOutcome::Saved;
     case Ui2InstrumentStorageResult::Exists:

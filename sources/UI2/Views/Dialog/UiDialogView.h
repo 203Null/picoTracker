@@ -83,11 +83,9 @@ public:
   static void RenderDelta(const UiDialogViewData &previous,
                           const UiDialogViewData &current,
                           const UiFrameScene &currentScene,
-                          UiIndexedSurface &surface,
-                          const UiPalette &palette);
+                          UiIndexedSurface &surface, const UiPalette &palette);
   [[nodiscard]] static RectI16 DamageRect(UiDialogKind kind);
-  [[nodiscard]] static RectI16
-  CursorTargetRect(const UiDialogViewData &data);
+  [[nodiscard]] static RectI16 CursorTargetRect(const UiDialogViewData &data);
 };
 
 } // namespace ui2

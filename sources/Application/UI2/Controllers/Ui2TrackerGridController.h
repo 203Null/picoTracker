@@ -178,10 +178,10 @@ template <std::size_t Capacity = 2> struct Ui2TrackerCommandBatch {
   }
 };
 
-// A bare ENTER press is also the prefix of ENTER->OPTION Cut. Defer its ordinary
-// edit until another input proves the chord is not Cut, or until ENTER release.
-// This keeps destructive chords atomic without timers or platform-specific
-// ordering assumptions.
+// A bare ENTER press is also the prefix of ENTER->OPTION Cut. Defer its
+// ordinary edit until another input proves the chord is not Cut, or until ENTER
+// release. This keeps destructive chords atomic without timers or
+// platform-specific ordering assumptions.
 class Ui2DeferredEnter {
 public:
   constexpr void Begin() { pending_ = true; }
@@ -202,7 +202,8 @@ private:
 Ui2CompletesCellCut(TrackerAction action, const Ui2ControllerInputState &input,
                     const Ui2DeferredEnter &deferredEnter, bool actionWasHeld) {
   return !input.Held(TrackerAction::Shift) && !actionWasHeld &&
-         input.Held(TrackerAction::Option) && input.Held(TrackerAction::Enter) &&
+         input.Held(TrackerAction::Option) &&
+         input.Held(TrackerAction::Enter) &&
          (action == TrackerAction::Enter ||
           (action == TrackerAction::Option && deferredEnter.Pending()));
 }

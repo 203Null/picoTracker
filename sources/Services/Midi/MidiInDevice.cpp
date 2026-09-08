@@ -25,7 +25,7 @@ MidiInDevice::MidiInDevice(const char *) : isRunning_(false) {
   noteTracker_.clear();
 };
 
-MidiInDevice::~MidiInDevice() {};
+MidiInDevice::~MidiInDevice(){};
 
 bool MidiInDevice::Init() { return initDriver(); };
 

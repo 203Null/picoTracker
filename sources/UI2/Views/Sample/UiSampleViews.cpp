@@ -24,7 +24,8 @@ RectI16 ResolvedCursorRect(const Data &data, RectI16 fallback) {
 }
 
 RectI16 ExpandedCursorDamage(RectI16 rect) {
-  if (rect.Empty()) return {};
+  if (rect.Empty())
+    return {};
   return Intersect({static_cast<std::int16_t>(rect.x - 1),
                     static_cast<std::int16_t>(rect.y - 1),
                     static_cast<std::int16_t>(rect.width + 2),
@@ -48,10 +49,10 @@ void DrawMarkers(UiSceneBuilder<256, 1024> &builder,
                  std::span<const UiSampleWaveformMarker> markers,
                  std::int16_t y, std::int16_t height) {
   for (const UiSampleWaveformMarker marker : markers) {
-    const std::int16_t x = static_cast<std::int16_t>(
-        9 + std::min<std::uint8_t>(marker.x, 221U));
-    UiColorToken color = marker.selected ? UiColorToken::TextColored
-                                         : UiColorToken::TextDim;
+    const std::int16_t x =
+        static_cast<std::int16_t>(9 + std::min<std::uint8_t>(marker.x, 221U));
+    UiColorToken color =
+        marker.selected ? UiColorToken::TextColored : UiColorToken::TextDim;
     if (marker.kind == UiSampleWaveformMarkerKind::Playhead)
       color = UiColorToken::TextNormal;
     builder.Fill({x, y, 1, height}, color);
@@ -64,8 +65,8 @@ void DrawField(UiSceneBuilder<256, 1024> &builder, std::string_view label,
   builder.Text(value, 92, y, UiColorToken::TextNormal);
 }
 
-void DrawUserSection(UiSceneBuilder<256, 1024> &builder,
-                     std::string_view label, std::int16_t y) {
+void DrawUserSection(UiSceneBuilder<256, 1024> &builder, std::string_view label,
+                     std::int16_t y) {
   const std::int16_t width = UiFont5x7::TextWidth(label.size());
   builder.UserText(label, 9, y, UiColorToken::TextColored);
   builder.Fill({static_cast<std::int16_t>(9 + width + 7),
@@ -97,33 +98,38 @@ RectI16 UiSampleEditorView::CursorTargetRect(UiSampleEditorCursor cursor) {
   return {};
 }
 
-void UiSampleEditorView::RenderDelta(
-    const UiSampleEditorViewData &previous,
-    const UiSampleEditorViewData &current, const UiFrameScene &currentScene,
-    UiIndexedSurface &surface, const UiPalette &palette) {
+void UiSampleEditorView::RenderDelta(const UiSampleEditorViewData &previous,
+                                     const UiSampleEditorViewData &current,
+                                     const UiFrameScene &currentScene,
+                                     UiIndexedSurface &surface,
+                                     const UiPalette &palette) {
   const auto render = [&](RectI16 rect) {
     UiFrameRenderer::RenderRegion(currentScene, surface, palette, rect);
   };
-  if (previous.power != current.power) render({184, 0, 56, 34});
-  if (previous.name != current.name) render({5, 40, 230, 12});
+  if (previous.power != current.power)
+    render({184, 0, 56, 34});
+  if (previous.name != current.name)
+    render({5, 40, 230, 12});
   if (WaveformChanged(previous, current) ||
       MarkersChanged(previous.markers, current.markers))
     render({7, 58, 226, 76});
-  if (previous.start != current.start) render({5, 143, 230, 12});
-  if (previous.end != current.end) render({5, 154, 230, 12});
+  if (previous.start != current.start)
+    render({5, 143, 230, 12});
+  if (previous.end != current.end)
+    render({5, 154, 230, 12});
   if (previous.field3Label != current.field3Label ||
       previous.field3Value != current.field3Value)
     render({5, 165, 230, 12});
   if (previous.field4Label != current.field4Label ||
       previous.field4Value != current.field4Value)
     render({5, 176, 230, 12});
-  if (previous.help != current.help) render({5, 191, 230, 16});
+  if (previous.help != current.help)
+    render({5, 191, 230, 16});
   const RectI16 oldCursor =
       ResolvedCursorRect(previous, CursorTargetRect(previous));
   const RectI16 newCursor =
       ResolvedCursorRect(current, CursorTargetRect(current));
-  if (oldCursor != newCursor ||
-      previous.cursor != current.cursor ||
+  if (oldCursor != newCursor || previous.cursor != current.cursor ||
       previous.cursorInkVisible != current.cursorInkVisible) {
     render(ExpandedCursorDamage(oldCursor));
     render(ExpandedCursorDamage(newCursor));
@@ -144,7 +150,8 @@ UiBuildStatus UiSampleEditorView::Build(const UiSampleEditorViewData &data,
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
   const UiTopBarModel top{.title = "SAMPLE", .power = data.power};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
-  if (topStatus != UiBuildStatus::Built) return topStatus;
+  if (topStatus != UiBuildStatus::Built)
+    return topStatus;
   UiBottomBarModel bottom{.kind = UiBottomBarKind::Actions};
   bottom.actions.actions = data.bottomActions;
   bottom.actions.count = std::min<std::uint8_t>(
@@ -153,7 +160,8 @@ UiBuildStatus UiSampleEditorView::Build(const UiSampleEditorViewData &data,
   bottom.actions.active = data.bottomActive;
   const UiBuildStatus bottomStatus =
       UiChromeRenderer::BuildBottom(bottom, scene.bottom);
-  if (bottomStatus != UiBuildStatus::Built) return bottomStatus;
+  if (bottomStatus != UiBuildStatus::Built)
+    return bottomStatus;
 
   UiSceneBuilder<256, 1024> builder(scene.content);
   const RectI16 cursor = ResolvedCursorRect(data, CursorTargetRect(data));
@@ -180,8 +188,7 @@ UiBuildStatus UiSampleEditorView::Build(const UiSampleEditorViewData &data,
     case UiSampleEditorCursor::Start:
       if (data.enterDigitFocus && !data.start.empty()) {
         const std::uint8_t digit = std::min<std::uint8_t>(
-            data.focusDigit,
-            static_cast<std::uint8_t>(data.start.size() - 1U));
+            data.focusDigit, static_cast<std::uint8_t>(data.start.size() - 1U));
         builder.Text(data.start.substr(digit, 1),
                      static_cast<std::int16_t>(92 + digit * 6), 145,
                      UiColorToken::TextHighlighted);
@@ -193,8 +200,7 @@ UiBuildStatus UiSampleEditorView::Build(const UiSampleEditorViewData &data,
     case UiSampleEditorCursor::End:
       if (data.enterDigitFocus && !data.end.empty()) {
         const std::uint8_t digit = std::min<std::uint8_t>(
-            data.focusDigit,
-            static_cast<std::uint8_t>(data.end.size() - 1U));
+            data.focusDigit, static_cast<std::uint8_t>(data.end.size() - 1U));
         builder.Text(data.end.substr(digit, 1),
                      static_cast<std::int16_t>(92 + digit * 6), 156,
                      UiColorToken::TextHighlighted);
@@ -204,16 +210,12 @@ UiBuildStatus UiSampleEditorView::Build(const UiSampleEditorViewData &data,
       }
       break;
     case UiSampleEditorCursor::Field3:
-      builder.Text(data.field3Label, 9, 167,
-                   UiColorToken::TextHighlighted);
-      builder.Text(data.field3Value, 92, 167,
-                   UiColorToken::TextHighlighted);
+      builder.Text(data.field3Label, 9, 167, UiColorToken::TextHighlighted);
+      builder.Text(data.field3Value, 92, 167, UiColorToken::TextHighlighted);
       break;
     case UiSampleEditorCursor::Field4:
-      builder.Text(data.field4Label, 9, 178,
-                   UiColorToken::TextHighlighted);
-      builder.Text(data.field4Value, 92, 178,
-                   UiColorToken::TextHighlighted);
+      builder.Text(data.field4Label, 9, 178, UiColorToken::TextHighlighted);
+      builder.Text(data.field4Value, 92, 178, UiColorToken::TextHighlighted);
       break;
     case UiSampleEditorCursor::Waveform:
     case UiSampleEditorCursor::Save:
@@ -223,8 +225,7 @@ UiBuildStatus UiSampleEditorView::Build(const UiSampleEditorViewData &data,
       break;
     }
   }
-  return builder.Ok() ? UiBuildStatus::Built
-                      : UiBuildStatus::CommandOverflow;
+  return builder.Ok() ? UiBuildStatus::Built : UiBuildStatus::CommandOverflow;
 }
 
 RectI16 UiSampleSlicesView::CursorTargetRect(UiSampleSlicesCursor cursor) {
@@ -243,10 +244,11 @@ RectI16 UiSampleSlicesView::CursorTargetRect(UiSampleSlicesCursor cursor) {
   return {};
 }
 
-void UiSampleSlicesView::RenderDelta(
-    const UiSampleSlicesViewData &previous,
-    const UiSampleSlicesViewData &current, const UiFrameScene &currentScene,
-    UiIndexedSurface &surface, const UiPalette &palette) {
+void UiSampleSlicesView::RenderDelta(const UiSampleSlicesViewData &previous,
+                                     const UiSampleSlicesViewData &current,
+                                     const UiFrameScene &currentScene,
+                                     UiIndexedSurface &surface,
+                                     const UiPalette &palette) {
   const auto render = [&](RectI16 rect) {
     UiFrameRenderer::RenderRegion(currentScene, surface, palette, rect);
   };
@@ -257,21 +259,24 @@ void UiSampleSlicesView::RenderDelta(
       MarkersChanged(previous.markers, current.markers)) {
     render({9, 44, 222, 84});
   }
-  if (previous.slice != current.slice) render({5, 137, 230, 12});
-  if (previous.start != current.start) render({5, 148, 230, 12});
-  if (previous.zoom != current.zoom) render({5, 159, 230, 12});
+  if (previous.slice != current.slice)
+    render({5, 137, 230, 12});
+  if (previous.start != current.start)
+    render({5, 148, 230, 12});
+  if (previous.zoom != current.zoom)
+    render({5, 159, 230, 12});
   if (previous.autoSliceCount != current.autoSliceCount ||
       previous.autoSliceApplyAvailable != current.autoSliceApplyAvailable)
     render({5, 172, 230, 23});
-  if (previous.help != current.help) render({5, 184, 230, 23});
+  if (previous.help != current.help)
+    render({5, 184, 230, 23});
   if (previous.bottomActive != current.bottomActive)
     render({0, 208, 240, 32});
   const RectI16 oldCursor =
       ResolvedCursorRect(previous, CursorTargetRect(previous));
   const RectI16 newCursor =
       ResolvedCursorRect(current, CursorTargetRect(current));
-  if (oldCursor != newCursor ||
-      previous.cursor != current.cursor ||
+  if (oldCursor != newCursor || previous.cursor != current.cursor ||
       previous.cursorInkVisible != current.cursorInkVisible) {
     render(ExpandedCursorDamage(oldCursor));
     render(ExpandedCursorDamage(newCursor));
@@ -288,14 +293,16 @@ UiBuildStatus UiSampleSlicesView::Build(const UiSampleSlicesViewData &data,
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
   const UiTopBarModel top{.title = "SLICES", .power = data.power};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
-  if (topStatus != UiBuildStatus::Built) return topStatus;
+  if (topStatus != UiBuildStatus::Built)
+    return topStatus;
   UiBottomBarModel bottom{.kind = UiBottomBarKind::Actions};
   bottom.actions.actions = {"ADD", "MOVE", "DELETE", {}};
   bottom.actions.count = 3;
   bottom.actions.active = std::min<std::uint8_t>(data.bottomActive, 2U);
   const UiBuildStatus bottomStatus =
       UiChromeRenderer::BuildBottom(bottom, scene.bottom);
-  if (bottomStatus != UiBuildStatus::Built) return bottomStatus;
+  if (bottomStatus != UiBuildStatus::Built)
+    return bottomStatus;
 
   UiSceneBuilder<256, 1024> builder(scene.content);
   const RectI16 cursor = ResolvedCursorRect(data, CursorTargetRect(data));
@@ -306,13 +313,14 @@ UiBuildStatus UiSampleSlicesView::Build(const UiSampleSlicesViewData &data,
   if (!waveformFocused)
     builder.Fill({9, 46, 222, 78}, UiColorToken::DerivedVuTrack);
   builder.SparseCoverageMask({9, 46, 222, 78}, data.waveformMask,
-                             UiCoverage::Playback, UiColorToken::DerivedVuTrack);
+                             UiCoverage::Playback,
+                             UiColorToken::DerivedVuTrack);
   if (data.markers.empty()) {
     constexpr std::array<std::int16_t, 5> kMarkerX{9, 64, 119, 174, 230};
     for (std::size_t index = 0; index < kMarkerX.size(); ++index) {
-      builder.Fill({kMarkerX[index], 44, 1, 84},
-                   index == data.selectedMarker ? UiColorToken::TextColored
-                                                : UiColorToken::TextDim);
+      builder.Fill({kMarkerX[index], 44, 1, 84}, index == data.selectedMarker
+                                                     ? UiColorToken::TextColored
+                                                     : UiColorToken::TextDim);
     }
   } else {
     DrawMarkers(builder, data.markers, 44, 84);
@@ -338,21 +346,19 @@ UiBuildStatus UiSampleSlicesView::Build(const UiSampleSlicesViewData &data,
       break;
     case UiSampleSlicesCursor::AutoSliceCount:
       builder.Text("AUTO", 9, 174, UiColorToken::TextHighlighted);
-      builder.Text(data.autoSliceCount, 92, 174,
-                   UiColorToken::TextHighlighted);
+      builder.Text(data.autoSliceCount, 92, 174, UiColorToken::TextHighlighted);
       break;
     case UiSampleSlicesCursor::AutoSlice:
       builder.Text("SLICE", 9, 185, UiColorToken::TextHighlighted);
-      builder.Text(data.autoSliceApplyAvailable ? "APPLY" : "REPLACE", 92,
-                   185, UiColorToken::TextHighlighted);
+      builder.Text(data.autoSliceApplyAvailable ? "APPLY" : "REPLACE", 92, 185,
+                   UiColorToken::TextHighlighted);
       break;
     case UiSampleSlicesCursor::Waveform:
     case UiSampleSlicesCursor::None:
       break;
     }
   }
-  return builder.Ok() ? UiBuildStatus::Built
-                      : UiBuildStatus::CommandOverflow;
+  return builder.Ok() ? UiBuildStatus::Built : UiBuildStatus::CommandOverflow;
 }
 
 } // namespace ui2

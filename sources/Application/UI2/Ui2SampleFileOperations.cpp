@@ -39,9 +39,9 @@ bool FormatPath(Ui2ProjectSamplePath &destination, const char *projectName,
   if (!IsFlatProjectName(projectName) ||
       !Ui2IsFlatProjectSampleLeaf(sampleName))
     return false;
-  const int written = std::snprintf(destination.data(), destination.size(),
-                                    "%s/%s/%s/%s", PROJECTS_DIR, projectName,
-                                    PROJECT_SAMPLES_DIR, sampleName);
+  const int written =
+      std::snprintf(destination.data(), destination.size(), "%s/%s/%s/%s",
+                    PROJECTS_DIR, projectName, PROJECT_SAMPLES_DIR, sampleName);
   return written > 0 && static_cast<std::size_t>(written) < destination.size();
 }
 
@@ -115,8 +115,8 @@ bool Ui2BuildProjectSamplePath(const char *projectName, const char *sampleName,
   return FormatPath(destination, projectName, sampleName);
 }
 
-bool Ui2RecoverStagedProjectSampleDeletes(
-    FileSystem &fileSystem, const char *projectName) {
+bool Ui2RecoverStagedProjectSampleDeletes(FileSystem &fileSystem,
+                                          const char *projectName) {
   Ui2ProjectSamplePath probe{};
   if (!FormatPath(probe, projectName, "probe.wav") ||
       !fileSystem.chdir(PROJECTS_DIR) || !fileSystem.chdir(projectName)) {
@@ -162,9 +162,9 @@ bool Ui2RecoverStagedProjectSampleDeletes(
   return recovered;
 }
 
-Ui2DeleteProjectSampleResult Ui2DeleteProjectSampleSafely(
-    FileSystem &fileSystem, SamplePool &pool, const char *projectName,
-    const char *sampleName) {
+Ui2DeleteProjectSampleResult
+Ui2DeleteProjectSampleSafely(FileSystem &fileSystem, SamplePool &pool,
+                             const char *projectName, const char *sampleName) {
   Ui2ProjectSamplePath source{};
   Ui2ProjectSamplePath staged{};
   DeleteStageName stageName{};

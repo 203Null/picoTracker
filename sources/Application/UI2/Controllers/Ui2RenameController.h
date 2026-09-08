@@ -113,7 +113,7 @@ public:
         "FAST", "DARK", "LOUD", "SOFT", "LOST", "RED",
         "COLD", "HIGH", "LOW",  "WILD", "ODD",  "DEEP"};
     static constexpr std::array<std::string_view, 16> nouns{
-        "SUN", "SKY", "FOX", "WAVE", "BEAT", "TONE", "LOOP", "GRID",
+        "SUN",  "SKY",  "FOX",   "WAVE",  "BEAT", "TONE", "LOOP", "GRID",
         "BASS", "KICK", "SNARE", "SYNTH", "BYTE", "NODE", "ECHO", "TRACK"};
     length_ = 0U;
     draft_.fill('\0');
@@ -135,11 +135,11 @@ public:
     snapshot.SetSelectedAction(selectedAction_, focus_ == Focus::Actions);
     snapshot.saveEnabled = CanSave();
     snapshot.SetRenameUppercase(uppercase_);
-    snapshot.SetRenameFocus(
-        focus_ == Focus::Input      ? UiDialogFocus::Input
-        : focus_ == Focus::Keyboard ? UiDialogFocus::Keyboard
-                                    : UiDialogFocus::Actions,
-        SelectedKeyIndex());
+    snapshot.SetRenameFocus(focus_ == Focus::Input ? UiDialogFocus::Input
+                            : focus_ == Focus::Keyboard
+                                ? UiDialogFocus::Keyboard
+                                : UiDialogFocus::Actions,
+                            SelectedKeyIndex());
     return snapshot;
   }
 
@@ -151,11 +151,13 @@ private:
     std::int16_t step;
   };
   static constexpr std::array<KeyboardRow, 4> Keyboard{{
-      {"1234567890", 12, 23}, {"QWERTYUIOP", 12, 23},
-      {"ASDFGHJKL", 23, 24}, {"ZXCVBNM", 43, 26},
+      {"1234567890", 12, 23},
+      {"QWERTYUIOP", 12, 23},
+      {"ASDFGHJKL", 23, 24},
+      {"ZXCVBNM", 43, 26},
   }};
-  static constexpr std::array<std::int16_t, 5> SpecialCenters{26, 63, 120,
-                                                              176, 213};
+  static constexpr std::array<std::int16_t, 5> SpecialCenters{26, 63, 120, 176,
+                                                              213};
   static constexpr std::uint8_t SpecialRow = Keyboard.size();
 
   void Append(char character) {
@@ -202,7 +204,8 @@ private:
     return keyboardRow_ == SpecialRow
                ? SpecialCenters[column]
                : static_cast<std::int16_t>(Keyboard[keyboardRow_].start +
-                                           column * Keyboard[keyboardRow_].step);
+                                           column *
+                                               Keyboard[keyboardRow_].step);
   }
   void MoveVertical(std::int8_t direction) {
     const int next = static_cast<int>(keyboardRow_) + direction;
@@ -221,7 +224,8 @@ private:
   void SelectClosest(std::int16_t center) {
     std::int16_t best = 32767;
     for (std::uint8_t column = 0; column < RowLength(); ++column) {
-      const auto distance = static_cast<std::int16_t>(std::abs(Center(column) - center));
+      const auto distance =
+          static_cast<std::int16_t>(std::abs(Center(column) - center));
       if (distance < best) {
         best = distance;
         keyboardColumn_ = column;

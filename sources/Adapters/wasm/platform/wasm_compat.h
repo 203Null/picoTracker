@@ -8,9 +8,9 @@
 #ifndef PICOTRACKER_WASM_COMPAT_H
 #define PICOTRACKER_WASM_COMPAT_H
 
-#include <string.h>
 #include "Externals/etl/include/etl/string.h"
 #include "Externals/etl/include/etl/string_utilities.h"
+#include <string.h>
 
 #define strlen(value) __builtin_strlen(value)
 

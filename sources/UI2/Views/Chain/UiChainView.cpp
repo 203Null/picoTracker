@@ -81,15 +81,16 @@ RectI16 UiChainView::PlaybackTickRect(std::uint8_t row) {
   if (row >= 16U)
     return {};
   return {static_cast<std::int16_t>(kColumnX[0] - 3),
-          static_cast<std::int16_t>(UiTrackerGridMetrics::RowTextY(row) + 1),
-          2, 5};
+          static_cast<std::int16_t>(UiTrackerGridMetrics::RowTextY(row) + 1), 2,
+          5};
 }
 
 RectI16 UiChainView::VuDamageRect(std::uint8_t side) {
   if (side >= 2U)
     return {};
   return {UiTrackerGridMetrics::VuX(side), UiTrackerGridMetrics::kVuTop,
-          UiTrackerGridMetrics::kVuChannelWidth, UiTrackerGridMetrics::kVuHeight};
+          UiTrackerGridMetrics::kVuChannelWidth,
+          UiTrackerGridMetrics::kVuHeight};
 }
 
 void UiChainView::RenderDelta(const UiChainViewData &previous,
@@ -156,8 +157,7 @@ void UiChainView::RenderDelta(const UiChainViewData &previous,
       previous.bottomTrackInkVisible != current.bottomTrackInkVisible ||
       previous.adjustmentFocus != current.adjustmentFocus ||
       previous.selectionActive != current.selectionActive ||
-      previous.selectionNextExpansionAll !=
-          current.selectionNextExpansionAll ||
+      previous.selectionNextExpansionAll != current.selectionNextExpansionAll ||
       previous.clipboardReady != current.clipboardReady ||
       previous.clipboardPasted != current.clipboardPasted ||
       previous.clipboardWidth != current.clipboardWidth ||
@@ -232,13 +232,13 @@ UiBuildStatus UiChainView::Build(const UiChainViewData &data,
   }
   UiSceneBuilder<256, 1024> builder(scene.content);
   builder.GridText("PH", kColumnX[0], UiTrackerGridMetrics::kHeaderTextY,
-               !data.numberFocus && data.editColumn == 0U
-                   ? UiColorToken::TextColored
-                   : UiColorToken::TextDim);
+                   !data.numberFocus && data.editColumn == 0U
+                       ? UiColorToken::TextColored
+                       : UiColorToken::TextDim);
   builder.GridText("TR", kColumnX[1], UiTrackerGridMetrics::kHeaderTextY,
-               !data.numberFocus && data.editColumn == 1U
-                   ? UiColorToken::TextColored
-                   : UiColorToken::TextDim);
+                   !data.numberFocus && data.editColumn == 1U
+                       ? UiColorToken::TextColored
+                       : UiColorToken::TextDim);
   const RectI16 cursor = ResolvedCursorRect(data);
   if (!data.numberFocus && !data.selectionVisualRect.Empty()) {
     builder.SelectionHighlight(data.selectionVisualRect);
@@ -250,21 +250,20 @@ UiBuildStatus UiChainView::Build(const UiChainViewData &data,
     const std::int16_t y = UiTrackerGridMetrics::RowTextY(row);
     const auto rowText = HexByte(row);
     builder.GridText(rowText.data(), UiTrackerGridMetrics::kRowLabelX, y,
-                 !data.numberFocus && row == data.editRow
-                     ? UiColorToken::TextColored
-                     : UiColorToken::DerivedTextFaint);
+                     !data.numberFocus && row == data.editRow
+                         ? UiColorToken::TextColored
+                         : UiColorToken::DerivedTextFaint);
     const auto phrase = HexByte(data.phrases[row]);
     const char *phraseText = data.phrases[row] == 0xFFU ? "--" : phrase.data();
     builder.GridText(phraseText, kColumnX[0], y,
-                 data.phrases[row] == 0xFFU ? UiColorToken::DerivedTextFaint
-                                            : UiColorToken::TextNormal);
+                     data.phrases[row] == 0xFFU ? UiColorToken::DerivedTextFaint
+                                                : UiColorToken::TextNormal);
     const auto transpose = Ui2ChainTranspose::Format(data.transposes[row]);
     const bool rowEmpty = data.phrases[row] == 0xFFU;
     builder.GridText(rowEmpty ? "---" : transpose.data(), kColumnX[1], y,
-                 rowEmpty ? UiColorToken::DerivedTextFaint
-                          : data.transposes[row] == 0U
-                                ? UiColorToken::TextDim
-                                : UiColorToken::TextNormal);
+                     rowEmpty ? UiColorToken::DerivedTextFaint
+                     : data.transposes[row] == 0U ? UiColorToken::TextDim
+                                                  : UiColorToken::TextNormal);
   }
   for (std::uint8_t row = 0U; row < 16U; ++row) {
     bool audible = false;
@@ -289,29 +288,27 @@ UiBuildStatus UiChainView::Build(const UiChainViewData &data,
           !Intersect(cursor,
                      PlaybackTickRect(static_cast<std::uint8_t>(playbackRow)))
                .Empty()) {
-        cursorStyle = data.mutedTracks[track]
-                          ? UiSelectionStyle::MutedPlayback
-                          : UiSelectionStyle::Playback;
+        cursorStyle = data.mutedTracks[track] ? UiSelectionStyle::MutedPlayback
+                                              : UiSelectionStyle::Playback;
         if (cursorStyle == UiSelectionStyle::Playback)
           break;
       }
     }
     builder.Selection(cursor, cursorStyle);
-    if (data.cursorInkVisible && data.editRow < 16U &&
-        data.editColumn < 2U) {
+    if (data.cursorInkVisible && data.editRow < 16U && data.editColumn < 2U) {
       const std::uint8_t value = data.editColumn == 0U
                                      ? data.phrases[data.editRow]
                                      : data.transposes[data.editRow];
       const auto phraseText = HexByte(value);
       const auto transposeText = Ui2ChainTranspose::Format(value);
-      const char *display = data.editColumn == 0U
-                                ? (value == 0xFFU ? "--" : phraseText.data())
-                                : (data.phrases[data.editRow] == 0xFFU
-                                       ? "---"
-                                       : transposeText.data());
+      const char *display =
+          data.editColumn == 0U
+              ? (value == 0xFFU ? "--" : phraseText.data())
+              : (data.phrases[data.editRow] == 0xFFU ? "---"
+                                                     : transposeText.data());
       builder.GridText(display, kColumnX[data.editColumn],
-                   UiTrackerGridMetrics::RowTextY(data.editRow),
-                   UiColorToken::TextHighlighted);
+                       UiTrackerGridMetrics::RowTextY(data.editRow),
+                       UiColorToken::TextHighlighted);
     }
   }
   for (std::uint8_t side = 0; side < 2U; ++side) {

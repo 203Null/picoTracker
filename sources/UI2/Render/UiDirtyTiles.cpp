@@ -11,7 +11,8 @@
 namespace ui2 {
 
 bool DirtyStripList::Push(DirtyStrip strip) {
-  if (size_ >= strips_.size()) return false;
+  if (size_ >= strips_.size())
+    return false;
   strips_[size_++] = strip;
   return true;
 }
@@ -30,7 +31,8 @@ bool UiDirtyTiles::Test(std::uint16_t x, std::uint16_t y) const {
 
 void UiDirtyTiles::Mark(RectI16 rect) {
   rect = Intersect(rect, RectI16::Screen());
-  if (rect.Empty()) return;
+  if (rect.Empty())
+    return;
   const std::uint16_t firstX = static_cast<std::uint16_t>(rect.x) / kTileSize;
   const std::uint16_t firstY = static_cast<std::uint16_t>(rect.y) / kTileSize;
   const std::uint16_t lastX =
@@ -38,7 +40,8 @@ void UiDirtyTiles::Mark(RectI16 rect) {
   const std::uint16_t lastY =
       static_cast<std::uint16_t>(rect.Bottom() - 1) / kTileSize;
   for (std::uint16_t y = firstY; y <= lastY; ++y) {
-    for (std::uint16_t x = firstX; x <= lastX; ++x) Set(x, y);
+    for (std::uint16_t x = firstX; x <= lastX; ++x)
+      Set(x, y);
   }
 }
 
@@ -71,7 +74,8 @@ bool UiDirtyTiles::Collect(DirtyStripList &output) const {
         continue;
       }
       const std::uint16_t start = tileX;
-      while (tileX < kColumns && Test(tileX, tileY)) ++tileX;
+      while (tileX < kColumns && Test(tileX, tileY))
+        ++tileX;
       const std::uint16_t runWidth = tileX - start;
       Run run{static_cast<std::uint16_t>(start * kTileSize),
               static_cast<std::uint16_t>(runWidth * kTileSize), 0};

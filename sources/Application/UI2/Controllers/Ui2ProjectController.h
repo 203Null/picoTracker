@@ -96,11 +96,10 @@ class Ui2ProjectController {
 public:
   constexpr Ui2ProjectController() = default;
 
-  constexpr Ui2ProjectController(Ui2ProjectContentCursor cursor,
-                                 Ui2ProjectNameAction nameAction,
-                                 Ui2ProjectRenderSelection renderSelection,
-                                 Ui2ProjectSampleAction sampleAction =
-                                     Ui2ProjectSampleAction::Browse)
+  constexpr Ui2ProjectController(
+      Ui2ProjectContentCursor cursor, Ui2ProjectNameAction nameAction,
+      Ui2ProjectRenderSelection renderSelection,
+      Ui2ProjectSampleAction sampleAction = Ui2ProjectSampleAction::Browse)
       : cursor_(Sanitize(cursor)), nameAction_(Sanitize(nameAction)),
         renderSelection_(Sanitize(renderSelection)),
         sampleAction_(Sanitize(sampleAction)) {}
@@ -129,25 +128,25 @@ public:
   constexpr void MoveUp() {
     const std::uint8_t index = CursorIndex();
     std::uint8_t previous = index == 0 ? ContentCount() - 1U : index - 1U;
-    if (previous == static_cast<std::uint8_t>(
-                        Ui2ProjectContentCursor::SamplePool))
+    if (previous ==
+        static_cast<std::uint8_t>(Ui2ProjectContentCursor::SamplePool))
       --previous;
     cursor_ = static_cast<Ui2ProjectContentCursor>(previous);
   }
 
   constexpr void MoveDown() {
     const std::uint8_t index = CursorIndex();
-    std::uint8_t next = static_cast<std::uint8_t>((index + 1U) % ContentCount());
-    if (next ==
-        static_cast<std::uint8_t>(Ui2ProjectContentCursor::SamplePool))
+    std::uint8_t next =
+        static_cast<std::uint8_t>((index + 1U) % ContentCount());
+    if (next == static_cast<std::uint8_t>(Ui2ProjectContentCursor::SamplePool))
       ++next;
     cursor_ = static_cast<Ui2ProjectContentCursor>(next);
   }
 
   constexpr void MoveLeft() {
     if (cursor_ == Ui2ProjectContentCursor::Name) {
-      nameAction_ = static_cast<Ui2ProjectNameAction>(Previous(
-          static_cast<std::uint8_t>(nameAction_), NameActionCount()));
+      nameAction_ = static_cast<Ui2ProjectNameAction>(
+          Previous(static_cast<std::uint8_t>(nameAction_), NameActionCount()));
     } else if (cursor_ == Ui2ProjectContentCursor::Render) {
       renderSelection_ = static_cast<Ui2ProjectRenderSelection>(Previous(
           static_cast<std::uint8_t>(renderSelection_), RenderOptionCount()));
@@ -187,8 +186,7 @@ public:
               .optionCount = SampleActionCount()};
     case Ui2ProjectContentCursor::Instruments:
       return {.kind = Ui2ProjectBottomKind::CleanupAction,
-              .selectedCommand =
-                  Ui2ProjectCommandType::RemoveUnusedInstruments,
+              .selectedCommand = Ui2ProjectCommandType::RemoveUnusedInstruments,
               .selectedIndex = 0,
               .optionCount = 1};
     case Ui2ProjectContentCursor::Render:
@@ -211,10 +209,9 @@ public:
     return {.type = Bottom().selectedCommand};
   }
 
-  [[nodiscard]] constexpr Ui2ProjectCommand
-  Adjust(TrackerAction action) const {
-    const bool decrease = action == TrackerAction::Left ||
-                          action == TrackerAction::Down;
+  [[nodiscard]] constexpr Ui2ProjectCommand Adjust(TrackerAction action) const {
+    const bool decrease =
+        action == TrackerAction::Left || action == TrackerAction::Down;
     if (action != TrackerAction::Left && action != TrackerAction::Right &&
         action != TrackerAction::Up && action != TrackerAction::Down)
       return {};
@@ -267,12 +264,12 @@ private:
   }
 
   [[nodiscard]] static constexpr std::uint8_t Next(std::uint8_t value,
-                                                    std::uint8_t count) {
+                                                   std::uint8_t count) {
     return static_cast<std::uint8_t>((value + 1U) % count);
   }
 
   [[nodiscard]] static constexpr std::uint8_t Previous(std::uint8_t value,
-                                                        std::uint8_t count) {
+                                                       std::uint8_t count) {
     return value == 0 ? static_cast<std::uint8_t>(count - 1U)
                       : static_cast<std::uint8_t>(value - 1U);
   }

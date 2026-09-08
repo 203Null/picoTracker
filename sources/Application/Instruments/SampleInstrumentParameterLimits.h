@@ -30,8 +30,7 @@ inline constexpr int FilterMaximum = 0xFF;
 inline constexpr int PositionMinimum = 0;
 inline constexpr int PositionPersistedMaximum = 0x0FFFFFFF;
 
-inline bool TryGetPersistedIntegerRange(FourCC id, int &minimum,
-                                        int &maximum) {
+inline bool TryGetPersistedIntegerRange(FourCC id, int &minimum, int &maximum) {
   if (id == FourCC::SampleInstrumentVolume) {
     minimum = VolumeMinimum;
     maximum = VolumeMaximum;

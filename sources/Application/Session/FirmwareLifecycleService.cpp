@@ -40,8 +40,9 @@ FirmwareLifecycleService::PrepareProjectBoot(bool forceUntitled) noexcept {
   return result;
 }
 
-FirmwareLifecycleCommand FirmwareLifecycleService::Tick(
-    FirmwareLifecycleController &controller, std::uint32_t nowMs) noexcept {
+FirmwareLifecycleCommand
+FirmwareLifecycleService::Tick(FirmwareLifecycleController &controller,
+                               std::uint32_t nowMs) noexcept {
   if (shutdownDispatched_)
     return {};
 

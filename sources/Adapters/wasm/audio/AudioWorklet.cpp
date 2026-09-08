@@ -31,8 +31,8 @@ void WasmAudioWorkletRenderer::SetDestinationRate(
   sourceCount_ = 0U;
 }
 
-void WasmAudioWorkletRenderer::RecordCallback(
-    double callbackMilliseconds, std::size_t frames) noexcept {
+void WasmAudioWorkletRenderer::RecordCallback(double callbackMilliseconds,
+                                              std::size_t frames) noexcept {
   driver_->RecordCallback(callbackMilliseconds, frames);
 }
 
@@ -99,7 +99,8 @@ extern "C" bool PicoTracker_Wasm_AudioWorkletProcess(
       outputs[0].numberOfChannels < 2 || outputs[0].samplesPerChannel < 0) {
     return false;
   }
-  const std::size_t frames = static_cast<std::size_t>(outputs[0].samplesPerChannel);
+  const std::size_t frames =
+      static_cast<std::size_t>(outputs[0].samplesPerChannel);
   float *const planar = outputs[0].data;
   if (planar == nullptr) {
     return false;

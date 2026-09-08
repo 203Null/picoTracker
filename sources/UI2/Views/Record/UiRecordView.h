@@ -46,14 +46,12 @@ struct UiRecordViewData {
 
 class UiRecordView {
 public:
-  [[nodiscard]] static UiBuildStatus Build(const UiRecordViewData &data,
-                                           UiPalette &palette,
-                                           UiFrameScene &scene);
+  [[nodiscard]] static UiBuildStatus
+  Build(const UiRecordViewData &data, UiPalette &palette, UiFrameScene &scene);
   static void RenderDelta(const UiRecordViewData &previous,
                           const UiRecordViewData &current,
                           const UiFrameScene &currentScene,
-                          UiIndexedSurface &surface,
-                          const UiPalette &palette);
+                          UiIndexedSurface &surface, const UiPalette &palette);
   [[nodiscard]] static constexpr RectI16
   CursorTargetRect(UiRecordFocus focus = UiRecordFocus::Source) {
     switch (focus) {

@@ -54,7 +54,6 @@ struct UiChainViewData {
 
 class UiChainView {
 public:
-
   [[nodiscard]] static UiBuildStatus
   Build(const UiChainViewData &data, UiPalette &palette, UiFrameScene &scene);
   static void RenderDelta(const UiChainViewData &previous,

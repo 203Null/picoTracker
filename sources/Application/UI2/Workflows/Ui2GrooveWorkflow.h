@@ -102,17 +102,14 @@ public:
       return {.projectMutated = mutated};
     }
     case Ui2GrooveCommandType::PasteSelection: {
-      if (command.row >= Ui2GrooveController::RowCount ||
-          clipboard.count == 0U)
+      if (command.row >= Ui2GrooveController::RowCount || clipboard.count == 0U)
         return {};
       bool mutated = false;
-      for (std::uint8_t index = 0U;
-           index < clipboard.count &&
-           static_cast<unsigned>(command.row) + index <
-               Ui2GrooveController::RowCount;
+      for (std::uint8_t index = 0U; index < clipboard.count &&
+                                    static_cast<unsigned>(command.row) + index <
+                                        Ui2GrooveController::RowCount;
            ++index) {
-        const std::uint8_t row =
-            static_cast<std::uint8_t>(command.row + index);
+        const std::uint8_t row = static_cast<std::uint8_t>(command.row + index);
         mutated = mutated || steps[row] != clipboard.steps[index];
         steps[row] = clipboard.steps[index];
       }
@@ -129,8 +126,8 @@ public:
       const unsigned start = steps[top];
       const unsigned end = steps[bottom];
       bool mutated = false;
-      for (std::uint8_t row = static_cast<std::uint8_t>(top + 1U);
-           row < bottom; ++row) {
+      for (std::uint8_t row = static_cast<std::uint8_t>(top + 1U); row < bottom;
+           ++row) {
         const unsigned offset = static_cast<unsigned>(row - top);
         const unsigned weighted = start * (span - offset) + end * offset;
         const std::uint8_t value =

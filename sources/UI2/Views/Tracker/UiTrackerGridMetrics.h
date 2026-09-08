@@ -44,7 +44,8 @@ PackColumns(const std::array<std::uint8_t, Count> &characters,
   result[0] = startX;
   for (std::size_t column = 1; column < Count; ++column)
     result[column] = static_cast<std::int16_t>(
-        result[column - 1] + tracker_grid_detail::TextWidth(characters[column - 1]) +
+        result[column - 1] +
+        tracker_grid_detail::TextWidth(characters[column - 1]) +
         gaps[column - 1]);
   return result;
 }
@@ -95,15 +96,16 @@ struct UiTrackerGridMetrics {
 
   static constexpr std::array<std::uint8_t, 8> kSongColumnCharacters{
       2, 2, 2, 2, 2, 2, 2, 2};
-  static constexpr std::array<std::uint8_t, 6> kPhraseColumnCharacters{
-      3, 3, 3, 4, 3, 4};
-  static constexpr std::array<std::uint8_t, 6> kTableColumnCharacters{
-      3, 4, 3, 4, 3, 4};
+  static constexpr std::array<std::uint8_t, 6> kPhraseColumnCharacters{3, 3, 3,
+                                                                       4, 3, 4};
+  static constexpr std::array<std::uint8_t, 6> kTableColumnCharacters{3, 4, 3,
+                                                                      4, 3, 4};
 
   static constexpr auto kSongTrackX = tracker_grid_detail::PackColumns(
       kSongColumnCharacters, kContentStartX, kSongColumnGap);
   static constexpr std::array<std::int16_t, 2> kChainColumnX{
-      kContentStartX, kContentStartX + tracker_grid_detail::TextWidth(2) + kColumnGap};
+      kContentStartX,
+      kContentStartX + tracker_grid_detail::TextWidth(2) + kColumnGap};
   // FX and its parameter form a visual group. Move their spare space
   // between groups while keeping the final parameter at the same right edge.
   static constexpr std::int16_t kFxParameterGap = 7;
@@ -114,8 +116,7 @@ struct UiTrackerGridMetrics {
   // Keep both FX/parameter pairs stationary when transitioning to Table.
   // The instrument cell sits between NOTE and the first FX with equal gaps.
   static constexpr std::array<std::int16_t, 6> kPhraseColumnX{
-      kContentStartX,
-      (kContentStartX + kTableColumnX[2]) / 2,
+      kContentStartX,   (kContentStartX + kTableColumnX[2]) / 2,
       kTableColumnX[2], kTableColumnX[3],
       kTableColumnX[4], kTableColumnX[5]};
   static constexpr std::array<std::int16_t, 5> kPhraseGaps{
@@ -124,26 +125,25 @@ struct UiTrackerGridMetrics {
   static_assert(kSongTrackX.back() + tracker_grid_detail::TextWidth(2) <
                     kGridRightWithVu,
                 "Song tracks must leave room for the dual VU meter");
-  static_assert(kPhraseColumnX.back() + tracker_grid_detail::TextWidth(4) + 2 <= 240,
+  static_assert(kPhraseColumnX.back() + tracker_grid_detail::TextWidth(4) + 2 <=
+                    240,
                 "Phrase cursor must remain on screen");
-  static_assert(kTableColumnX.back() + tracker_grid_detail::TextWidth(4) + 2 <= 240,
+  static_assert(kTableColumnX.back() + tracker_grid_detail::TextWidth(4) + 2 <=
+                    240,
                 "Table cursor must remain on screen");
 
-  [[nodiscard]] static constexpr std::int16_t
-  RowTextY(std::uint8_t row) {
+  [[nodiscard]] static constexpr std::int16_t RowTextY(std::uint8_t row) {
     return static_cast<std::int16_t>(kFirstRowTextY + row * kRowPitch);
   }
 
-  [[nodiscard]] static constexpr std::int16_t
-  RowBoundsY(std::uint8_t row) {
+  [[nodiscard]] static constexpr std::int16_t RowBoundsY(std::uint8_t row) {
     return static_cast<std::int16_t>(RowTextY(row) - 1);
   }
 
   // The low-contrast row band has one pixel of breathing room above the
   // cursor bubble. Keep it separate so tuning the row background does not
   // move the animated cell cursor or its glyph.
-  [[nodiscard]] static constexpr std::int16_t
-  RowHighlightY(std::uint8_t row) {
+  [[nodiscard]] static constexpr std::int16_t RowHighlightY(std::uint8_t row) {
     return static_cast<std::int16_t>(RowTextY(row) - 2);
   }
 

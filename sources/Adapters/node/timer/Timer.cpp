@@ -40,9 +40,7 @@ NodeTimer::NodeTimer() {
   running_ = false;
 }
 
-NodeTimer::~NodeTimer() {
-  Stop();
-}
+NodeTimer::~NodeTimer() { Stop(); }
 
 void NodeTimer::SetPeriod(float msec) {
   period_ = msec;
@@ -54,13 +52,11 @@ bool NodeTimer::Start() {
     Stop(); // Ensure previous timer is stopped
 
     esp_timer_create_args_t timer_args = {
-        .callback = &NodeTimerCallback,
-        .arg = this,
-        .name = "NodeTimer"
-    };
+        .callback = &NodeTimerCallback, .arg = this, .name = "NodeTimer"};
 
     esp_timer_create(&timer_args, &timer_);
-    esp_timer_start_periodic(timer_, static_cast<int64_t>(period_ * 1000)); // Convert ms to us
+    esp_timer_start_periodic(
+        timer_, static_cast<int64_t>(period_ * 1000)); // Convert ms to us
     lastTick_ = System::GetInstance()->GetClock();
     running_ = true;
   }
@@ -76,23 +72,20 @@ void NodeTimer::Stop() {
   running_ = false;
 }
 
-float NodeTimer::GetPeriod() {
-  return period_;
-}
+float NodeTimer::GetPeriod() { return period_; }
 
 int64_t NodeTimer::OnTimerTick() {
   if (running_) {
     SetChanged();
     NotifyObservers();
     offset_ += period_;
-    return static_cast<int64_t>(offset_ * 1000); // Return next period in microseconds
+    return static_cast<int64_t>(offset_ *
+                                1000); // Return next period in microseconds
   }
   return 0;
 }
 
-I_Timer *NodeTimerService::CreateTimer() {
-  return new NodeTimer();
-}
+I_Timer *NodeTimerService::CreateTimer() { return new NodeTimer(); }
 
 void NodeTimerService::TriggerCallback(int msec, timerCallback cb) {
   if (cb == nullptr) {
@@ -107,10 +100,7 @@ void NodeTimerService::TriggerCallback(int msec, timerCallback cb) {
   }
 
   esp_timer_create_args_t trigger_args = {
-      .callback = &NodeTriggerCallback,
-      .arg = context,
-      .name = "NodeTrigger"
-  };
+      .callback = &NodeTriggerCallback, .arg = context, .name = "NodeTrigger"};
 
   esp_err_t err = esp_timer_create(&trigger_args, &context->timer);
   if (err != ESP_OK) {

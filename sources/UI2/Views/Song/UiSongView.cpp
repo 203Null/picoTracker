@@ -111,7 +111,8 @@ RectI16 UiSongView::VuDamageRect(std::uint8_t channel) {
   if (channel >= 2U)
     return {};
   return {UiTrackerGridMetrics::VuX(channel), UiTrackerGridMetrics::kVuTop,
-          UiTrackerGridMetrics::kVuChannelWidth, UiTrackerGridMetrics::kVuHeight};
+          UiTrackerGridMetrics::kVuChannelWidth,
+          UiTrackerGridMetrics::kVuHeight};
 }
 
 bool UiSongView::RequiresFullInvalidation(const UiSongViewData &previous,
@@ -242,8 +243,7 @@ void UiSongView::RenderDelta(const UiSongViewData &previous,
   if (previous.adjustmentFocus != current.adjustmentFocus ||
       previous.modeFocus != current.modeFocus ||
       previous.selectionActive != current.selectionActive ||
-      previous.selectionNextExpansionAll !=
-          current.selectionNextExpansionAll ||
+      previous.selectionNextExpansionAll != current.selectionNextExpansionAll ||
       previous.clipboardReady != current.clipboardReady ||
       previous.clipboardPasted != current.clipboardPasted ||
       previous.clipboardWidth != current.clipboardWidth ||
@@ -315,9 +315,9 @@ UiBuildStatus UiSongView::Build(const UiSongViewData &data, UiPalette &palette,
   for (std::uint8_t track = 0; track < 8; ++track) {
     std::array<char, 3> label{'T', static_cast<char>('1' + track), 0};
     builder.GridText(label.data(), kTrackX[track],
-                 UiTrackerGridMetrics::kHeaderTextY,
-                 track == data.editTrack ? UiColorToken::TextColored
-                                         : UiColorToken::TextDim);
+                     UiTrackerGridMetrics::kHeaderTextY,
+                     track == data.editTrack ? UiColorToken::TextColored
+                                             : UiColorToken::TextDim);
   }
 
   if (!data.selectionVisualRect.Empty()) {
@@ -333,8 +333,8 @@ UiBuildStatus UiSongView::Build(const UiSongViewData &data, UiPalette &palette,
     const auto rowLabel =
         HexByte(static_cast<std::uint8_t>(data.rowOffset + row));
     builder.GridText(rowLabel.data(), UiTrackerGridMetrics::kRowLabelX, y,
-                 row == data.editRow ? UiColorToken::TextColored
-                                     : UiColorToken::DerivedTextFaint);
+                     row == data.editRow ? UiColorToken::TextColored
+                                         : UiColorToken::DerivedTextFaint);
     for (std::uint8_t track = 0; track < 8; ++track) {
       const auto value = HexByte(data.rows[row][track]);
       const char *displayValue =
@@ -344,9 +344,9 @@ UiBuildStatus UiSongView::Build(const UiSongViewData &data, UiPalette &palette,
                                                 static_cast<std::int8_t>(row);
       // Chain 00 is valid song data. Only FF (rendered as --) is empty.
       builder.GridText(displayValue, kTrackX[track], y,
-                   data.rows[row][track] == 0xFFU
-                       ? UiColorToken::DerivedTextFaint
-                       : UiColorToken::TextNormal);
+                       data.rows[row][track] == 0xFFU
+                           ? UiColorToken::DerivedTextFaint
+                           : UiColorToken::TextNormal);
       if (playback && !(target && cursorRect == targetRect)) {
         builder.Fill(PlaybackTickRect(track, row),
                      data.mutedTracks[track]
@@ -368,9 +368,8 @@ UiBuildStatus UiSongView::Build(const UiSongViewData &data, UiPalette &palette,
                cursorRect,
                PlaybackTickRect(track, static_cast<std::uint8_t>(playbackRow)))
                .Empty()) {
-        cursorStyle = data.mutedTracks[track]
-                          ? UiSelectionStyle::MutedPlayback
-                          : UiSelectionStyle::Playback;
+        cursorStyle = data.mutedTracks[track] ? UiSelectionStyle::MutedPlayback
+                                              : UiSelectionStyle::Playback;
         if (cursorStyle == UiSelectionStyle::Playback)
           break;
       }
@@ -383,8 +382,8 @@ UiBuildStatus UiSongView::Build(const UiSongViewData &data, UiPalette &palette,
                                    ? "--"
                                    : selectedValue.data();
     builder.GridText(displayValue, kTrackX[data.editTrack],
-                 UiTrackerGridMetrics::RowTextY(data.editRow),
-                 UiColorToken::TextHighlighted);
+                     UiTrackerGridMetrics::RowTextY(data.editRow),
+                     UiColorToken::TextHighlighted);
   }
 
   if (data.showVu) {
@@ -393,7 +392,9 @@ UiBuildStatus UiSongView::Build(const UiSongViewData &data, UiPalette &palette,
     }
     for (std::uint8_t channel = 0; channel < 2; ++channel) {
       const std::int16_t x = UiTrackerGridMetrics::VuX(channel);
-      builder.Fill({x, UiTrackerGridMetrics::kVuTop, UiTrackerGridMetrics::kVuChannelWidth, UiTrackerGridMetrics::kVuHeight},
+      builder.Fill({x, UiTrackerGridMetrics::kVuTop,
+                    UiTrackerGridMetrics::kVuChannelWidth,
+                    UiTrackerGridMetrics::kVuHeight},
                    UiColorToken::DerivedVuTrack);
       const std::uint8_t level =
           UiTrackerGridMetrics::VuLevelTop(data.vuLevelTop[channel]);

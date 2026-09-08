@@ -18,8 +18,7 @@ extern "C" {
 // by the ESP LCD panel. The caller may reuse its buffer when the call returns.
 void display_rgb565_transport_init(void);
 bool display_draw_rgb565_region(uint16_t x, uint16_t y, uint16_t width,
-                                uint16_t height,
-                                const uint16_t *pixels);
+                                uint16_t height, const uint16_t *pixels);
 
 #ifdef __cplusplus
 }

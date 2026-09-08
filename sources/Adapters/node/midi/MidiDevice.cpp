@@ -2,8 +2,7 @@
 #include "MidiDevice.h"
 #include "Adapters/node/hal/nullperator/midi/midi.h"
 
-NodeMidiOutDevice::NodeMidiOutDevice(const char *name)
-    : MidiOutDevice(name) {}
+NodeMidiOutDevice::NodeMidiOutDevice(const char *name) : MidiOutDevice(name) {}
 bool NodeMidiOutDevice::Init() { return true; }
 
 void NodeMidiOutDevice::Close(){};

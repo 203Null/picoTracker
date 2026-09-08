@@ -67,8 +67,7 @@ private:
     text_.fill('\0');
     if (text != nullptr) {
       const std::string_view source{text};
-      const std::size_t count =
-          std::min(source.size(), text_.size() - 1U);
+      const std::size_t count = std::min(source.size(), text_.size() - 1U);
       std::copy_n(source.begin(), count, text_.begin());
     }
     if (text_[0] == '\0') {

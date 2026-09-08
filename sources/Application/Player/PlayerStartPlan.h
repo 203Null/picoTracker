@@ -20,22 +20,21 @@ struct PlayerStartPlan final {
 };
 
 [[nodiscard]] constexpr int ClampPlayerStartIndex(int value,
-                                                   int upperBound) noexcept {
+                                                  int upperBound) noexcept {
   return value < 0 ? 0 : (value > upperBound ? upperBound : value);
 }
 
 template <int ChannelCount, int ChainPositionCount>
-[[nodiscard]] constexpr PlayerStartPlan ResolvePlayerStartPlan(
-    PlayMode mode, bool resumeLastSongPosition, bool stopAtEnd,
-    int requestedChannel, int requestedChainPosition, int fallbackChannel,
-    int fallbackChainPosition) noexcept {
+[[nodiscard]] constexpr PlayerStartPlan
+ResolvePlayerStartPlan(PlayMode mode, bool resumeLastSongPosition,
+                       bool stopAtEnd, int requestedChannel,
+                       int requestedChainPosition, int fallbackChannel,
+                       int fallbackChainPosition) noexcept {
   static_assert(ChannelCount > 0);
   static_assert(ChainPositionCount > 0);
-  const int channel =
-      requestedChannel < 0 ? fallbackChannel : requestedChannel;
-  const int chainPosition = requestedChainPosition < 0
-                                ? fallbackChainPosition
-                                : requestedChainPosition;
+  const int channel = requestedChannel < 0 ? fallbackChannel : requestedChannel;
+  const int chainPosition = requestedChainPosition < 0 ? fallbackChainPosition
+                                                       : requestedChainPosition;
   return {
       resumeLastSongPosition ? PM_SONG : mode,
       resumeLastSongPosition,
@@ -46,13 +45,13 @@ template <int ChannelCount, int ChainPositionCount>
 }
 
 template <int ChannelCount, int ChainPositionCount>
-[[nodiscard]] constexpr PlayerStartPlan ResolveContextStartPlan(
-    PlayMode mode, bool resumeLastSongPosition, bool stopAtEnd,
-    unsigned int channel, unsigned char chainPosition) noexcept {
-  const int boundedChannel =
-      channel < static_cast<unsigned int>(ChannelCount)
-          ? static_cast<int>(channel)
-          : ChannelCount - 1;
+[[nodiscard]] constexpr PlayerStartPlan
+ResolveContextStartPlan(PlayMode mode, bool resumeLastSongPosition,
+                        bool stopAtEnd, unsigned int channel,
+                        unsigned char chainPosition) noexcept {
+  const int boundedChannel = channel < static_cast<unsigned int>(ChannelCount)
+                                 ? static_cast<int>(channel)
+                                 : ChannelCount - 1;
   const int boundedChainPosition =
       chainPosition < static_cast<unsigned int>(ChainPositionCount)
           ? static_cast<int>(chainPosition)

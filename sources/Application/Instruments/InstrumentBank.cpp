@@ -134,8 +134,7 @@ void InstrumentBank::RestoreContent(PersistencyDocument *doc) {
       hasAttr = doc->NextAttribute();
     }
 
-    if (doc->HadError() || !hasId ||
-        !policy.Reserve(id, instrumentType) ||
+    if (doc->HadError() || !hasId || !policy.Reserve(id, instrumentType) ||
         !BeginReplacement(id, instrumentType, staged[id])) {
       Trace::Error("Invalid or exhausted instrument bank entry");
       doc->MarkError();

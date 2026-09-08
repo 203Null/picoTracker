@@ -53,8 +53,8 @@ public:
   [[nodiscard]] bool FillRoundedRect(RectI16 bounds, PaletteIndex color,
                                      PaletteIndex corner,
                                      std::uint8_t radius = 1) {
-    return Push({bounds, 0, UiCommandKind::FillRoundedRect, color, corner,
-                 radius});
+    return Push(
+        {bounds, 0, UiCommandKind::FillRoundedRect, color, corner, radius});
   }
 
   [[nodiscard]] bool FillSelection(RectI16 bounds, PaletteIndex color,
@@ -66,8 +66,8 @@ public:
 
   [[nodiscard]] bool FillVerticalPaletteRamp(RectI16 bounds,
                                              PaletteIndex firstColor) {
-    return Push({bounds, 0, UiCommandKind::FillVerticalPaletteRamp,
-                 firstColor, firstColor, 0});
+    return Push({bounds, 0, UiCommandKind::FillVerticalPaletteRamp, firstColor,
+                 firstColor, 0});
   }
 
   // Each raster column stores startY, length, then four 2-bit coverage levels
@@ -108,8 +108,8 @@ public:
     const std::size_t required =
         bounds.width > 0 && bounds.height > 0
             ? (static_cast<std::size_t>(bounds.width) *
-                       static_cast<std::size_t>(bounds.height) +
-                   7U) /
+                   static_cast<std::size_t>(bounds.height) +
+               7U) /
                   8U
             : 0U;
     if (encoded.size() != required || encoded.size() > 0xFFFFU ||
@@ -132,7 +132,8 @@ public:
 
   [[nodiscard]] bool Text(PointI16 origin, std::string_view text,
                           PaletteIndex color, std::uint8_t scale = 1,
-                          bool preserveCase = false, std::uint8_t letterSpacing = 0) {
+                          bool preserveCase = false,
+                          std::uint8_t letterSpacing = 0) {
     if (text.size() > TextCapacity - textSize_ || text.size() > 255U) {
       overflowed_ = true;
       return false;

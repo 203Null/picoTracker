@@ -32,8 +32,7 @@ constexpr char kLogTag[] = "NODE_UI2";
 DMA_ATTR std::uint16_t
     gUi2TransferPixels[ui2::UiRgb565Presenter::kTransferPixels]{};
 
-[[nodiscard]] bool TimeReached(std::uint32_t nowMs,
-                               std::uint32_t targetMs) {
+[[nodiscard]] bool TimeReached(std::uint32_t nowMs, std::uint32_t targetMs) {
   return static_cast<std::int32_t>(nowMs - targetMs) >= 0;
 }
 
@@ -124,8 +123,7 @@ bool NodeUi2Platform::Start(ui2::Ui2StartupOptions startup) {
   xEventGroupClearBits(taskEvents_, kApplicationStoppedBit);
   if (xTaskCreatePinnedToCore(ApplicationTaskEntry, "UI2 Application",
                               kApplicationTaskStackBytes, this,
-                              tskIDLE_PRIORITY + 1, nullptr, 0) !=
-      pdPASS) {
+                              tskIDLE_PRIORITY + 1, nullptr, 0) != pdPASS) {
     ESP_LOGE(kLogTag, "Failed to create UI2 application task");
     xEventGroupSetBits(taskEvents_, kApplicationStoppedBit);
     runRequested_.store(false, std::memory_order_release);
@@ -134,9 +132,9 @@ bool NodeUi2Platform::Start(ui2::Ui2StartupOptions startup) {
   }
 
   xEventGroupClearBits(taskEvents_, kInputStoppedBit);
-  if (xTaskCreatePinnedToCore(InputTaskEntry, "UI2 Input",
-                              kInputTaskStackBytes, this,
-                              tskIDLE_PRIORITY + 2, nullptr, 0) != pdPASS) {
+  if (xTaskCreatePinnedToCore(InputTaskEntry, "UI2 Input", kInputTaskStackBytes,
+                              this, tskIDLE_PRIORITY + 2, nullptr,
+                              0) != pdPASS) {
     ESP_LOGE(kLogTag, "Failed to create UI2 input task");
     xEventGroupSetBits(taskEvents_, kInputStoppedBit);
     RequestStop();
@@ -165,20 +163,22 @@ bool NodeUi2Platform::WaitForStop(std::uint32_t timeoutMs) {
     return true;
   const TickType_t timeoutTicks =
       timeoutMs == UINT32_MAX ? portMAX_DELAY : pdMS_TO_TICKS(timeoutMs);
-  const EventBits_t bits = xEventGroupWaitBits(
-      taskEvents_, kAllStoppedBits, pdFALSE, pdTRUE, timeoutTicks);
+  const EventBits_t bits = xEventGroupWaitBits(taskEvents_, kAllStoppedBits,
+                                               pdFALSE, pdTRUE, timeoutTicks);
   return (bits & kAllStoppedBits) == kAllStoppedBits;
 }
 
-ui2::PresentResult NodeUi2Platform::Present(
-    const ui2::UiIndexedSurface &surface, const ui2::UiPalette &palette,
-    std::span<const ui2::DirtyStrip> strips) {
+ui2::PresentResult
+NodeUi2Platform::Present(const ui2::UiIndexedSurface &surface,
+                         const ui2::UiPalette &palette,
+                         std::span<const ui2::DirtyStrip> strips) {
   return rgb565Presenter_.Present(surface, palette, strips);
 }
 
-bool NodeUi2Platform::WriteRgb565Chunk(
-    void *, std::uint16_t x, std::uint16_t y, std::uint16_t width,
-    std::uint16_t height, const std::uint16_t *pixels) {
+bool NodeUi2Platform::WriteRgb565Chunk(void *, std::uint16_t x, std::uint16_t y,
+                                       std::uint16_t width,
+                                       std::uint16_t height,
+                                       const std::uint16_t *pixels) {
   return display_draw_rgb565_region(x, y, width, height, pixels);
 }
 
@@ -234,8 +234,7 @@ void NodeUi2Platform::ApplyHeadphoneRoute(bool connected) {
   switch_audio_mode(headphone_out);
   switch_speaker_mode(!connected);
   (void)audio_codec_set_volume(volume);
-  ESP_LOGI(kLogTag, "Audio routed to %s",
-           connected ? "headphones" : "speaker");
+  ESP_LOGI(kLogTag, "Audio routed to %s", connected ? "headphones" : "speaker");
 }
 
 void NodeUi2Platform::PollMidi() {
@@ -276,8 +275,7 @@ void NodeUi2Platform::RunApplicationTask() {
   }
 
   application_ = std::construct_at(
-      static_cast<ui2::Ui2TrackerApplication *>(applicationStorage_),
-      *this);
+      static_cast<ui2::Ui2TrackerApplication *>(applicationStorage_), *this);
   ui2::Ui2StartupOptions startup = startup_;
   startup.forceUntitledProject =
       startup.forceUntitledProject ||
@@ -325,15 +323,16 @@ void NodeUi2Platform::RunApplicationTask() {
     if (TimeReached(nowMs, nextMemoryReportMs)) {
       constexpr auto internal = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
       constexpr auto external = MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT;
-      ESP_LOGI("MEMORY_PERF",
-               "uptime_ms=%lu internal_free=%u internal_largest=%u "
-               "internal_min=%u psram_free=%u psram_largest=%u",
-               static_cast<unsigned long>(nowMs),
-               static_cast<unsigned>(heap_caps_get_free_size(internal)),
-               static_cast<unsigned>(heap_caps_get_largest_free_block(internal)),
-               static_cast<unsigned>(heap_caps_get_minimum_free_size(internal)),
-               static_cast<unsigned>(heap_caps_get_free_size(external)),
-               static_cast<unsigned>(heap_caps_get_largest_free_block(external)));
+      ESP_LOGI(
+          "MEMORY_PERF",
+          "uptime_ms=%lu internal_free=%u internal_largest=%u "
+          "internal_min=%u psram_free=%u psram_largest=%u",
+          static_cast<unsigned long>(nowMs),
+          static_cast<unsigned>(heap_caps_get_free_size(internal)),
+          static_cast<unsigned>(heap_caps_get_largest_free_block(internal)),
+          static_cast<unsigned>(heap_caps_get_minimum_free_size(internal)),
+          static_cast<unsigned>(heap_caps_get_free_size(external)),
+          static_cast<unsigned>(heap_caps_get_largest_free_block(external)));
       nextMemoryReportMs = nowMs + 30000U;
     }
     if (TimeReached(nowMs, nextAudioReportMs)) {
@@ -382,8 +381,7 @@ void NodeUi2Platform::RunInputTask() {
   while (runRequested_.load(std::memory_order_acquire)) {
     stackTelemetry.Poll();
     bool headphoneConnected = false;
-    const std::uint16_t heldMask =
-        ReadPhysicalHeldMask(&headphoneConnected);
+    const std::uint16_t heldMask = ReadPhysicalHeldMask(&headphoneConnected);
     PublishInputSample(heldMask, headphoneConnected, millis());
     vTaskDelayUntil(&wake, pdMS_TO_TICKS(kInputScanMs));
   }

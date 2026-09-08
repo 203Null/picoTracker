@@ -52,8 +52,9 @@ public:
 
   // Native Node services (System/FileSystem/MIDI/Audio/SamplePool) and hardware
   // must already be installed by the UI2-only boot path. Do not call legacy
-  // NodeSystem::Boot just for this class: it constructs GUIFactory/EventManager.
-  // State::Running means Ui2TrackerApplication::Init completed on its owner.
+  // NodeSystem::Boot just for this class: it constructs
+  // GUIFactory/EventManager. State::Running means Ui2TrackerApplication::Init
+  // completed on its owner.
   [[nodiscard]] bool Start(ui2::Ui2StartupOptions startup = {});
   void RequestStop();
   // Wait until every task has published its stopped bit. Callers must complete
@@ -65,9 +66,9 @@ public:
     return state_.load(std::memory_order_acquire);
   }
 
-  ui2::PresentResult
-  Present(const ui2::UiIndexedSurface &surface, const ui2::UiPalette &palette,
-          std::span<const ui2::DirtyStrip> strips) override;
+  ui2::PresentResult Present(const ui2::UiIndexedSurface &surface,
+                             const ui2::UiPalette &palette,
+                             std::span<const ui2::DirtyStrip> strips) override;
 
 private:
   static constexpr std::uint32_t kApplicationTaskStackBytes = 16U * 1024U;
@@ -80,9 +81,8 @@ private:
 
   static void ApplicationTaskEntry(void *context);
   static void InputTaskEntry(void *context);
-  static bool WriteRgb565Chunk(void *context, std::uint16_t x,
-                               std::uint16_t y, std::uint16_t width,
-                               std::uint16_t height,
+  static bool WriteRgb565Chunk(void *context, std::uint16_t x, std::uint16_t y,
+                               std::uint16_t width, std::uint16_t height,
                                const std::uint16_t *pixels);
 
   void RunApplicationTask();

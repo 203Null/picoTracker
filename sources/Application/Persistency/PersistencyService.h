@@ -34,17 +34,15 @@ enum PersistencyResult {
 // cannot distinguish a crash before the new session commits from one after it
 // commits.  These files live at the filesystem root, outside the user project
 // namespace.
-#define STAGING_TRANSACTION_PENDING_FILE                                    \
+#define STAGING_TRANSACTION_PENDING_FILE                                       \
   "/.picotracker-untitled-session-pending"
-#define STAGING_TRANSACTION_PENDING_TEMP_FILE                               \
+#define STAGING_TRANSACTION_PENDING_TEMP_FILE                                  \
   "/.picotracker-untitled-session-pending.tmp"
-#define STAGING_TRANSACTION_COMMIT_FILE                                     \
-  "/.picotracker-untitled-session-commit"
-#define STAGING_TRANSACTION_COMMIT_TEMP_FILE                                \
+#define STAGING_TRANSACTION_COMMIT_FILE "/.picotracker-untitled-session-commit"
+#define STAGING_TRANSACTION_COMMIT_TEMP_FILE                                   \
   "/.picotracker-untitled-session-commit.tmp"
-#define STAGING_TRANSACTION_PURGE_FILE                                      \
-  "/.picotracker-untitled-session-purge"
-#define STAGING_TRANSACTION_PURGE_TEMP_FILE                                 \
+#define STAGING_TRANSACTION_PURGE_FILE "/.picotracker-untitled-session-purge"
+#define STAGING_TRANSACTION_PURGE_TEMP_FILE                                    \
   "/.picotracker-untitled-session-purge.tmp"
 // Each prefix alone is longer than MAX_PROJECT_NAME_LENGTH, so no project
 // created by older firmware can ever collide with transaction directories.
@@ -123,24 +121,21 @@ private:
   LoadProjectJournalBackup_(const char *projectName, bool autosave,
                             bool allowStaging);
   [[nodiscard]] bool PromoteProjectJournalBackup_(const char *projectName,
-                                                   bool autosave,
-                                                   bool allowStaging);
+                                                  bool autosave,
+                                                  bool allowStaging);
   [[nodiscard]] bool FinalizeProjectJournal_(const char *projectName,
-                                              bool autosave,
-                                              bool allowStaging);
+                                             bool autosave, bool allowStaging);
   [[nodiscard]] PersistencyResult Save_(const char *projectName,
-                                        const char *oldProjectName,
-                                        bool saveAs, bool allowStaging);
+                                        const char *oldProjectName, bool saveAs,
+                                        bool allowStaging);
   [[nodiscard]] PersistencyResult
   SaveProjectState_(const char *projectName, bool allowStaging,
                     bool retainPreviousBackup = false,
                     const char *previousProjectName = nullptr);
-  [[nodiscard]] PersistencyResult
-  AutoSaveProjectData_(const char *projectName, bool allowStaging);
-  [[nodiscard]] bool ClearAutosave_(const char *projectName,
-                                    bool allowStaging);
-  [[nodiscard]] bool DeleteProject_(const char *projectName,
-                                    bool allowStaging);
+  [[nodiscard]] PersistencyResult AutoSaveProjectData_(const char *projectName,
+                                                       bool allowStaging);
+  [[nodiscard]] bool ClearAutosave_(const char *projectName, bool allowStaging);
+  [[nodiscard]] bool DeleteProject_(const char *projectName, bool allowStaging);
   [[nodiscard]] bool CopyProjectSamples_(const char *sourceProject,
                                          const char *targetProject);
   [[nodiscard]] PersistencyResult SaveAsProject_(const char *projectName,
@@ -156,15 +151,15 @@ private:
   [[nodiscard]] bool RollbackStagingProjectReplacement_(bool hadPrevious);
   [[nodiscard]] bool HasCommittedStagingProjectReplacement_();
   [[nodiscard]] bool FinalizeCommittedStagingProjectReplacement_();
-  [[nodiscard]] bool RollbackCommittedStagingProjectReplacement_(
-      char *previousProjectName);
+  [[nodiscard]] bool
+  RollbackCommittedStagingProjectReplacement_(char *previousProjectName);
   [[nodiscard]] bool CompleteStagingProjectPurge_();
   [[nodiscard]] bool ClearStagingTransactionMarkers_();
   [[nodiscard]] bool WriteStagingTransactionMarker_(const char *path,
-                                                     const char *tempPath,
-                                                     const char *contents);
+                                                    const char *tempPath,
+                                                    const char *contents);
   [[nodiscard]] bool HasStagingTransactionMarker_(const char *path,
-                                                   const char *contents);
+                                                  const char *contents);
   [[nodiscard]] bool ReadStagingPendingMarker_(bool &hadPrevious,
                                                char *previousProjectName);
   PersistencyResult CreateProjectDirs_(const char *projectName);
@@ -173,13 +168,16 @@ private:
   PersistencyResult SaveProjectData(const char *projectName, bool autosave,
                                     bool allowStaging = false);
   PersistencyResult SaveProjectFile_(const char *path);
-  [[nodiscard]] PersistencyResult SaveProjectFileAtomically_(
-      const char *projectName, const char *filename, const char *tempFilename,
-      const char *backupFilename, bool allowStaging);
+  [[nodiscard]] PersistencyResult
+  SaveProjectFileAtomically_(const char *projectName, const char *filename,
+                             const char *tempFilename,
+                             const char *backupFilename, bool allowStaging);
   [[nodiscard]] PersistencyResult ValidateProjectFile_(const char *path);
-  [[nodiscard]] bool RecoverProjectFileJournal_(
-      const char *projectName, const char *filename, const char *tempFilename,
-      const char *backupFilename, bool allowStaging);
+  [[nodiscard]] bool RecoverProjectFileJournal_(const char *projectName,
+                                                const char *filename,
+                                                const char *tempFilename,
+                                                const char *backupFilename,
+                                                bool allowStaging);
   [[nodiscard]] bool RecoverBaseJournal_(const char *projectName,
                                          bool allowStaging);
   [[nodiscard]] bool RecoverAutosaveJournal_(const char *projectName,

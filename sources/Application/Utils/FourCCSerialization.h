@@ -84,8 +84,7 @@ public:
 
     switch (mode_) {
     case Mode::Byte:
-      output_[totalBytes_] =
-          FourCC(static_cast<FourCC::enum_type>(byte));
+      output_[totalBytes_] = FourCC(static_cast<FourCC::enum_type>(byte));
       break;
     case Mode::Le16:
       ConsumeLe16Byte(byte);
@@ -182,8 +181,7 @@ private:
       const std::uint8_t high = RawByte(offset + 1U);
       output_[index] = DecodeLe16(low, high);
     }
-    std::fill(output_ + words, output_ + count_,
-              FourCC::InstrumentCommandNone);
+    std::fill(output_ + words, output_ + count_, FourCC::InstrumentCommandNone);
     decodedCount_ = words;
     wordCount_ = hasPending ? 1U : 0U;
     if (hasPending)
@@ -196,13 +194,12 @@ private:
     const std::size_t words = rawCount / 4U;
     for (std::size_t index = 0; index < words; ++index) {
       const std::size_t offset = index * 4U;
-      const std::uint8_t bytes[4] = {
-          RawByte(offset), RawByte(offset + 1U), RawByte(offset + 2U),
-          RawByte(offset + 3U)};
+      const std::uint8_t bytes[4] = {RawByte(offset), RawByte(offset + 1U),
+                                     RawByte(offset + 2U),
+                                     RawByte(offset + 3U)};
       output_[index] = DecodeLe32(bytes);
     }
-    std::fill(output_ + words, output_ + count_,
-              FourCC::InstrumentCommandNone);
+    std::fill(output_ + words, output_ + count_, FourCC::InstrumentCommandNone);
     decodedCount_ = words;
     wordCount_ = 0U;
     mode_ = Mode::Le32;
@@ -212,20 +209,17 @@ private:
     // A LE32 value decoded provisionally as LE16 appears as [command, ARP]:
     // its upper 16-bit word is exactly zero, and command 0 is ARP.
     const bool hasLowWord = (decodedCount_ & 1U) != 0U;
-    const FourCC lowWord =
-        hasLowWord ? output_[decodedCount_ - 1U]
-                   : FourCC(FourCC::InstrumentCommandNone);
+    const FourCC lowWord = hasLowWord ? output_[decodedCount_ - 1U]
+                                      : FourCC(FourCC::InstrumentCommandNone);
     const std::size_t words = decodedCount_ / 2U;
     for (std::size_t index = 0; index < words; ++index) {
       const FourCC low = output_[index * 2U];
       const FourCC high = output_[index * 2U + 1U];
-      output_[index] =
-          static_cast<std::uint8_t>(high.get_value()) == 0U
-              ? low
-              : FourCC(FourCC::InstrumentCommandNone);
+      output_[index] = static_cast<std::uint8_t>(high.get_value()) == 0U
+                           ? low
+                           : FourCC(FourCC::InstrumentCommandNone);
     }
-    std::fill(output_ + words, output_ + count_,
-              FourCC::InstrumentCommandNone);
+    std::fill(output_ + words, output_ + count_, FourCC::InstrumentCommandNone);
     decodedCount_ = words;
     wordCount_ = 0U;
     if (hasLowWord) {

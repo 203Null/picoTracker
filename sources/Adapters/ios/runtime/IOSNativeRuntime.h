@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
-#include <array>
 #include <memory>
 #include <string>
 #include <vector>

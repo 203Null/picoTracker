@@ -15,7 +15,7 @@
 
 class AudioModule {
 public:
-  virtual ~AudioModule() {};
+  virtual ~AudioModule(){};
   virtual bool Render(fixed *buffer, int samplecount) = 0;
 };
 

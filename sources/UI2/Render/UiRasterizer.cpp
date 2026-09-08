@@ -13,9 +13,8 @@ namespace ui2 {
 namespace {
 
 void RenderTextCommand(const UiCommand &command, const UiCommandStream &stream,
-                       UiIndexedSurface &surface, PointI16 origin,
-                       RectI16 clip, UiTextCaseMode textCase,
-                       PaletteIndex color) {
+                       UiIndexedSurface &surface, PointI16 origin, RectI16 clip,
+                       UiTextCaseMode textCase, PaletteIndex color) {
   const std::size_t length = command.auxiliaryColor;
   if (command.payload > stream.text.size() ||
       length > stream.text.size() - command.payload) {
@@ -31,12 +30,12 @@ void RenderTextCommand(const UiCommand &command, const UiCommandStream &stream,
   PointI16 glyphOrigin{bounds.x, bounds.y};
   const std::uint8_t scale = command.parameter & 0x7FU;
   const bool preserveCase = (command.parameter & 0x80U) != 0U;
-  const auto advance = length > 1U
-      ? (bounds.width - UiFont5x7::kGlyphWidth * scale) / (length - 1U)
-      : UiFont5x7::kAdvance * scale;
+  const auto advance =
+      length > 1U
+          ? (bounds.width - UiFont5x7::kGlyphWidth * scale) / (length - 1U)
+          : UiFont5x7::kAdvance * scale;
   bool wordStart = true;
-  for (const char character :
-       stream.text.subspan(command.payload, length)) {
+  for (const char character : stream.text.subspan(command.payload, length)) {
     char displayed = character;
     const bool lower = displayed >= 'a' && displayed <= 'z';
     const bool upper = displayed >= 'A' && displayed <= 'Z';
@@ -50,10 +49,9 @@ void RenderTextCommand(const UiCommand &command, const UiCommandStream &stream,
     } else if (!lower && !upper && displayed != '_' && displayed != '-') {
       wordStart = true;
     }
-    surface.DrawGlyph5x7(glyphOrigin, UiFont5x7::Glyph(displayed), color,
-                         scale, clip);
-    glyphOrigin.x = static_cast<std::int16_t>(
-        glyphOrigin.x + advance);
+    surface.DrawGlyph5x7(glyphOrigin, UiFont5x7::Glyph(displayed), color, scale,
+                         clip);
+    glyphOrigin.x = static_cast<std::int16_t>(glyphOrigin.x + advance);
   }
 }
 
@@ -87,10 +85,9 @@ void RenderPixelMaskCommand(const UiCommand &command,
   const RectI16 visible = Intersect(bounds, clip);
   for (std::int16_t y = visible.y; y < visible.Bottom(); ++y) {
     for (std::int16_t x = visible.x; x < visible.Right(); ++x) {
-      const std::size_t bit =
-          static_cast<std::size_t>(y - bounds.y) *
-              static_cast<std::size_t>(bounds.width) +
-          static_cast<std::size_t>(x - bounds.x);
+      const std::size_t bit = static_cast<std::size_t>(y - bounds.y) *
+                                  static_cast<std::size_t>(bounds.width) +
+                              static_cast<std::size_t>(x - bounds.x);
       if ((byteAt(data + bit / 8U) & (1U << (bit % 8U))) != 0U)
         surface.SetPixel(x, y, color);
     }
@@ -113,16 +110,15 @@ void UiRasterizer::Render(UiCommandStream stream, UiIndexedSurface &surface,
       surface.FillRect(bounds, command.color, clip);
       break;
     case UiCommandKind::FillRoundedRect:
-      surface.FillRoundedRect(bounds, command.color,
-                              command.auxiliaryColor,
+      surface.FillRoundedRect(bounds, command.color, command.auxiliaryColor,
                               command.parameter, clip);
       break;
     case UiCommandKind::FillCoverageRoundedRect:
       if (palette != nullptr) {
         surface.FillCoverageRoundedRect(
             bounds, command.color, *palette,
-            static_cast<UiCoverage>(command.auxiliaryColor),
-            command.parameter, clip);
+            static_cast<UiCoverage>(command.auxiliaryColor), command.parameter,
+            clip);
       } else {
         surface.FillRoundedRect(bounds, command.color, command.color,
                                 command.parameter, clip);
@@ -140,10 +136,9 @@ void UiRasterizer::Render(UiCommandStream stream, UiIndexedSurface &surface,
       const std::int16_t lastRow =
           static_cast<std::int16_t>(visibleRamp.Bottom() - bounds.y);
       for (std::int16_t row = firstRow; row < lastRow; ++row) {
-        surface.FillRect(
-            {bounds.x, static_cast<std::int16_t>(bounds.y + row), bounds.width,
-             1},
-            static_cast<PaletteIndex>(command.color + row), clip);
+        surface.FillRect({bounds.x, static_cast<std::int16_t>(bounds.y + row),
+                          bounds.width, 1},
+                         static_cast<PaletteIndex>(command.color + row), clip);
       }
       break;
     }
@@ -160,21 +155,24 @@ void UiRasterizer::Render(UiCommandStream stream, UiIndexedSurface &surface,
           static_cast<std::size_t>(byteAt(command.payload)) |
           (static_cast<std::size_t>(byteAt(command.payload + 1U)) << 8U);
       std::size_t cursor = command.payload + 2U;
-      if (length > stream.text.size() - cursor) break;
+      if (length > stream.text.size() - cursor)
+        break;
       const std::size_t end = cursor + length;
       for (std::int16_t column = 0; column < command.bounds.width; ++column) {
-        if (end - cursor < 2U) break;
+        if (end - cursor < 2U)
+          break;
         const std::uint8_t startY = byteAt(cursor++);
         const std::uint8_t runLength = byteAt(cursor++);
-        if (startY == 0xFFU && runLength == 0U) continue;
+        if (startY == 0xFFU && runLength == 0U)
+          continue;
         if (startY >= command.bounds.height || runLength == 0U ||
             runLength > command.bounds.height - startY) {
           break;
         }
         const std::size_t packedLength = (runLength + 3U) / 4U;
-        if (packedLength > end - cursor) break;
-        const std::int16_t x =
-            static_cast<std::int16_t>(bounds.x + column);
+        if (packedLength > end - cursor)
+          break;
+        const std::int16_t x = static_cast<std::int16_t>(bounds.x + column);
         for (std::uint8_t row = 0; row < runLength; ++row) {
           const std::uint8_t packed = byteAt(cursor + row / 4U);
           const std::uint8_t quarterCoverage = static_cast<std::uint8_t>(
@@ -217,10 +215,8 @@ void UiRasterizer::Render(UiCommandStream stream, UiIndexedSurface &surface,
     if (selection.kind != UiCommandKind::FillCoverageRoundedRect)
       continue;
     RectI16 selectionBounds = selection.bounds;
-    selectionBounds.x =
-        static_cast<std::int16_t>(selectionBounds.x + origin.x);
-    selectionBounds.y =
-        static_cast<std::int16_t>(selectionBounds.y + origin.y);
+    selectionBounds.x = static_cast<std::int16_t>(selectionBounds.x + origin.x);
+    selectionBounds.y = static_cast<std::int16_t>(selectionBounds.y + origin.y);
     const RectI16 selectionClip = Intersect(selectionBounds, clip);
     if (selectionClip.Empty())
       continue;

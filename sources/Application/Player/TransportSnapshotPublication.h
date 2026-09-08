@@ -64,8 +64,7 @@ public:
   [[nodiscard]] Snapshot Capture() const noexcept {
     WordArray words{};
     for (;;) {
-      const std::uint32_t before =
-          sequence_.load(std::memory_order_acquire);
+      const std::uint32_t before = sequence_.load(std::memory_order_acquire);
       if ((before & 1U) != 0U)
         continue;
 
@@ -84,8 +83,7 @@ public:
 
 private:
   static constexpr std::size_t kWordCount =
-      (sizeof(Snapshot) + sizeof(std::uint32_t) - 1U) /
-      sizeof(std::uint32_t);
+      (sizeof(Snapshot) + sizeof(std::uint32_t) - 1U) / sizeof(std::uint32_t);
   using WordArray = std::array<std::uint32_t, kWordCount>;
 
   std::array<std::atomic<std::uint32_t>, kWordCount> payload_{};

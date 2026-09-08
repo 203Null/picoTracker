@@ -28,8 +28,7 @@ constexpr std::array<std::string_view, 3> kSampleFilterModeOptions{
 constexpr std::array<std::string_view, 2> kSampleInterpolationOptions{"LINEAR",
                                                                       "NONE"};
 constexpr std::array<std::string_view, 9> kSidWaveformOptions{
-    "--", "A", "/", "A/", "PULSE", "A PULSE", "/ PULSE",
-    "A/ PULSE", "NOISE"};
+    "--", "A", "/", "A/", "PULSE", "A PULSE", "/ PULSE", "A/ PULSE", "NOISE"};
 constexpr std::array<std::string_view, 4> kSidFilterOptions{"LP", "BP", "HP",
                                                             "NOTCH"};
 constexpr std::array<std::string_view, 2> kOpalAlgorithmOptions{"1*2", "1+2"};
@@ -38,8 +37,7 @@ constexpr std::array<std::string_view, 8> kOpalWaveOptions{
 constexpr std::array<std::string_view, 4> kOpalKeyscaleOptions{"0", "1.5", "3",
                                                                "6"};
 
-std::span<const std::string_view>
-OptionsFor(UiInstrumentFieldOptions options) {
+std::span<const std::string_view> OptionsFor(UiInstrumentFieldOptions options) {
   switch (options) {
   case UiInstrumentFieldOptions::Boolean:
     return kBooleanOptions;
@@ -93,8 +91,8 @@ RectI16 ExpandedCursorDamage(RectI16 rect) {
 }
 
 void DrawField(UiSceneBuilder<256, 1024> &builder, std::string_view label,
-               std::string_view value, std::int16_t y,
-               UiColorToken valueColor, bool userData = false) {
+               std::string_view value, std::int16_t y, UiColorToken valueColor,
+               bool userData = false) {
   builder.Text(label, 9, y, UiColorToken::TextDim);
   if (userData)
     builder.UserText(value, 92, y, valueColor);
@@ -123,29 +121,24 @@ SelectedValueLayout SelectedValue(const UiInstrumentViewData &data) {
   if (data.cursor == UiInstrumentCursor::Field &&
       data.selectedField < data.fieldCount) {
     const UiInstrumentField &field = data.fields[data.selectedField];
-    return {.text = field.value,
-            .x = 92,
-            .y = field.y,
-            .userData = field.userData};
+    return {
+        .text = field.value, .x = 92, .y = field.y, .userData = field.userData};
   }
   if ((data.cursor == UiInstrumentCursor::Operator1 ||
        data.cursor == UiInstrumentCursor::Operator2) &&
       data.selectedOperator < data.operatorCount) {
-    const UiInstrumentOperatorRow &row =
-        data.operators[data.selectedOperator];
+    const UiInstrumentOperatorRow &row = data.operators[data.selectedOperator];
     return {.text = data.cursor == UiInstrumentCursor::Operator1 ? row.op1
-                                                                  : row.op2,
+                                                                 : row.op2,
             .x = static_cast<std::int16_t>(
                 data.cursor == UiInstrumentCursor::Operator1 ? 144 : 190),
-            .y = static_cast<std::int16_t>(144 +
-                                           data.selectedOperator * 9)};
+            .y = static_cast<std::int16_t>(144 + data.selectedOperator * 9)};
   }
   return {};
 }
 
 bool SelectedSubfield(const UiInstrumentViewData &data,
-                      SelectedValueLayout &layout,
-                      std::uint8_t &textIndex) {
+                      SelectedValueLayout &layout, std::uint8_t &textIndex) {
   if (!data.enterSubfieldFocus)
     return false;
   layout = SelectedValue(data);
@@ -160,7 +153,8 @@ bool SelectedSubfield(const UiInstrumentViewData &data,
 bool BottomVisible(const UiInstrumentViewData &data) {
   return data.numberFocus || data.adjustmentFocus ||
          (data.kind == UiInstrumentKind::Drum &&
-          data.cursor == UiInstrumentCursor::Field && data.selectedField < 12U) ||
+          data.cursor == UiInstrumentCursor::Field &&
+          data.selectedField < 12U) ||
          data.cursor == UiInstrumentCursor::Name ||
          data.cursor == UiInstrumentCursor::Type ||
          data.fieldBottom != UiInstrumentFieldBottom::Hidden;
@@ -172,8 +166,8 @@ RectI16 UiInstrumentView::CursorTargetRect(const UiInstrumentViewData &data) {
   SelectedValueLayout layout;
   std::uint8_t textIndex = 0U;
   if (SelectedSubfield(data, layout, textIndex)) {
-    return {static_cast<std::int16_t>(
-                layout.x + textIndex * UiFont5x7::kAdvance - 2),
+    return {static_cast<std::int16_t>(layout.x +
+                                      textIndex * UiFont5x7::kAdvance - 2),
             static_cast<std::int16_t>(layout.y - 1),
             static_cast<std::int16_t>(UiFont5x7::kGlyphWidth + 4), 9};
   }
@@ -205,22 +199,20 @@ RectI16 UiInstrumentView::CursorTargetRect(const UiInstrumentViewData &data) {
   return {};
 }
 
-std::int16_t UiInstrumentView::ContentBottom(
-    const UiInstrumentViewData &data) {
+std::int16_t UiInstrumentView::ContentBottom(const UiInstrumentViewData &data) {
   std::int16_t bottom = 63;
   for (std::uint8_t index = 0; index < data.fieldCount; ++index) {
-    bottom = std::max(bottom,
-                      static_cast<std::int16_t>(data.fields[index].y + 8));
+    bottom =
+        std::max(bottom, static_cast<std::int16_t>(data.fields[index].y + 8));
   }
   for (std::uint8_t index = 0; index < data.operatorCount; ++index) {
-    bottom = std::max(bottom,
-                      static_cast<std::int16_t>(151 + index * 9));
+    bottom = std::max(bottom, static_cast<std::int16_t>(151 + index * 9));
   }
   return bottom;
 }
 
-std::int16_t UiInstrumentView::RevealCursor(
-    std::int16_t currentOffset, const UiInstrumentViewData &data) {
+std::int16_t UiInstrumentView::RevealCursor(std::int16_t currentOffset,
+                                            const UiInstrumentViewData &data) {
   const std::int16_t viewportBottom = BottomVisible(data) ? 208 : 240;
   return UiVerticalList::Reveal(currentOffset, CursorTargetRect(data), 34,
                                 viewportBottom, ContentBottom(data));
@@ -268,17 +260,16 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
   const bool contentRedrawn = previous.scrollOffset != current.scrollOffset;
   if (contentRedrawn) {
     render({0, 34, 240,
-            static_cast<std::int16_t>(currentScene.bottomVisible ? 174
-                                                                 : 206)});
+            static_cast<std::int16_t>(currentScene.bottomVisible ? 174 : 206)});
   }
   if (!contentRedrawn && previous.name != current.name)
     render(contentRect(FieldDamageRect(42)));
 
   const RectI16 oldCursor = contentRect(ResolvedCursorRect(previous));
   const RectI16 newCursor = contentRect(ResolvedCursorRect(current));
-  if (!contentRedrawn && (oldCursor != newCursor ||
-                          previous.cursorInkVisible !=
-                              current.cursorInkVisible)) {
+  if (!contentRedrawn &&
+      (oldCursor != newCursor ||
+       previous.cursorInkVisible != current.cursorInkVisible)) {
     render(ExpandedCursorDamage(oldCursor));
     render(ExpandedCursorDamage(newCursor));
     render(contentRect(FieldDamageRect(42)));
@@ -290,8 +281,8 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
       render(contentRect(FieldDamageRect(current.fields[index].y)));
     }
   }
-  for (std::uint8_t index = 0;
-       !contentRedrawn && index < current.operatorCount; ++index) {
+  for (std::uint8_t index = 0; !contentRedrawn && index < current.operatorCount;
+       ++index) {
     if (previous.operators[index] != current.operators[index]) {
       render(contentRect(
           FieldDamageRect(static_cast<std::int16_t>(144 + index * 9))));
@@ -317,14 +308,12 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
     render({0, 208, 240, 32});
   }
   const auto operatorHeader = [](UiInstrumentCursor cursor) {
-    return cursor == UiInstrumentCursor::Operator1
-               ? 1
-           : cursor == UiInstrumentCursor::Operator2
-               ? 2
-               : 0;
+    return cursor == UiInstrumentCursor::Operator1   ? 1
+           : cursor == UiInstrumentCursor::Operator2 ? 2
+                                                     : 0;
   };
-  if (!contentRedrawn && operatorHeader(previous.cursor) !=
-                             operatorHeader(current.cursor)) {
+  if (!contentRedrawn &&
+      operatorHeader(previous.cursor) != operatorHeader(current.cursor)) {
     render(contentRect(FieldDamageRect(132)));
   }
 }
@@ -335,8 +324,7 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
   scene.topHeight = 34;
   scene.bottomTop = 208;
   scene.contentOffsetY = UiVerticalList::Clamp(
-      data.scrollOffset, BottomVisible(data) ? 208 : 240,
-      ContentBottom(data));
+      data.scrollOffset, BottomVisible(data) ? 208 : 240, ContentBottom(data));
   scene.topBackground = UiColorToken::SurfaceTopBar;
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
 
@@ -363,16 +351,19 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     bottom.selector.current = static_cast<std::uint8_t>(data.kind);
     bottom.selector.wrap = true;
   } else if (data.kind == UiInstrumentKind::Drum &&
-             data.cursor == UiInstrumentCursor::Field && data.selectedField < 12U) {
+             data.cursor == UiInstrumentCursor::Field &&
+             data.selectedField < 12U) {
     bottom.kind = UiBottomBarKind::Context;
     constexpr std::string_view legend = "PITCH / NOTE / DECAY / WAVE";
     constexpr std::string_view hint = "ONE SOUND PER NOTE";
     bottom.context.firstLine[0] = {
         legend, UiColorToken::TextColored,
-        static_cast<std::int16_t>((240 - UiFont5x7::TextWidth(legend.size())) / 2)};
+        static_cast<std::int16_t>((240 - UiFont5x7::TextWidth(legend.size())) /
+                                  2)};
     bottom.context.secondLine[0] = {
         hint, UiColorToken::TextNormal,
-        static_cast<std::int16_t>((240 - UiFont5x7::TextWidth(hint.size())) / 2)};
+        static_cast<std::int16_t>((240 - UiFont5x7::TextWidth(hint.size())) /
+                                  2)};
     bottom.context.firstLineCount = 1;
     bottom.context.secondLineCount = 1;
   } else if (data.fieldBottom == UiInstrumentFieldBottom::Open) {
@@ -381,15 +372,14 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     bottom.actions.count = 1;
   } else if (data.fieldBottom == UiInstrumentFieldBottom::Adjustment) {
     bottom.kind = UiBottomBarKind::AdjustmentLegend;
-    bottom.adjustment = {.fineStep = data.adjustmentFineStep,
-                         .coarseStep = data.adjustmentCoarseStep,
-                         .coarseOctave = data.adjustmentNote,
-                         .fineLabel = data.adjustmentNote
-                                          ? std::string_view("NOTE")
-                                          : std::string_view{},
-                         .coarseLabel = data.adjustmentNote
-                                            ? std::string_view("OCT")
-                                            : std::string_view{}};
+    bottom.adjustment = {
+        .fineStep = data.adjustmentFineStep,
+        .coarseStep = data.adjustmentCoarseStep,
+        .coarseOctave = data.adjustmentNote,
+        .fineLabel =
+            data.adjustmentNote ? std::string_view("NOTE") : std::string_view{},
+        .coarseLabel =
+            data.adjustmentNote ? std::string_view("OCT") : std::string_view{}};
   } else if (data.fieldBottom == UiInstrumentFieldBottom::Selector) {
     const std::span<const std::string_view> options =
         OptionsFor(data.fieldOptions);
@@ -397,8 +387,9 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
       return UiBuildStatus::DesignRequired;
     bottom.kind = UiBottomBarKind::Selector;
     bottom.selector.options = options;
-    bottom.selector.current = std::min<std::uint8_t>(
-        data.fieldOptionCurrent, static_cast<std::uint8_t>(options.size() - 1U));
+    bottom.selector.current =
+        std::min<std::uint8_t>(data.fieldOptionCurrent,
+                               static_cast<std::uint8_t>(options.size() - 1U));
     bottom.selector.wrap = data.fieldOptionWrap;
   }
   UiTrackNotesModel tracks;
@@ -411,10 +402,10 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
       .fineStep = data.adjustmentFineStep,
       .coarseStep = data.adjustmentCoarseStep,
       .coarseOctave = data.adjustmentNote,
-      .fineLabel = data.adjustmentNote ? std::string_view("NOTE")
-                                       : std::string_view{},
-      .coarseLabel = data.adjustmentNote ? std::string_view("OCT")
-                                         : std::string_view{},
+      .fineLabel =
+          data.adjustmentNote ? std::string_view("NOTE") : std::string_view{},
+      .coarseLabel =
+          data.adjustmentNote ? std::string_view("OCT") : std::string_view{},
   };
   const UiBarInputs inputs{
       .pageTop = pageTop,
@@ -435,25 +426,25 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     return bottomStatus;
 
   UiSceneBuilder<256, 1024> builder(scene.content);
-  const UiColorToken nameColor =
-      data.name == "--" ? UiColorToken::DerivedTextFaint : UiColorToken::TextNormal;
+  const UiColorToken nameColor = data.name == "--"
+                                     ? UiColorToken::DerivedTextFaint
+                                     : UiColorToken::TextNormal;
   builder.Text("NAME", 9, 42, UiColorToken::TextDim);
   builder.UserText(data.name, 92, 42, nameColor);
-  DrawField(builder, "TYPE", TypeName(data.kind), 54,
-            UiColorToken::TextNormal);
+  DrawField(builder, "TYPE", TypeName(data.kind), 54, UiColorToken::TextNormal);
 
   if (data.kind == UiInstrumentKind::Opal) {
     DrawSection(builder, "GENERAL SETTINGS", 70);
     for (std::uint8_t index = 0; index < data.fieldCount; ++index) {
       DrawField(builder, data.fields[index].label, data.fields[index].value,
                 data.fields[index].y,
-                data.fields[index].value == "--" ? UiColorToken::DerivedTextFaint
-                                                 : UiColorToken::TextNormal,
+                data.fields[index].value == "--"
+                    ? UiColorToken::DerivedTextFaint
+                    : UiColorToken::TextNormal,
                 data.fields[index].userData);
     }
     DrawSection(builder, "OPERATOR SETTINGS", 120);
-    const bool operator2Focused =
-        data.cursor == UiInstrumentCursor::Operator2;
+    const bool operator2Focused = data.cursor == UiInstrumentCursor::Operator2;
     builder.Text("OP 1", 144, 132,
                  operator2Focused ? UiColorToken::TextDim
                                   : UiColorToken::TextColored);
@@ -463,17 +454,16 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     for (std::uint8_t index = 0; index < data.operatorCount; ++index) {
       const std::int16_t y = static_cast<std::int16_t>(144 + index * 9);
       builder.Text(data.operators[index].label, 9, y, UiColorToken::TextDim);
-      builder.Text(data.operators[index].op1, 144, y,
-                   UiColorToken::TextNormal);
-      builder.Text(data.operators[index].op2, 190, y,
-                   UiColorToken::TextNormal);
+      builder.Text(data.operators[index].op1, 144, y, UiColorToken::TextNormal);
+      builder.Text(data.operators[index].op2, 190, y, UiColorToken::TextNormal);
     }
   } else {
     for (std::uint8_t index = 0; index < data.fieldCount; ++index) {
       DrawField(builder, data.fields[index].label, data.fields[index].value,
                 data.fields[index].y,
-                data.fields[index].value == "--" ? UiColorToken::DerivedTextFaint
-                                                 : UiColorToken::TextNormal,
+                data.fields[index].value == "--"
+                    ? UiColorToken::DerivedTextFaint
+                    : UiColorToken::TextNormal,
                 data.fields[index].userData);
     }
   }
@@ -488,7 +478,8 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
         builder.UserText(data.name, 92, 42, UiColorToken::TextHighlighted);
       } else if (data.cursor == UiInstrumentCursor::Type) {
         builder.Text("TYPE", 9, 54, UiColorToken::TextHighlighted);
-        builder.Text(TypeName(data.kind), 92, 54, UiColorToken::TextHighlighted);
+        builder.Text(TypeName(data.kind), 92, 54,
+                     UiColorToken::TextHighlighted);
       } else if (data.cursor == UiInstrumentCursor::Field &&
                  data.selectedField < data.fieldCount) {
         const UiInstrumentField &field = data.fields[data.selectedField];
@@ -500,8 +491,7 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
                            layout.x + textIndex * UiFont5x7::kAdvance),
                        layout.y, UiColorToken::TextHighlighted);
         } else {
-          builder.Text(field.label, 9, field.y,
-                       UiColorToken::TextHighlighted);
+          builder.Text(field.label, 9, field.y, UiColorToken::TextHighlighted);
           if (field.userData)
             builder.UserText(field.value, 92, field.y,
                              UiColorToken::TextHighlighted);

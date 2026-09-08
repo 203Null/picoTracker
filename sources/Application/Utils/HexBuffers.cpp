@@ -191,8 +191,7 @@ bool restoreHexBuffer(PersistencyDocument *doc, unsigned char *destination,
           gotData = true;
         }
         if (!strcmp(doc->attrname_, "LENGTH")) {
-          if (!ParseBoundedDecimal(doc->attrval_, destinationCapacity,
-                                   length))
+          if (!ParseBoundedDecimal(doc->attrval_, destinationCapacity, length))
             return RestoreError(doc);
           gotLength = true;
         }

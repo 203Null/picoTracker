@@ -8,12 +8,11 @@
 #include "Application/Audio/RecordingPlatform.h"
 #include "Application/Model/Config.h"
 
-#include "Application/Model/Groove.h"
-#include "ProductVersion.h"
-#include "Application/Model/Scale.h"
-#include "Application/Model/Table.h"
 #include "Application/Instruments/SIDInstrument.h"
 #include "Application/Instruments/SampleInstrument.h"
+#include "Application/Model/Groove.h"
+#include "Application/Model/Scale.h"
+#include "Application/Model/Table.h"
 #include "Application/Player/Player.h"
 #include "Application/Player/TablePlayback.h"
 #include "Application/Session/FirmwareLifecycleService.h"
@@ -26,6 +25,7 @@
 #include "Application/UI2/Workflows/Ui2ThemeWorkflow.h"
 #include "Application/Utils/HelpLegend.h"
 #include "Application/Utils/char.h"
+#include "ProductVersion.h"
 #include "System/System/System.h"
 #include "UI2/Views/Chain/UiChainView.h"
 #include "UI2/Views/Groove/UiGrooveView.h"
@@ -62,8 +62,7 @@ UiTextCaseMode Ui2NativeApplicationStateSource::TextCase() const {
   if (Variable *value =
           Config::GetInstance()->FindVariable(FourCC::VarUITextCase)) {
     constexpr int maximum = Ui2FontController::TextCaseCount - 1U;
-    return static_cast<UiTextCaseMode>(
-        std::clamp(value->GetInt(), 0, maximum));
+    return static_cast<UiTextCaseMode>(std::clamp(value->GetInt(), 0, maximum));
   }
   return UiTextCaseMode::Upper;
 }
@@ -161,8 +160,7 @@ void CaptureHelp(FourCC command, std::array<char, LeadSize> &lead,
   CopyUpper(description, detail);
 }
 
-std::array<std::uint8_t, 2>
-MasterVu(std::uint8_t height = Ui2VuMeterHeight) {
+std::array<std::uint8_t, 2> MasterVu(std::uint8_t height = Ui2VuMeterHeight) {
   Player *player = Player::GetInstance();
   const std::uint32_t level =
       PlayerRunning() ? static_cast<std::uint32_t>(player->GetMasterLevel())
@@ -170,8 +168,7 @@ MasterVu(std::uint8_t height = Ui2VuMeterHeight) {
   const auto top = [height](std::uint16_t amplitude) {
     const std::uint8_t songTop = Ui2VuTopFromAmplitude(amplitude);
     return static_cast<std::uint8_t>(
-        (static_cast<std::uint16_t>(songTop) * height +
-         Ui2VuMeterHeight / 2U) /
+        (static_cast<std::uint16_t>(songTop) * height + Ui2VuMeterHeight / 2U) /
         Ui2VuMeterHeight);
   };
   return {top(static_cast<std::uint16_t>(level >> 16U)),
@@ -189,15 +186,13 @@ std::uint32_t Ui2NativeApplicationStateSource::NowMs() const {
   return system == nullptr ? 0U : system->Millis();
 }
 
-UiApplicationBatteryState
-Ui2NativeApplicationStateSource::ReadBattery() const {
+UiApplicationBatteryState Ui2NativeApplicationStateSource::ReadBattery() const {
   if (firmwareLifecycle_.BatterySampled()) {
     const FirmwareBatterySample battery =
         firmwareLifecycle_.LastBatterySample();
     if (!battery.available)
       return {};
-    return {.percentage =
-                std::min<std::uint8_t>(battery.percentage, 100U),
+    return {.percentage = std::min<std::uint8_t>(battery.percentage, 100U),
             .available = true,
             .charging = battery.charging};
   }
@@ -242,8 +237,10 @@ Ui2NativeApplicationStateSource::CaptureSong(UiSongFrameState &state) {
   state.navigationHeld = navigationHeld_;
   for (std::uint8_t row = 0; row < 16U; ++row) {
     for (std::uint8_t track = 0; track < SONG_CHANNEL_COUNT; ++track) {
-      state.rows[row][track] = project.song_.data_[
-          (controller.RowOffset() + row) * SONG_CHANNEL_COUNT + track];
+      state.rows[row][track] =
+          project.song_
+              .data_[(controller.RowOffset() + row) * SONG_CHANNEL_COUNT +
+                     track];
     }
   }
   if (controller.Selection().active) {
@@ -296,24 +293,23 @@ Ui2NativeApplicationStateSource::CaptureChain(UiChainFrameState &state) {
       !state.numberFocus &&
       (controller.HeldMask() & TrackerActionBit(TrackerAction::Enter)) != 0U;
   state.selectionActive = controller.Selection().active;
-  state.selectionNextExpansionAll =
-      state.selectionActive && controller.Selection().Left() == 0U &&
-      controller.Selection().Right() == 1U;
+  state.selectionNextExpansionAll = state.selectionActive &&
+                                    controller.Selection().Left() == 0U &&
+                                    controller.Selection().Right() == 1U;
   CaptureClipboardNotice(state.clipboardReady, state.clipboardPasted,
                          state.clipboardWidth, state.clipboardHeight);
   state.navigationHeld = navigationHeld_;
   if (controller.Selection().active) {
     const auto &selection = controller.Selection();
-    state.selectionVisualRect = UiChainView::SelectionTargetRect(
-        selection.Left(), selection.Top(), selection.Right(),
-        selection.Bottom());
+    state.selectionVisualRect =
+        UiChainView::SelectionTargetRect(selection.Left(), selection.Top(),
+                                         selection.Right(), selection.Bottom());
   }
   const int base = controller.Number() * PHRASES_PER_CHAIN;
   std::copy_n(song.chain_.data_ + base, 16, state.phrases.begin());
   std::copy_n(song.chain_.transpose_ + base, 16, state.transposes.begin());
   FormatElapsed(state.elapsed);
-  CaptureUiTrackNotes(Player::GetInstance(), PlayerRunning(),
-                      state.trackNotes);
+  CaptureUiTrackNotes(Player::GetInstance(), PlayerRunning(), state.trackNotes);
   Player *player = Player::GetInstance();
   const PlayerTransportSnapshot transport = player->CaptureTransportSnapshot();
   for (std::uint8_t track = 0; track < SONG_CHANNEL_COUNT; ++track)
@@ -351,9 +347,9 @@ Ui2NativeApplicationStateSource::CapturePhrase(UiPhraseFrameState &state) {
       controller.Column() <= 1U &&
       (controller.HeldMask() & TrackerActionBit(TrackerAction::Enter)) != 0U;
   state.selectionActive = controller.Selection().active;
-  state.selectionNextExpansionAll =
-      state.selectionActive && controller.Selection().Left() == 0U &&
-      controller.Selection().Right() == 5U;
+  state.selectionNextExpansionAll = state.selectionActive &&
+                                    controller.Selection().Left() == 0U &&
+                                    controller.Selection().Right() == 5U;
   CaptureClipboardNotice(state.clipboardReady, state.clipboardPasted,
                          state.clipboardWidth, state.clipboardHeight);
   state.navigationHeld = navigationHeld_;
@@ -383,8 +379,7 @@ Ui2NativeApplicationStateSource::CapturePhrase(UiPhraseFrameState &state) {
     hexshort2char(phrase.param2_[index], state.rows[row].parameter2.data());
   }
   FormatElapsed(state.elapsed);
-  CaptureUiTrackNotes(Player::GetInstance(), PlayerRunning(),
-                      state.trackNotes);
+  CaptureUiTrackNotes(Player::GetInstance(), PlayerRunning(), state.trackNotes);
   Player *player = Player::GetInstance();
   const PlayerTransportSnapshot transport = player->CaptureTransportSnapshot();
   for (std::uint8_t track = 0; track < SONG_CHANNEL_COUNT; ++track)
@@ -404,9 +399,8 @@ Ui2NativeApplicationStateSource::CapturePhrase(UiPhraseFrameState &state) {
     const bool cellHasValue = controller.Column() == 0U
                                   ? phrase.note_[selected] != NO_NOTE
                                   : phrase.instr_[selected] != 0xFFU;
-    std::uint8_t instrument = controller.Column() == 1U
-                                  ? phrase.instr_[selected]
-                                  : 0xFFU;
+    std::uint8_t instrument =
+        controller.Column() == 1U ? phrase.instr_[selected] : 0xFFU;
     if (cellHasValue && controller.Column() == 0U) {
       for (int row = controller.Row(); row >= 0; --row) {
         if (phrase.instr_[base + row] != 0xFFU) {
@@ -439,8 +433,8 @@ UiApplicationActivityState
 Ui2NativeApplicationStateSource::CaptureTable(UiTableFrameState &state) {
   state = {};
   const Ui2TableController &controller = tracker_.Hub().Table();
-  state.number[0] = controller.Page() == Ui2TrackerPage::InstrumentTable ? 'I'
-                                                                         : 'P';
+  state.number[0] =
+      controller.Page() == Ui2TrackerPage::InstrumentTable ? 'I' : 'P';
   hex2char(controller.Number(), state.number.data() + 1);
   state.editRow = controller.Row();
   state.editColumn = controller.Column();
@@ -453,20 +447,20 @@ Ui2NativeApplicationStateSource::CaptureTable(UiTableFrameState &state) {
   // ENTER-held value editing is represented by the in-cell digit cursor.
   state.adjustmentFocus = false;
   state.selectionActive = controller.Selection().active;
-  state.selectionNextExpansionAll =
-      state.selectionActive && controller.Selection().Left() == 0U &&
-      controller.Selection().Right() == 5U;
+  state.selectionNextExpansionAll = state.selectionActive &&
+                                    controller.Selection().Left() == 0U &&
+                                    controller.Selection().Right() == 5U;
   CaptureClipboardNotice(state.clipboardReady, state.clipboardPasted,
                          state.clipboardWidth, state.clipboardHeight);
   state.navigationHeld = navigationHeld_;
   state.activeHeader = controller.Column() < 2U   ? UiTableHeader::Fx1
                        : controller.Column() < 4U ? UiTableHeader::Fx2
-                                                   : UiTableHeader::Fx3;
+                                                  : UiTableHeader::Fx3;
   if (controller.Selection().active) {
     const auto &selection = controller.Selection();
-    state.selectionVisualRect = UiTableView::SelectionTargetRect(
-        selection.Left(), selection.Top(), selection.Right(),
-        selection.Bottom());
+    state.selectionVisualRect =
+        UiTableView::SelectionTargetRect(selection.Left(), selection.Top(),
+                                         selection.Right(), selection.Bottom());
   }
   Table &table = TableHolder::GetInstance()->GetTable(controller.Number());
   for (std::uint8_t row = 0; row < TABLE_STEPS; ++row) {
@@ -483,8 +477,7 @@ Ui2NativeApplicationStateSource::CaptureTable(UiTableFrameState &state) {
   const int selectedTrack = controller.SelectedTrack();
   if (selectedTrack >= 0 && selectedTrack < SONG_CHANNEL_COUNT)
     state.selectedTrackMuted = player->IsChannelMuted(selectedTrack);
-  const PlayerTransportSnapshot transport =
-      player->CaptureTransportSnapshot();
+  const PlayerTransportSnapshot transport = player->CaptureTransportSnapshot();
   if (transport.running && transport.mode != PM_AUDITION &&
       selectedTrack >= 0 && selectedTrack < SONG_CHANNEL_COUNT &&
       player->IsChannelPlaying(selectedTrack)) {
@@ -527,8 +520,8 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
       static_cast<std::uint8_t>(editor.currentInstrumentID_);
   InstrumentBank *bank = session_.ProjectModel().GetInstrumentBank();
   I_Instrument *instrument = bank->GetInstrument(number);
-  const InstrumentType type = instrument == nullptr ? IT_NONE
-                                                     : instrument->GetType();
+  const InstrumentType type =
+      instrument == nullptr ? IT_NONE : instrument->GetType();
   hex2char(number, state.number.data());
   state.selectedTrack = editor.songX_;
   state.kind = static_cast<UiInstrumentKind>(type);
@@ -537,9 +530,9 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
   else
     CopyUiText(state.name, instrument->GetDisplayName().c_str());
 
-  const bool sidFirstChip = type != IT_SID ||
-                            static_cast<SIDInstrument *>(instrument)->GetChip() ==
-                                SID1;
+  const bool sidFirstChip =
+      type != IT_SID ||
+      static_cast<SIDInstrument *>(instrument)->GetChip() == SID1;
   const auto valueFor = [instrument](FourCC::enum_type id, int fallback = 0) {
     Variable *value = id == FourCC::Default || instrument == nullptr
                           ? nullptr
@@ -568,7 +561,8 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
     etl::string<MAX_INSTRUMENT_FILENAME_LENGTH> filename;
     if (descriptor.format == Ui2InstrumentValueFormat::UserText &&
         type == IT_SAMPLE) {
-      filename = static_cast<SampleInstrument *>(instrument)->GetSampleFileName();
+      filename =
+          static_cast<SampleInstrument *>(instrument)->GetSampleFileName();
       text = filename.c_str();
     } else if (descriptor.format == Ui2InstrumentValueFormat::SliceCount &&
                type == IT_SAMPLE) {
@@ -586,9 +580,8 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
     field.userData = descriptor.userData;
   }
 
-  for (std::uint8_t index = 0U;
-       index < Ui2InstrumentOperatorCount(type) &&
-       state.operatorCount < state.operators.size();
+  for (std::uint8_t index = 0U; index < Ui2InstrumentOperatorCount(type) &&
+                                state.operatorCount < state.operators.size();
        ++index) {
     auto &row = state.operators[state.operatorCount++];
     const Ui2InstrumentParameterDescriptor op1 =
@@ -614,15 +607,14 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
       Ui2InstrumentAdjustment(activeDescriptor);
   instrument_.ConfigureValueSubfields(activeSubfields.mode,
                                       activeSubfields.count);
-  state.cursor = cursor.kind == Ui2InstrumentCursorKind::Name
-                     ? UiInstrumentCursor::Name
-                 : cursor.kind == Ui2InstrumentCursorKind::Type
-                     ? UiInstrumentCursor::Type
-                 : cursor.kind == Ui2InstrumentCursorKind::Field
-                     ? UiInstrumentCursor::Field
-                 : cursor.kind == Ui2InstrumentCursorKind::Operator1
-                     ? UiInstrumentCursor::Operator1
-                     : UiInstrumentCursor::Operator2;
+  state.cursor =
+      cursor.kind == Ui2InstrumentCursorKind::Name   ? UiInstrumentCursor::Name
+      : cursor.kind == Ui2InstrumentCursorKind::Type ? UiInstrumentCursor::Type
+      : cursor.kind == Ui2InstrumentCursorKind::Field
+          ? UiInstrumentCursor::Field
+      : cursor.kind == Ui2InstrumentCursorKind::Operator1
+          ? UiInstrumentCursor::Operator1
+          : UiInstrumentCursor::Operator2;
   state.selectedField = cursor.index;
   state.selectedOperator = cursor.index;
   state.nameAction = static_cast<std::uint8_t>(instrument_.NameAction());
@@ -676,7 +668,7 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
         if (activeDescriptor.primary == FourCC::StackWave) {
           state.fieldOptions = UiInstrumentFieldOptions::StackWave;
         } else if (activeDescriptor.primary ==
-            FourCC::SampleInstrumentInterpolation) {
+                   FourCC::SampleInstrumentInterpolation) {
           state.fieldOptions = UiInstrumentFieldOptions::SampleInterpolation;
         } else if (activeDescriptor.primary ==
                    FourCC::SampleInstrumentFilterMode) {
@@ -694,8 +686,10 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
           std::max(0, static_cast<int>(activeValue->GetListSize()) - 1)));
       state.fieldOptionWrap = true;
     } else if (activeAdjustment.visible ||
-               activeDescriptor.format == Ui2InstrumentValueFormat::SampleFilter ||
-               activeDescriptor.subfieldMode != Ui2InstrumentSubfieldMode::None) {
+               activeDescriptor.format ==
+                   Ui2InstrumentValueFormat::SampleFilter ||
+               activeDescriptor.subfieldMode !=
+                   Ui2InstrumentSubfieldMode::None) {
       state.fieldBottom = UiInstrumentFieldBottom::Adjustment;
       state.adjustmentFineStep = static_cast<std::uint8_t>(
           std::min<std::uint16_t>(activeDescriptor.fineStep, 0xFFU));
@@ -706,8 +700,7 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
   state.selectedSubfield = instrument_.Subfield();
   state.subfieldTextOffset = activeSubfields.textOffset;
   FormatElapsed(state.elapsed);
-  CaptureUiTrackNotes(Player::GetInstance(), PlayerRunning(),
-                      state.trackNotes);
+  CaptureUiTrackNotes(Player::GetInstance(), PlayerRunning(), state.trackNotes);
   return {.active = PlayerRunning()};
 }
 
@@ -718,8 +711,7 @@ Ui2NativeApplicationStateSource::CaptureProject(UiProjectFrameState &state) {
   std::array<char, MAX_PROJECT_NAME_LENGTH + 1U> storageName{};
   model.GetProjectName(storageName.data());
   Ui2ProjectNamePresentation(storageName.data()).CopyHeaderTo(state.name);
-  std::snprintf(state.tempo.data(), state.tempo.size(), "%d",
-                model.GetTempo());
+  std::snprintf(state.tempo.data(), state.tempo.size(), "%d", model.GetTempo());
   std::snprintf(state.transpose.data(), state.transpose.size(), "%02d",
                 model.GetTranspose());
   CopyUpper(state.scale, scaleNames[model.GetScale()]);
@@ -730,14 +722,12 @@ Ui2NativeApplicationStateSource::CaptureProject(UiProjectFrameState &state) {
   state.renderOption = static_cast<std::uint8_t>(project_.RenderSelection());
   state.enterHeld = project_.EnterHeld();
   constexpr std::uint16_t visible = 5U;
-  const auto selectorWindow = [&](std::uint16_t current,
-                                  std::uint16_t count) {
+  const auto selectorWindow = [&](std::uint16_t current, std::uint16_t count) {
     const std::uint16_t maximum = static_cast<std::uint16_t>(count - 1U);
-    const std::uint16_t start = static_cast<std::uint16_t>(
-        std::min<std::uint16_t>(current > 2U ? current - 2U : 0U,
-                                maximum >= visible - 1U
-                                    ? maximum - (visible - 1U)
-                                    : 0U));
+    const std::uint16_t start =
+        static_cast<std::uint16_t>(std::min<std::uint16_t>(
+            current > 2U ? current - 2U : 0U,
+            maximum >= visible - 1U ? maximum - (visible - 1U) : 0U));
     state.selectorCount =
         static_cast<std::uint8_t>(std::min<std::uint16_t>(visible, count));
     state.selectorCurrent = static_cast<std::uint8_t>(current - start);
@@ -848,12 +838,12 @@ Ui2NativeApplicationStateSource::CaptureDevice(UiDeviceFrameState &state) {
     if (device_.SelectedField() == Ui2DeviceField::Volume ||
         device_.SelectedField() == Ui2DeviceField::Brightness) {
       constexpr std::uint16_t visible = 5U;
-      const std::uint16_t maximum = static_cast<std::uint16_t>(bottom.count - 1U);
-      const std::uint16_t start = static_cast<std::uint16_t>(
-          std::min<std::uint16_t>(bottom.current > 2U ? bottom.current - 2U : 0U,
-                                  maximum >= visible - 1U
-                                      ? maximum - (visible - 1U)
-                                      : 0U));
+      const std::uint16_t maximum =
+          static_cast<std::uint16_t>(bottom.count - 1U);
+      const std::uint16_t start =
+          static_cast<std::uint16_t>(std::min<std::uint16_t>(
+              bottom.current > 2U ? bottom.current - 2U : 0U,
+              maximum >= visible - 1U ? maximum - (visible - 1U) : 0U));
       state.selectorCount = static_cast<std::uint8_t>(
           std::min<std::uint16_t>(visible, bottom.count));
       state.selectorCurrent = static_cast<std::uint8_t>(bottom.current - start);
@@ -959,8 +949,8 @@ Ui2NativeApplicationStateSource::CaptureBrowser(UiBrowserFrameState &state) {
     int previewVolume = 0;
     if (Variable *volume = project.FindVariable(FourCC::VarPreviewVolume))
       previewVolume = volume->GetInt();
-    state.snapshot = sampleBrowser_.Snapshot(previewVolume, ProjectSampleInUse,
-                                             &project);
+    state.snapshot =
+        sampleBrowser_.Snapshot(previewVolume, ProjectSampleInUse, &project);
   } else {
     state.snapshot = projectBrowser_.Snapshot(session_.ProjectName());
   }
@@ -1007,8 +997,7 @@ Ui2NativeApplicationStateSource::CaptureGroove(UiGrooveFrameState &state) {
     int playingGroove = 0;
     int playingRow = 0;
     groove->GetChannelData(track, &playingGroove, &playingRow);
-    if (playingGroove == groove_.Number() && playingRow >= 0 &&
-        playingRow < 16)
+    if (playingGroove == groove_.Number() && playingRow >= 0 && playingRow < 16)
       state.playbackRow = static_cast<std::int8_t>(playingRow);
   }
   return {.active = transport.running};
@@ -1059,12 +1048,9 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureSampleEditor(
   const std::uint16_t held = sampleEditor_.HeldMask();
   state = MakeUiSampleEditorControllerState(
       snapshot, UiPowerState::BatteryNormal,
-      {.enterHeld =
-           (held & TrackerActionBit(TrackerAction::Enter)) != 0U,
-       .optionHeld =
-           (held & TrackerActionBit(TrackerAction::Option)) != 0U,
-       .shiftHeld =
-           (held & TrackerActionBit(TrackerAction::Shift)) != 0U});
+      {.enterHeld = (held & TrackerActionBit(TrackerAction::Enter)) != 0U,
+       .optionHeld = (held & TrackerActionBit(TrackerAction::Option)) != 0U,
+       .shiftHeld = (held & TrackerActionBit(TrackerAction::Shift)) != 0U});
   return {.active = snapshot.playing};
 }
 
@@ -1074,12 +1060,9 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureSampleSlices(
   const std::uint16_t held = sampleSlices_.HeldMask();
   state = MakeUiSampleSlicesControllerState(
       snapshot, UiPowerState::BatteryNormal,
-      {.enterHeld =
-           (held & TrackerActionBit(TrackerAction::Enter)) != 0U,
-       .optionHeld =
-           (held & TrackerActionBit(TrackerAction::Option)) != 0U,
-       .shiftHeld =
-           (held & TrackerActionBit(TrackerAction::Shift)) != 0U});
+      {.enterHeld = (held & TrackerActionBit(TrackerAction::Enter)) != 0U,
+       .optionHeld = (held & TrackerActionBit(TrackerAction::Option)) != 0U,
+       .shiftHeld = (held & TrackerActionBit(TrackerAction::Shift)) != 0U});
   return {.active = snapshot.previewActive};
 }
 
@@ -1102,11 +1085,10 @@ Ui2NativeApplicationStateSource::CaptureRecord(UiRecordFrameState &state) {
   CopyUiText(state.snapshot.source, sources[source]);
   const std::uint32_t elapsedSeconds =
       GetRecordingElapsedMilliseconds() / 1000U;
-  std::snprintf(state.snapshot.elapsed.data(), state.snapshot.elapsed.size(),
-                "%02u:%02u",
-                static_cast<unsigned>(
-                    std::min<std::uint32_t>(elapsedSeconds / 60U, 99U)),
-                static_cast<unsigned>(elapsedSeconds % 60U));
+  std::snprintf(
+      state.snapshot.elapsed.data(), state.snapshot.elapsed.size(), "%02u:%02u",
+      static_cast<unsigned>(std::min<std::uint32_t>(elapsedSeconds / 60U, 99U)),
+      static_cast<unsigned>(elapsedSeconds % 60U));
   state.snapshot.sourceIndex = source;
   state.snapshot.sourceSelectable = sourceSelectable;
   const bool available = record_.Available();
@@ -1140,9 +1122,9 @@ Ui2NativeApplicationStateSource::CaptureRecord(UiRecordFrameState &state) {
     }
   }
   state.cursorInkVisible = available && sourceSelectable;
-  const bool recordingBusy = available &&
-                             (state.snapshot.state != RecordViewUi2State::Idle ||
-                              IsMonitoringActive());
+  const bool recordingBusy =
+      available && (state.snapshot.state != RecordViewUi2State::Idle ||
+                    IsMonitoringActive());
   return {.active = PlayerRunning() || recordingBusy};
 }
 

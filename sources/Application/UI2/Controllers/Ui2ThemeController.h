@@ -58,10 +58,10 @@ public:
   static constexpr std::uint8_t ColorCount = 20U;
   static constexpr std::uint8_t RowCount = ColorCount + 1U;
 
-  constexpr Ui2ThemeController(std::int8_t selectedColor = -1,
-                               Ui2ThemeNameAction nameAction =
-                                   Ui2ThemeNameAction::New,
-                               std::uint8_t viewportRows = 12)
+  constexpr Ui2ThemeController(
+      std::int8_t selectedColor = -1,
+      Ui2ThemeNameAction nameAction = Ui2ThemeNameAction::New,
+      std::uint8_t viewportRows = 12)
       : cursor_(RowForColor(selectedColor),
                 Ui2FixedListCursor<RowCount>::AllEnabledMask, viewportRows),
         nameAction_(Sanitize(nameAction)) {}
@@ -70,9 +70,8 @@ public:
     return cursor_.Selected() == 0U;
   }
   [[nodiscard]] constexpr std::int8_t SelectedColor() const {
-    return NameSelected()
-               ? -1
-               : static_cast<std::int8_t>(cursor_.Selected() - 1U);
+    return NameSelected() ? -1
+                          : static_cast<std::int8_t>(cursor_.Selected() - 1U);
   }
   [[nodiscard]] constexpr Ui2ThemeNameAction NameAction() const {
     return nameAction_;
@@ -128,8 +127,8 @@ public:
       if (!NameSelected() &&
           (action == TrackerAction::Up || action == TrackerAction::Down ||
            action == TrackerAction::Left || action == TrackerAction::Right)) {
-        const bool increase = action == TrackerAction::Up ||
-                              action == TrackerAction::Right;
+        const bool increase =
+            action == TrackerAction::Up || action == TrackerAction::Right;
         const std::int16_t magnitude =
             action == TrackerAction::Up || action == TrackerAction::Down ? 10
                                                                          : 1;
@@ -149,8 +148,8 @@ public:
     } else if (action == TrackerAction::Down) {
       cursor_.MoveNext();
     } else if (NameSelected() && action == TrackerAction::Left) {
-      nameAction_ = static_cast<Ui2ThemeNameAction>(Previous(
-          static_cast<std::uint8_t>(nameAction_), NameActionCount()));
+      nameAction_ = static_cast<Ui2ThemeNameAction>(
+          Previous(static_cast<std::uint8_t>(nameAction_), NameActionCount()));
     } else if (NameSelected() && action == TrackerAction::Right) {
       nameAction_ = static_cast<Ui2ThemeNameAction>(
           Next(static_cast<std::uint8_t>(nameAction_), NameActionCount()));
@@ -163,8 +162,7 @@ public:
   }
 
 private:
-  [[nodiscard]] static constexpr std::uint8_t
-  RowForColor(std::int8_t color) {
+  [[nodiscard]] static constexpr std::uint8_t RowForColor(std::int8_t color) {
     return color >= 0 && color < static_cast<std::int8_t>(ColorCount)
                ? static_cast<std::uint8_t>(color + 1)
                : 0U;
@@ -175,12 +173,12 @@ private:
   }
 
   [[nodiscard]] static constexpr std::uint8_t Next(std::uint8_t value,
-                                                    std::uint8_t count) {
+                                                   std::uint8_t count) {
     return static_cast<std::uint8_t>((value + 1U) % count);
   }
 
   [[nodiscard]] static constexpr std::uint8_t Previous(std::uint8_t value,
-                                                        std::uint8_t count) {
+                                                       std::uint8_t count) {
     return value == 0U ? static_cast<std::uint8_t>(count - 1U)
                        : static_cast<std::uint8_t>(value - 1U);
   }

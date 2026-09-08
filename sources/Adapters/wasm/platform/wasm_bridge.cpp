@@ -1,8 +1,8 @@
 #include "Adapters/wasm/platform/wasm_bridge.h"
 
-#include "Adapters/wasm/input/InputMap.h"
 #include "Adapters/wasm/audio/WasmAudioBridge.h"
 #include "Adapters/wasm/gui/WasmViewDiagnostics.h"
+#include "Adapters/wasm/input/InputMap.h"
 #include "Adapters/wasm/platform/WasmBrowserSnapshots.h"
 
 #include <atomic>
@@ -18,12 +18,12 @@ char lastError[256] = {};
 
 constexpr char buildMetadata[] =
     "{\"commit\":\"" PICOTRACKER_WASM_BUILD_COMMIT
-    "\",\"dirty\":" PICOTRACKER_STRINGIFY(PICOTRACKER_WASM_BUILD_DIRTY)
-    ",\"builtAt\":\"" PICOTRACKER_WASM_BUILD_TIME
-    "\",\"emscripten\":\""
-    PICOTRACKER_STRINGIFY(__EMSCRIPTEN_MAJOR__) "."
-    PICOTRACKER_STRINGIFY(__EMSCRIPTEN_MINOR__) "."
-    PICOTRACKER_STRINGIFY(__EMSCRIPTEN_TINY__) "\"}";
+    "\",\"dirty\":" PICOTRACKER_STRINGIFY(
+        PICOTRACKER_WASM_BUILD_DIRTY) ",\"builtAt\":"
+                                      "\"" PICOTRACKER_WASM_BUILD_TIME
+                                      "\",\"emscripten\":"
+                                      "\"" PICOTRACKER_STRINGIFY(__EMSCRIPTEN_MAJOR__) "." PICOTRACKER_STRINGIFY(
+                                          __EMSCRIPTEN_MINOR__) "." PICOTRACKER_STRINGIFY(__EMSCRIPTEN_TINY__) "\"}";
 } // namespace
 
 extern "C" const char *PicoTracker_Wasm_GetBuildMetadataJson() {
@@ -42,8 +42,8 @@ extern "C" void PicoTracker_Wasm_MarkAudioUnavailable() {
   WasmAudio_MarkUnavailable();
 }
 
-extern "C" void PicoTracker_Wasm_ConfigureAudio(
-    std::uint32_t targetFillFrames, std::uint32_t outputGainQ16) {
+extern "C" void PicoTracker_Wasm_ConfigureAudio(std::uint32_t targetFillFrames,
+                                                std::uint32_t outputGainQ16) {
   WasmAudio_Configure(targetFillFrames, outputGainQ16);
 }
 
@@ -111,8 +111,8 @@ extern "C" std::uint32_t PicoTracker_Wasm_GetDiagnosticInputGeneration() {
   return WasmViewDiagnostics_InputGeneration();
 }
 
-extern "C" void PicoTracker_Wasm_RequestDiagnosticModal(
-    std::uint32_t modalType) {
+extern "C" void
+PicoTracker_Wasm_RequestDiagnosticModal(std::uint32_t modalType) {
   WasmViewDiagnostics_RequestModal(modalType);
 }
 

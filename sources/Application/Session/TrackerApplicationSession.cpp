@@ -50,9 +50,8 @@ TrackerApplicationSession::LoadResult TrackerApplicationSession::LoadProject(
   constexpr const char *stagingAutosavePath =
       PROJECTS_DIR "/" UNNAMED_PROJECT_NAME "/" AUTO_SAVE_FILENAME;
   const bool stagingPayloadExists =
-      stagingProject &&
-      (fileSystem->exists(stagingProjectPath) ||
-       fileSystem->exists(stagingAutosavePath));
+      stagingProject && (fileSystem->exists(stagingProjectPath) ||
+                         fileSystem->exists(stagingAutosavePath));
   // Validate a pre-existing project before resetting the live model. This is
   // intentionally a second parse: PersistencyService::Load performs the real
   // restore, while this pass guarantees a missing/corrupt selection cannot
@@ -164,8 +163,7 @@ TrackerApplicationSession::LoadResult TrackerApplicationSession::LoadProject(
 
   if (createProject && stagingProject) {
     if (!persist->BeginStagingProjectReplacement_(
-            hadLoadedProject ? previousProjectName : "",
-            stagingHadPrevious)) {
+            hadLoadedProject ? previousProjectName : "", stagingHadPrevious)) {
       Trace::Error("Failed to begin untitled project transaction");
       if (rollbackPrepared)
         persist->ClearLoadRollback();
@@ -199,9 +197,8 @@ TrackerApplicationSession::LoadResult TrackerApplicationSession::LoadProject(
     return failAndRollback();
   }
   bool loadedFromAutosave = false;
-  bool semanticLoaded =
-      persist->Load_(projectName, stagingProject, &loadedFromAutosave) ==
-      PERSIST_LOADED;
+  bool semanticLoaded = persist->Load_(projectName, stagingProject,
+                                       &loadedFromAutosave) == PERSIST_LOADED;
 
   // A structurally valid generation can still fail late semantic restoration
   // after mutating instruments/tables. Never layer another generation onto
@@ -212,16 +209,14 @@ TrackerApplicationSession::LoadResult TrackerApplicationSession::LoadProject(
     resetModel(projectName);
     if (!pool->Load(projectName))
       return failAndRollback();
-    semanticLoaded =
-        persist->LoadProjectJournalBackup_(projectName, true,
-                                           stagingProject) == PERSIST_LOADED &&
-        persist->PromoteProjectJournalBackup_(projectName, true,
-                                              stagingProject);
+    semanticLoaded = persist->LoadProjectJournalBackup_(
+                         projectName, true, stagingProject) == PERSIST_LOADED &&
+                     persist->PromoteProjectJournalBackup_(projectName, true,
+                                                           stagingProject);
   }
 
   if (!semanticLoaded) {
-    Trace::Error("Project restore failed for '%s'; retrying base",
-                 projectName);
+    Trace::Error("Project restore failed for '%s'; retrying base", projectName);
     resetModel(projectName);
     if (!pool->Load(projectName))
       return failAndRollback();
@@ -234,12 +229,11 @@ TrackerApplicationSession::LoadResult TrackerApplicationSession::LoadProject(
       resetModel(projectName);
       if (!pool->Load(projectName))
         return failAndRollback();
-      semanticLoaded =
-          persist->LoadProjectJournalBackup_(projectName, false,
-                                             stagingProject) ==
-              PERSIST_LOADED &&
-          persist->PromoteProjectJournalBackup_(projectName, false,
-                                                stagingProject);
+      semanticLoaded = persist->LoadProjectJournalBackup_(projectName, false,
+                                                          stagingProject) ==
+                           PERSIST_LOADED &&
+                       persist->PromoteProjectJournalBackup_(projectName, false,
+                                                             stagingProject);
     }
 
     if (semanticLoaded &&
@@ -256,8 +250,7 @@ TrackerApplicationSession::LoadResult TrackerApplicationSession::LoadProject(
     // until semantic restore. Rejecting it must restore both the previous
     // project marker and the old untitled directory before fallback.
     char transactionPrevious[MAX_PROJECT_NAME_LENGTH + 1U]{};
-    if (stagingProject &&
-        persist->HasCommittedStagingProjectReplacement_()) {
+    if (stagingProject && persist->HasCommittedStagingProjectReplacement_()) {
       if (!persist->RollbackCommittedStagingProjectReplacement_(
               transactionPrevious)) {
         Trace::Error("Failed to roll back semantic-invalid untitled");
@@ -295,8 +288,7 @@ TrackerApplicationSession::LoadResult TrackerApplicationSession::LoadProject(
   // that will silently disappear on reboot.
   if (persist->SaveProjectState_(
           projectName_, stagingProject, stagingTransactionStarted,
-          hadLoadedProject ? previousProjectName : "") !=
-      PERSIST_SAVED) {
+          hadLoadedProject ? previousProjectName : "") != PERSIST_SAVED) {
     Trace::Error("Failed to save project state for '%s'", projectName_);
     // A first-boot/new session has no in-memory predecessor, but its untitled
     // directory is still protected by the staging transaction. Reporting a
@@ -356,8 +348,7 @@ TrackerApplicationSession::SaveProject(const char *oldProjectName, bool saveAs,
                      oldProjectName == nullptr ? "" : oldProjectName, saveAs,
                      stagingProject) != PERSIST_SAVED)
     return SaveResult::Failed;
-  if (persist->SaveProjectState_(projectName_, stagingProject) !=
-      PERSIST_SAVED)
+  if (persist->SaveProjectState_(projectName_, stagingProject) != PERSIST_SAVED)
     return SaveResult::Failed;
   return SaveResult::Saved;
 }
@@ -373,8 +364,7 @@ bool TrackerApplicationSession::DeleteProject(const char *projectName) {
 void TrackerApplicationSession::DiscardAutoSave() {
   if (loaded_ && projectName_[0] != '\0' &&
       !PersistencyService::GetInstance()->ClearAutosave_(
-          projectName_,
-          std::strcmp(projectName_, UNNAMED_PROJECT_NAME) == 0)) {
+          projectName_, std::strcmp(projectName_, UNNAMED_PROJECT_NAME) == 0)) {
     Trace::Error("Failed to discard autosave for '%s'", projectName_);
   }
 }

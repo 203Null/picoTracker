@@ -88,8 +88,8 @@ UiBuildStatus UiFontView::Build(const UiFontViewData &data, UiPalette &,
   scene.bottomVisible = true;
   scene.topBackground = UiColorToken::SurfaceTopBar;
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
-  const UiTopBarModel top{.title = "FONT", .power = data.power,
-                          .backNavigation = true};
+  const UiTopBarModel top{
+      .title = "FONT", .power = data.power, .backNavigation = true};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;
@@ -122,8 +122,7 @@ UiBuildStatus UiFontView::Build(const UiFontViewData &data, UiPalette &,
   if (data.cursorInkVisible) {
     if (data.cursor == UiFontCursor::TextCase) {
       builder.Text("CASE", 9, 54, UiColorToken::TextHighlighted);
-      builder.LiteralText(data.textCase, 92, 54,
-                          UiColorToken::TextHighlighted);
+      builder.LiteralText(data.textCase, 92, 54, UiColorToken::TextHighlighted);
     } else {
       builder.Text("FONT", 9, 86, UiColorToken::TextHighlighted);
       builder.UserText(data.font, 92, 86, UiColorToken::TextHighlighted);

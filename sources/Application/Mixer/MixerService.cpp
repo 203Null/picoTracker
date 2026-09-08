@@ -36,7 +36,7 @@ MixerService::MixerService() : master_(), sync_(platform_mutex()) {
   master_.SetName("Master");
 };
 
-MixerService::~MixerService() {};
+MixerService::~MixerService(){};
 
 bool MixerService::Init() {
   out_ = 0;

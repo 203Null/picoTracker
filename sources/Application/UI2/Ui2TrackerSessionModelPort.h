@@ -59,8 +59,7 @@ private:
                  std::uint32_t value);
   void ClearCell(Ui2TrackerPage page, std::uint8_t row, std::uint8_t column);
   void ApplyTransport(const Ui2TrackerCommand &command);
-  [[nodiscard]] bool ResolveTableTrack(Ui2TrackerPage page,
-                                       std::uint8_t track);
+  [[nodiscard]] bool ResolveTableTrack(Ui2TrackerPage page, std::uint8_t track);
   [[nodiscard]] bool WarpChainSongPosition(std::uint8_t track,
                                            std::int16_t delta);
   [[nodiscard]] bool ResolveTargetPage(Ui2TrackerPage page, std::uint8_t track,

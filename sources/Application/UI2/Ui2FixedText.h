@@ -20,9 +20,11 @@ template <std::size_t Size>
 void CopyUiText(std::array<char, Size> &destination, const char *source) {
   destination.fill('\0');
   if constexpr (Size > 0U) {
-    if (source == nullptr) return;
+    if (source == nullptr)
+      return;
     std::size_t length = 0U;
-    while (length + 1U < Size && source[length] != '\0') ++length;
+    while (length + 1U < Size && source[length] != '\0')
+      ++length;
     std::copy_n(source, length, destination.begin());
   }
 }

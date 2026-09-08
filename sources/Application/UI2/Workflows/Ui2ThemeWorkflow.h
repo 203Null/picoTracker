@@ -53,8 +53,7 @@ public:
         static_cast<std::uint8_t>((2U - command.component) * 8U);
     const std::uint32_t current = colors[color] & 0x00FFFFFFU;
     const int previous = static_cast<int>((current >> shift) & 0xFFU);
-    const bool reset =
-        command.type == Ui2ThemeCommandType::ResetColorComponent;
+    const bool reset = command.type == Ui2ThemeCommandType::ResetColorComponent;
     const std::uint32_t adjusted =
         reset ? (defaults[color] >> shift) & 0xFFU
               : static_cast<std::uint32_t>(std::clamp(

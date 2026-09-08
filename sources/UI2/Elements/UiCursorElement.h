@@ -15,8 +15,8 @@ struct UiCursorElement {
   // Coverage data belongs to the element. UiPalette only caches the generated
   // indexed colors after a user theme changes.
   static constexpr std::uint8_t kCornerAlpha = 0x6B;
-  static constexpr std::array<std::uint8_t, 3> kWaveformCoverageQuarters{
-      1, 2, 3};
+  static constexpr std::array<std::uint8_t, 3> kWaveformCoverageQuarters{1, 2,
+                                                                         3};
 };
 
 } // namespace ui2

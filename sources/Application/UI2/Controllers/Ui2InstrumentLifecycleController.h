@@ -44,18 +44,17 @@ public:
     return instanceId_;
   }
 
-  Ui2InstrumentLifecycleCommand RequestTypeChange(
-      InstrumentType requested, InstrumentType current,
-      bool needsConfirmation, bool audioActive,
-      TrackerAction trigger = TrackerAction::Count) {
+  Ui2InstrumentLifecycleCommand
+  RequestTypeChange(InstrumentType requested, InstrumentType current,
+                    bool needsConfirmation, bool audioActive,
+                    TrackerAction trigger = TrackerAction::Count) {
     // NONE is a valid explicit target; values outside the type enum are not.
     if (requested < IT_NONE || requested >= IT_LAST)
       return {};
     if (requested == current)
       return {};
     if (audioActive) {
-      Show(Purpose::PlayingBlocked, UiDialogAction::Ok, UiDialogAction::Ok,
-           1U);
+      Show(Purpose::PlayingBlocked, UiDialogAction::Ok, UiDialogAction::Ok, 1U);
       BlockUntilRelease(trigger);
       return {};
     }
@@ -70,8 +69,7 @@ public:
     return {};
   }
 
-  void RequestExportOverwrite(
-      TrackerAction trigger = TrackerAction::Count) {
+  void RequestExportOverwrite(TrackerAction trigger = TrackerAction::Count) {
     Show(Purpose::ConfirmExportOverwrite, UiDialogAction::Yes,
          UiDialogAction::No, 2U);
     BlockUntilRelease(trigger);

@@ -28,23 +28,23 @@ constexpr std::array<Stop, 7> kStops{{
 }};
 
 std::uint8_t LerpChannel(std::uint8_t from, std::uint8_t to,
-                         std::uint32_t numerator,
-                         std::uint32_t denominator) {
+                         std::uint32_t numerator, std::uint32_t denominator) {
   const std::uint32_t weighted =
       static_cast<std::uint32_t>(from) * (denominator - numerator) +
       static_cast<std::uint32_t>(to) * numerator;
-  return static_cast<std::uint8_t>((weighted + denominator / 2U) /
-                                   denominator);
+  return static_cast<std::uint8_t>((weighted + denominator / 2U) / denominator);
 }
 
 } // namespace
 
 bool UiVuGradient::Configure(UiPalette &palette, std::uint16_t height) {
-  if (height == 0 || height > kMaximumHeight) return false;
+  if (height == 0 || height > kMaximumHeight)
+    return false;
   // Meter levels rebuild their command scenes at audio cadence, while the
   // gradient colors only depend on height and theme. Preserve that work until a
   // theme edit or a direct write into the dynamic bank invalidates it.
-  if (palette.VuGradientCurrent(height)) return true;
+  if (palette.VuGradientCurrent(height))
+    return true;
   const std::uint32_t coordinateDenominator = 2U * height;
   for (std::uint16_t row = 0; row < height; ++row) {
     const std::uint32_t coordinate = 100U * (2U * row + 1U);
@@ -53,15 +53,14 @@ bool UiVuGradient::Configure(UiPalette &palette, std::uint16_t height) {
            coordinate > kStops[upper].percent * coordinateDenominator) {
       ++upper;
     }
-    if (upper >= kStops.size()) upper = kStops.size() - 1;
+    if (upper >= kStops.size())
+      upper = kStops.size() - 1;
     const Stop lowerStop = kStops[upper - 1];
     const Stop upperStop = kStops[upper];
-    const std::uint32_t lower =
-        lowerStop.percent * coordinateDenominator;
+    const std::uint32_t lower = lowerStop.percent * coordinateDenominator;
     const std::uint32_t denominator =
         (upperStop.percent - lowerStop.percent) * coordinateDenominator;
-    const std::uint32_t numerator =
-        coordinate > lower ? coordinate - lower : 0;
+    const std::uint32_t numerator = coordinate > lower ? coordinate - lower : 0;
     const Rgb888 from = palette.Get(palette.Index(lowerStop.color));
     const Rgb888 to = palette.Get(palette.Index(upperStop.color));
     palette.SetRaw(IndexAt(row),

@@ -13,8 +13,7 @@
 #include <mutex>
 
 namespace {
-constexpr std::uint16_t ActionCount =
-    InputMap::ActionCount;
+constexpr std::uint16_t ActionCount = InputMap::ActionCount;
 static_assert(ActionCount <= 16, "The application action mask is 16 bits");
 
 std::mutex actionMutex;

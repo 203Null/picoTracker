@@ -24,7 +24,8 @@ RectI16 ResolvedCursorRect(const UiRecordViewData &data) {
 }
 
 RectI16 ExpandedCursorDamage(RectI16 rect) {
-  if (rect.Empty()) return {};
+  if (rect.Empty())
+    return {};
   return Intersect({static_cast<std::int16_t>(rect.x - 1),
                     static_cast<std::int16_t>(rect.y - 1),
                     static_cast<std::int16_t>(rect.width + 2),
@@ -123,7 +124,8 @@ void UiRecordView::RenderDelta(const UiRecordViewData &previous,
   }
   if (previous.power != current.power || previous.source != current.source)
     render({0, 0, 240, 34});
-  if (previous.source != current.source) render({5, 40, 230, 12});
+  if (previous.source != current.source)
+    render({5, 40, 230, 12});
   if (previous.meterAvailable != current.meterAvailable ||
       previous.safeWidth != current.safeWidth ||
       previous.warningWidth != current.warningWidth) {
@@ -146,8 +148,8 @@ void UiRecordView::RenderDelta(const UiRecordViewData &previous,
   }
 }
 
-UiBuildStatus UiRecordView::Build(const UiRecordViewData &data,
-                                  UiPalette &, UiFrameScene &scene) {
+UiBuildStatus UiRecordView::Build(const UiRecordViewData &data, UiPalette &,
+                                  UiFrameScene &scene) {
   scene.Clear();
   scene.topHeight = 34;
   scene.bottomTop = 208;
@@ -156,15 +158,17 @@ UiBuildStatus UiRecordView::Build(const UiRecordViewData &data,
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
   const UiTopBarModel top{.title = "RECORD",
                           .meta = data.sourceSelectable ? data.source
-                                                       : std::string_view{},
+                                                        : std::string_view{},
                           .power = data.power};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
-  if (topStatus != UiBuildStatus::Built) return topStatus;
+  if (topStatus != UiBuildStatus::Built)
+    return topStatus;
   const UiBottomBarModel bottom = BottomBarFor(data.state);
   scene.bottomVisible = bottom.kind != UiBottomBarKind::Hidden;
   const UiBuildStatus bottomStatus =
       UiChromeRenderer::BuildBottom(bottom, scene.bottom);
-  if (bottomStatus != UiBuildStatus::Built) return bottomStatus;
+  if (bottomStatus != UiBuildStatus::Built)
+    return bottomStatus;
 
   UiSceneBuilder<256, 1024> builder(scene.content);
   if (data.sourceSelectable) {
@@ -174,14 +178,14 @@ UiBuildStatus UiRecordView::Build(const UiRecordViewData &data,
   DrawSection(builder, "LEVEL", LevelLabelY(data));
   builder.Fill({9, MeterY(data), 222, 14}, UiColorToken::DerivedVuTrack);
   if (data.meterAvailable) {
-    const std::int16_t safe = static_cast<std::int16_t>(
-        std::min<std::uint16_t>(data.safeWidth, 222));
+    const std::int16_t safe =
+        static_cast<std::int16_t>(std::min<std::uint16_t>(data.safeWidth, 222));
     builder.Fill({9, MeterY(data), safe, 14}, UiColorToken::VuSafe);
     const std::int16_t warning = static_cast<std::int16_t>(
         std::min<std::uint16_t>(data.warningWidth, 222 - safe));
-    builder.Fill({static_cast<std::int16_t>(9 + safe), MeterY(data), warning,
-                  14},
-                 UiColorToken::VuWarning);
+    builder.Fill(
+        {static_cast<std::int16_t>(9 + safe), MeterY(data), warning, 14},
+        UiColorToken::VuWarning);
   }
 
   const UiColorToken stateColor = StateColor(data.state);
@@ -205,8 +209,7 @@ UiBuildStatus UiRecordView::Build(const UiRecordViewData &data,
     builder.Selection(cursor);
   if (data.cursorInkVisible)
     DrawSelectedInk(builder, data);
-  return builder.Ok() ? UiBuildStatus::Built
-                      : UiBuildStatus::CommandOverflow;
+  return builder.Ok() ? UiBuildStatus::Built : UiBuildStatus::CommandOverflow;
 }
 
 } // namespace ui2

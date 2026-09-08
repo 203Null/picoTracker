@@ -55,8 +55,9 @@ FirmwareLifecycleController::Tick(std::uint32_t nowMs) noexcept {
   return {};
 }
 
-FirmwareLifecycleCommand FirmwareLifecycleController::ObserveBattery(
-    FirmwareBatterySample sample, std::uint32_t nowMs) noexcept {
+FirmwareLifecycleCommand
+FirmwareLifecycleController::ObserveBattery(FirmwareBatterySample sample,
+                                            std::uint32_t nowMs) noexcept {
   if (!sample.available) {
     // Legacy behavior skips an errored sample without dismissing the warning.
     // Advance only the sample clock: with the service's regular 1 Hz calls,
@@ -66,8 +67,8 @@ FirmwareLifecycleCommand FirmwareLifecycleController::ObserveBattery(
     return {};
   }
 
-  const bool critical = !sample.charging &&
-                        sample.percentage < CriticalBatteryPercentage;
+  const bool critical =
+      !sample.charging && sample.percentage < CriticalBatteryPercentage;
   if (!critical) {
     ResetCriticalBattery();
     batteryLastSampleMs_ = nowMs;
@@ -77,9 +78,8 @@ FirmwareLifecycleCommand FirmwareLifecycleController::ObserveBattery(
   criticalBattery_ = true;
   if (previousBatterySampleCritical_) {
     const std::uint32_t interval = nowMs - batteryLastSampleMs_;
-    criticalBatteryElapsedMs_ =
-        std::min<std::uint32_t>(CriticalBatteryShutdownMs,
-                                criticalBatteryElapsedMs_ + interval);
+    criticalBatteryElapsedMs_ = std::min<std::uint32_t>(
+        CriticalBatteryShutdownMs, criticalBatteryElapsedMs_ + interval);
   }
   previousBatterySampleCritical_ = true;
   batteryLastSampleMs_ = nowMs;
@@ -109,8 +109,8 @@ FirmwareLifecycleController::State(std::uint32_t nowMs) const noexcept {
   return state;
 }
 
-FirmwareLifecycleCommand FirmwareLifecycleController::Latch(
-    FirmwareShutdownReason reason) noexcept {
+FirmwareLifecycleCommand
+FirmwareLifecycleController::Latch(FirmwareShutdownReason reason) noexcept {
   return {.shutdownReason = reason};
 }
 

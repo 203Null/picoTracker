@@ -21,13 +21,12 @@
 
 static_assert(SONG_CHANNEL_COUNT == midi_queue_budget::kTrackerChannelCount,
               "MIDI queue budget must cover every tracker channel");
-static_assert(
-    MIDI_MAX_MESG_QUEUE >=
-        midi_queue_budget::kRealtimeMessages +
-            MAX_MIDIINSTRUMENT_COUNT *
-                midi_queue_budget::kSetupMessagesPerInstrument +
-            midi_queue_budget::kTransportMessages,
-    "MIDI queue budget must cover instrument setup at player start");
+static_assert(MIDI_MAX_MESG_QUEUE >=
+                  midi_queue_budget::kRealtimeMessages +
+                      MAX_MIDIINSTRUMENT_COUNT *
+                          midi_queue_budget::kSetupMessagesPerInstrument +
+                      midi_queue_budget::kTransportMessages,
+              "MIDI queue budget must cover instrument setup at player start");
 
 // Constants for MIDI pitch bend.
 #define PB_CENTER 8192

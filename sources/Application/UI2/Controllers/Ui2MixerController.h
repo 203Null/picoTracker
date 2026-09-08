@@ -39,8 +39,7 @@ public:
   Ui2MixerCommand Handle(TrackerAction action, bool pressed) {
     if (!input_.Update(action, pressed) || !pressed)
       return {};
-    if (action == TrackerAction::Play &&
-        input_.Held(TrackerAction::Option)) {
+    if (action == TrackerAction::Play && input_.Held(TrackerAction::Option)) {
       if (selected_ >= 8U && !input_.Held(TrackerAction::Shift))
         return {};
       return {input_.Held(TrackerAction::Shift)
@@ -48,8 +47,7 @@ public:
                   : Ui2MixerCommandType::ToggleSolo,
               selected_};
     }
-    if (action == TrackerAction::Shift &&
-        input_.Held(TrackerAction::Option)) {
+    if (action == TrackerAction::Shift && input_.Held(TrackerAction::Option)) {
       if (selected_ >= 8U)
         return {};
       return {Ui2MixerCommandType::ToggleMute, selected_};

@@ -23,13 +23,13 @@ struct OpalOutputLevelRegisters {
   return static_cast<std::uint8_t>((depth & 0x03) << 6);
 }
 
-[[nodiscard]] constexpr OpalOutputLevelRegisters EncodeOpalOutputLevels(
-    int operator1KeyScale, int operator1Level, int operator2KeyScale,
-    int operator2Level) {
+[[nodiscard]] constexpr OpalOutputLevelRegisters
+EncodeOpalOutputLevels(int operator1KeyScale, int operator1Level,
+                       int operator2KeyScale, int operator2Level) {
   return {
-      .operator1 = static_cast<std::uint8_t>(
-          ((operator1KeyScale & 0x03) << 6) | (operator1Level & 0x3F)),
-      .operator2 = static_cast<std::uint8_t>(
-          ((operator2KeyScale & 0x03) << 6) | (operator2Level & 0x3F)),
+      .operator1 = static_cast<std::uint8_t>(((operator1KeyScale & 0x03) << 6) |
+                                             (operator1Level & 0x3F)),
+      .operator2 = static_cast<std::uint8_t>(((operator2KeyScale & 0x03) << 6) |
+                                             (operator2Level & 0x3F)),
   };
 }

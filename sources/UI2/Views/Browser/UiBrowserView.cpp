@@ -36,8 +36,8 @@ std::uint8_t VisibleItemCount(const UiBrowserViewData &data) {
 }
 
 std::uint16_t TotalItemCount(const UiBrowserViewData &data) {
-  const std::uint16_t suppliedWindowEnd = static_cast<std::uint16_t>(
-      std::min<std::uint32_t>(
+  const std::uint16_t suppliedWindowEnd =
+      static_cast<std::uint16_t>(std::min<std::uint32_t>(
           std::numeric_limits<std::uint16_t>::max(),
           static_cast<std::uint32_t>(data.topIndex) + VisibleItemCount(data)));
   return std::max(data.totalItemCount, suppliedWindowEnd);
@@ -75,8 +75,8 @@ RectI16 UiBrowserView::ScrollThumbRect(const UiBrowserViewData &data) {
   if (total <= visible)
     return {};
 
-  const std::int16_t thumbHeight = static_cast<std::int16_t>(std::max<int>(
-      5, static_cast<int>(kListHeight) * visible / total));
+  const std::int16_t thumbHeight = static_cast<std::int16_t>(
+      std::max<int>(5, static_cast<int>(kListHeight) * visible / total));
   const std::uint16_t maximumTop = static_cast<std::uint16_t>(total - visible);
   const std::uint16_t top = std::min(data.topIndex, maximumTop);
   const std::int16_t travel =
@@ -129,9 +129,11 @@ UiBuildStatus UiBrowserView::Build(const UiBrowserViewData &data, UiPalette &,
   scene.bottomVisible = true;
   scene.topBackground = UiColorToken::SurfaceTopBar;
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
-  const UiTopBarModel top{
-      .title = data.title, .meta = data.meta, .power = data.power,
-      .metaUserData = true, .backNavigation = true};
+  const UiTopBarModel top{.title = data.title,
+                          .meta = data.meta,
+                          .power = data.power,
+                          .metaUserData = true,
+                          .backNavigation = true};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;
@@ -171,8 +173,8 @@ UiBuildStatus UiBrowserView::Build(const UiBrowserViewData &data, UiPalette &,
     builder.Selection(cursor);
   }
   if (HasSelectedRow(data) && data.cursorInkVisible) {
-    const std::int16_t selectedY = static_cast<std::int16_t>(
-        kFirstRowTextY + data.selectedRow * kRowStep);
+    const std::int16_t selectedY =
+        static_cast<std::int16_t>(kFirstRowTextY + data.selectedRow * kRowStep);
     builder.Text(">", 10, selectedY, UiColorToken::TextHighlighted);
     builder.UserText(
         data.items[data.selectedRow].substr(0, kMaximumItemCharacters),

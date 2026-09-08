@@ -34,8 +34,7 @@ public:
    * @param audioChannel The audio voice slot assigned (0-7)
    * @return True if the note was successfully registered
    */
-  bool registerNote(uint8_t note, uint8_t midiChannel,
-                    uint8_t audioChannel);
+  bool registerNote(uint8_t note, uint8_t midiChannel, uint8_t audioChannel);
 
   /**
    * Unregister a note on a specific MIDI channel

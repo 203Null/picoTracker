@@ -27,9 +27,8 @@ public:
   }
 
   [[nodiscard]] static constexpr std::int16_t
-  Reveal(std::int16_t currentOffset, RectI16 item,
-         std::int16_t viewportTop, std::int16_t viewportBottom,
-         std::int16_t contentBottom) {
+  Reveal(std::int16_t currentOffset, RectI16 item, std::int16_t viewportTop,
+         std::int16_t viewportBottom, std::int16_t contentBottom) {
     const std::int16_t maximum = static_cast<std::int16_t>(
         std::max<std::int32_t>(0, contentBottom - viewportBottom));
     std::int16_t offset = Clamp(currentOffset, viewportBottom, contentBottom);
@@ -42,7 +41,7 @@ public:
   }
 
   [[nodiscard]] static constexpr RectI16 VisualRect(RectI16 logical,
-                                                     std::int16_t offset) {
+                                                    std::int16_t offset) {
     logical.y = static_cast<std::int16_t>(logical.y - offset);
     return logical;
   }

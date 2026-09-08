@@ -20,8 +20,10 @@ void WasmApplicationSnapshot::Publish(const char *projectName,
   std::array<std::uint8_t, ProjectNameStorageBytes> nameBytes{};
   std::size_t nameLength = 0U;
   if (projectName != nullptr) {
-    while (nameLength < ProjectNameCapacity && projectName[nameLength] != '\0') {
-      nameBytes[nameLength] = static_cast<std::uint8_t>(projectName[nameLength]);
+    while (nameLength < ProjectNameCapacity &&
+           projectName[nameLength] != '\0') {
+      nameBytes[nameLength] =
+          static_cast<std::uint8_t>(projectName[nameLength]);
       ++nameLength;
     }
   }
@@ -87,8 +89,8 @@ bool WasmApplicationSnapshot::Copy(
   result.sampleCount = copy[SampleCountWord];
   result.playerRunning = copy[PlayerRunningWord];
   result.masterLevel = copy[MasterLevelWord];
-  result.projectNameLength = std::min<std::uint32_t>(
-      copy[ProjectNameLengthWord], ProjectNameCapacity);
+  result.projectNameLength =
+      std::min<std::uint32_t>(copy[ProjectNameLengthWord], ProjectNameCapacity);
   for (std::size_t index = 0; index < result.projectNameLength; ++index) {
     const std::uint32_t word =
         copy[ProjectNameWord + index / sizeof(std::uint32_t)];

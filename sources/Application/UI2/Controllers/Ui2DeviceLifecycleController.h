@@ -41,11 +41,11 @@ public:
     return instanceId_;
   }
 
-  void RequestUpdateFirmware(
-      bool playerRunning, TrackerAction trigger = TrackerAction::Count) {
+  void RequestUpdateFirmware(bool playerRunning,
+                             TrackerAction trigger = TrackerAction::Count) {
     if (playerRunning) {
-      Show(Purpose::PlayingBlocked, UiDialogAction::Ok, UiDialogAction::Ok,
-           1U, trigger);
+      Show(Purpose::PlayingBlocked, UiDialogAction::Ok, UiDialogAction::Ok, 1U,
+           trigger);
       return;
     }
     // MessageBox historically focuses its last button. Keeping NO last and

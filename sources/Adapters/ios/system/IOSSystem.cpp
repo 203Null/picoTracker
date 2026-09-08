@@ -38,7 +38,8 @@ std::uint32_t IOSSystem::GetRandomNumber() {
 
 std::uint32_t IOSSystem::Micros() {
   return static_cast<std::uint32_t>(
-      std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - started_)
+      std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() -
+                                                            started_)
           .count());
 }
 
@@ -47,7 +48,6 @@ std::uint32_t IOSSystem::Millis() { return Micros() / 1000U; }
 void IOSSystem::SetBatteryState(std::uint8_t percentage, bool charging,
                                 bool available) noexcept {
   battery.store(std::min<std::uint32_t>(percentage, 100U) |
-                    (charging ? kCharging : 0U) |
-                    (available ? kAvailable : 0U),
+                    (charging ? kCharging : 0U) | (available ? kAvailable : 0U),
                 std::memory_order_release);
 }

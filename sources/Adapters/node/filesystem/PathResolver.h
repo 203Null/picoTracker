@@ -18,6 +18,6 @@ std::optional<std::string> Resolve(const std::string &cwd, const char *path);
 bool IsContainedWithoutSymlinks(const std::string &mountPoint,
                                 const std::string &resolvedPath,
                                 bool allowMissingSuffix);
-}
+} // namespace NodePath
 
 #endif

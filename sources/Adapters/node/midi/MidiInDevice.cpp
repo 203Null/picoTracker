@@ -4,7 +4,7 @@
 namespace {
 constexpr uint32_t kPollTimeoutMs = 0;
 constexpr size_t kPollBufferSize = 32;
-}
+} // namespace
 
 NodeMidiInDevice::NodeMidiInDevice(const char *name) : MidiInDevice(name) {}
 
@@ -29,8 +29,8 @@ void NodeMidiInDevice::poll() {
 
   uint8_t buffer[kPollBufferSize];
   while (true) {
-    const int bytesRead = NullperatorHAL::MIDI::Receive(
-        buffer, sizeof(buffer), kPollTimeoutMs);
+    const int bytesRead =
+        NullperatorHAL::MIDI::Receive(buffer, sizeof(buffer), kPollTimeoutMs);
     if (bytesRead <= 0) {
       return;
     }

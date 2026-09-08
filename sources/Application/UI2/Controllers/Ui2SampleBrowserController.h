@@ -104,8 +104,9 @@ public:
 
     // Application-level press ownership forwards releases back to the browser
     // while its confirmation dialog is active. Keep those releases in sync so
-    // OPTION+ENTER cannot leave OPTION latched and turn the next plain ENTER into
-    // another delete request. Dialog presses remain exclusively modal-owned.
+    // OPTION+ENTER cannot leave OPTION latched and turn the next plain ENTER
+    // into another delete request. Dialog presses remain exclusively
+    // modal-owned.
     if (dialogActive_) {
       if (!pressed)
         input_.Update(action, false);
@@ -157,8 +158,7 @@ public:
     // Legacy OPTION+LEFT walked to the parent directory without leaving the
     // browser. SHIFT+LEFT remains the application-level return chord.
     if (mode_ == Ui2SampleBrowserMode::Library &&
-        action == TrackerAction::Left &&
-        input_.Held(TrackerAction::Option)) {
+        action == TrackerAction::Left && input_.Held(TrackerAction::Option)) {
       NavigateParent();
       return {};
     }
@@ -168,8 +168,8 @@ public:
     // project pool and recursive sample library.
     if (input_.Held(TrackerAction::Option) &&
         (action == TrackerAction::Up || action == TrackerAction::Down)) {
-      selected_ = Ui2MoveListIndex(
-          selected_, count_, action == TrackerAction::Up ? -8 : 8);
+      selected_ = Ui2MoveListIndex(selected_, count_,
+                                   action == TrackerAction::Up ? -8 : 8);
       SelectionChanged();
       return {};
     }
@@ -178,13 +178,11 @@ public:
     // Browser. The project pool owns a designed, confirmed delete flow;
     // Library files deliberately remain read-only here.
     if (mode_ == Ui2SampleBrowserMode::ProjectPool &&
-        action == TrackerAction::Enter &&
-        input_.Held(TrackerAction::Option) &&
+        action == TrackerAction::Enter && input_.Held(TrackerAction::Option) &&
         !input_.Held(TrackerAction::Shift) && HasFileSelection())
       return MakeSelected(Ui2SampleBrowserCommandType::RequestDelete);
 
-    if (input_.Held(TrackerAction::Shift) ||
-        input_.Held(TrackerAction::Option))
+    if (input_.Held(TrackerAction::Shift) || input_.Held(TrackerAction::Option))
       return {};
 
     if (action == TrackerAction::Up) {
@@ -203,14 +201,13 @@ public:
     return {};
   }
 
-  void RequestDeleteConfirmation(
-      const char *filename, TrackerAction trigger = TrackerAction::Count) {
+  void RequestDeleteConfirmation(const char *filename,
+                                 TrackerAction trigger = TrackerAction::Count) {
     pendingDelete_.fill('\0');
     dialogReleaseGate_.Reset();
     if (filename == nullptr || filename[0] == '\0')
       return;
-    std::snprintf(pendingDelete_.data(), pendingDelete_.size(), "%s",
-                  filename);
+    std::snprintf(pendingDelete_.data(), pendingDelete_.size(), "%s", filename);
     dialogActive_ = true;
     dialogSelectedAction_ = 1U; // NO is the conservative legacy default.
     dialogInput_ = {};
@@ -368,8 +365,9 @@ public:
                           sampleInUse != nullptr &&
                           sampleInUse(sampleUseContext, name);
         std::snprintf(display, sizeof(display), "%s%s",
-                      used ? "*" : IsSingleCycleSize(SelectedSize(index)) ? "~"
-                                                                            : "",
+                      used                                     ? "*"
+                      : IsSingleCycleSize(SelectedSize(index)) ? "~"
+                                                               : "",
                       name);
       }
       Ui2BrowserSnapshot::CopyText(snapshot.items[row], display);
@@ -381,8 +379,7 @@ public:
       const std::uint64_t bytes = SelectedSize(selected_);
       const unsigned kb = static_cast<unsigned>((bytes + 1023U) / 1024U);
       std::snprintf(snapshot.footer.data(), snapshot.footer.size(),
-                    "%u KB  /  %d", kb,
-                    std::clamp(previewVolume, 0, 99));
+                    "%u KB  /  %d", kb, std::clamp(previewVolume, 0, 99));
     } else {
       std::snprintf(snapshot.footer.data(), snapshot.footer.size(), "0 ITEMS");
     }
@@ -391,7 +388,7 @@ public:
       Ui2BrowserSnapshot::CopyText(
           snapshot.actions[0],
           openFailed_ || mode_ == Ui2SampleBrowserMode::Library ? "BACK"
-                                                                 : "IMPORT");
+                                                                : "IMPORT");
       snapshot.actionCount = 1U;
       return snapshot;
     }
@@ -400,8 +397,7 @@ public:
       if (mode_ == Ui2SampleBrowserMode::Library) {
         Ui2BrowserSnapshot::CopyText(snapshot.actions[1], "BACK");
         snapshot.actionCount = 2U;
-        snapshot.activeAction =
-            std::min<std::uint8_t>(selectedAction_, 1U);
+        snapshot.activeAction = std::min<std::uint8_t>(selectedAction_, 1U);
       } else {
         snapshot.actionCount = 1U;
       }
@@ -560,9 +556,9 @@ private:
       selectedAction_ = 0U;
       return;
     }
-    const int count = mode_ == Ui2SampleBrowserMode::ProjectPool
-                          ? 3
-                          : IsSelectedDirectory() ? 2 : 3;
+    const int count = mode_ == Ui2SampleBrowserMode::ProjectPool ? 3
+                      : IsSelectedDirectory()                    ? 2
+                                                                 : 3;
     selectedAction_ = static_cast<std::uint8_t>(
         (count + static_cast<int>(selectedAction_) + delta) % count);
     ClearError();

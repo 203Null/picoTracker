@@ -58,14 +58,14 @@ extern "C" void display_rgb565_transport_init(void) {
   const esp_lcd_panel_io_callbacks_t callbacks = {
       .on_color_trans_done = OnColorTransferDone,
   };
-  ESP_ERROR_CHECK(esp_lcd_panel_io_register_event_callbacks(
-      panelIo, &callbacks, transferDone));
+  ESP_ERROR_CHECK(esp_lcd_panel_io_register_event_callbacks(panelIo, &callbacks,
+                                                            transferDone));
   registeredPanelIo = panelIo;
 }
 
 extern "C" bool display_draw_rgb565_region(uint16_t x, uint16_t y,
-                                            uint16_t width, uint16_t height,
-                                            const uint16_t *pixels) {
+                                           uint16_t width, uint16_t height,
+                                           const uint16_t *pixels) {
   constexpr uint16_t DisplayWidth = 240;
   constexpr uint16_t DisplayHeight = 240;
   if (pixels == nullptr || width == 0 || height == 0 || x >= DisplayWidth ||
@@ -80,8 +80,8 @@ extern "C" bool display_draw_rgb565_region(uint16_t x, uint16_t y,
 
   display_rgb565_transport_init();
   ClearStaleCompletion();
-  const esp_err_t result = esp_lcd_panel_draw_bitmap(
-      panel, x, y, x + width, y + height, pixels);
+  const esp_err_t result =
+      esp_lcd_panel_draw_bitmap(panel, x, y, x + width, y + height, pixels);
   if (result != ESP_OK)
     return false;
   WaitForCompletion();

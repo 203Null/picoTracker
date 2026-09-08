@@ -18,9 +18,10 @@ enum class UiRgb565ByteOrder : std::uint8_t {
   MostSignificantByteFirst,
 };
 
-// Converts the indexed UI2 surface into small RGB565 DMA chunks. It deliberately
-// owns no second framebuffer: the largest allocation is one 240 x 24 transfer
-// block (11,520 bytes), independent of the number or size of dirty regions.
+// Converts the indexed UI2 surface into small RGB565 DMA chunks. It
+// deliberately owns no second framebuffer: the largest allocation is one 240 x
+// 24 transfer block (11,520 bytes), independent of the number or size of dirty
+// regions.
 class UiRgb565Presenter final : public IUiPresenter {
 public:
   static constexpr std::uint16_t kChunkRows = 24;
