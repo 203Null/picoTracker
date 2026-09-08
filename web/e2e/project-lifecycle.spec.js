@@ -63,7 +63,7 @@ test('real session Save As, Browser Load/Delete, dirty confirmation, and New res
   // Create project A with tempo 139. An empty rename cannot select SAVE, so
   // UP reaches RANDOM; the first ENTER generates a valid name and the second
   // accepts SAVE.
-  await chord(page, 'x', 'w')
+  await chord(page, 'c', 'w')
   await tap(page, 's')
   await tap(page, 'd')
   await tap(page, 'w')
@@ -103,19 +103,19 @@ test('real session Save As, Browser Load/Delete, dirty confirmation, and New res
 
   // Load is forbidden while playback is active. The established OK message
   // consumes ENTER and leaves the selected project and live model untouched.
-  await tap(page, 'c')
+  await tap(page, 'x')
   await expectModel(page, { playerRunning: true })
   await tap(page, 'a')
   await tap(page, 'k')
   await tap(page, 'k')
   await expectModel(page, { projectName: projectB, tempo: 140, playerRunning: true })
   await tap(page, 'k')
-  await tap(page, 'c')
+  await tap(page, 'x')
   await expectModel(page, { playerRunning: false })
   // OPTION no longer doubles as Browser Back under the approved M8 mapping.
   // Keep global PLAY available in Project Browser, then use SHIFT+LEFT for the
   // documented return chord before editing Project values.
-  await chord(page, 'x', 'a')
+  await chord(page, 'c', 'a')
 
   // Make B dirty, reject the first load with the conservative default NO,
   // then explicitly select YES. Loading A must restore its persisted tempo,
@@ -135,7 +135,7 @@ test('real session Save As, Browser Load/Delete, dirty confirmation, and New res
   // A successful load resets every page controller before entering Song.
   // Project therefore reopens on NEW. First delete non-current B through the
   // browser (again checking the default NO), then execute NEW from that reset.
-  await chord(page, 'x', 'w')
+  await chord(page, 'c', 'w')
   await tap(page, 'd')
   await tap(page, 'k')
   await tap(page, 's')
@@ -149,7 +149,7 @@ test('real session Save As, Browser Load/Delete, dirty confirmation, and New res
   await tap(page, 'k')
   await expect.poll(() => projectExists(page, projectB), { timeout: 10_000 }).toBe(false)
 
-  await chord(page, 'x', 'a')
+  await chord(page, 'c', 'a')
   await tap(page, 'a')
   await tap(page, 'k')
   await expectModel(page, { projectName: '.untitled', tempo: 138, playerRunning: false })
