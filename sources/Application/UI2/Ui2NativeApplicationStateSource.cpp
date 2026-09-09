@@ -704,6 +704,8 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
           activeValue->GetInt(), 0,
           std::max(0, static_cast<int>(activeValue->GetListSize()) - 1)));
       state.fieldOptionWrap = true;
+    } else if (activeSubfields.count > 0U) {
+      state.fieldBottom = UiInstrumentFieldBottom::Edit;
     } else if (activeAdjustment.visible ||
                activeDescriptor.format ==
                    Ui2InstrumentValueFormat::SampleFilter ||

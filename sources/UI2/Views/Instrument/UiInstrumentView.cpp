@@ -431,6 +431,10 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     bottom.actions.actions = {"LOAD", "EDIT", {}, {}};
     bottom.actions.count = data.sampleLoaded ? 2 : 1;
     bottom.actions.active = data.sampleLoaded ? data.sampleAction : 0;
+  } else if (data.fieldBottom == UiInstrumentFieldBottom::Edit) {
+    bottom.kind = UiBottomBarKind::Actions;
+    bottom.actions.actions = {"EDIT", {}, {}, {}};
+    bottom.actions.count = 1;
   } else if (data.fieldBottom == UiInstrumentFieldBottom::Open) {
     bottom.kind = UiBottomBarKind::Actions;
     bottom.actions.actions = {"OPEN", {}, {}, {}};

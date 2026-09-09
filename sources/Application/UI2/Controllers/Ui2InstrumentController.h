@@ -453,6 +453,8 @@ private:
             static_cast<std::uint8_t>(std::clamp<int>(subfield_ + delta, 0, 3));
         return {};
       }
+      if (subfieldMode_ != Ui2InstrumentSubfieldMode::None)
+        return {}; // Component fields are edited only while Enter is held.
       Ui2InstrumentCommand command =
           MakeCommand(Ui2InstrumentCommandType::AdjustField);
       command.direction = delta < 0 ? Ui2InstrumentValueDirection::Left

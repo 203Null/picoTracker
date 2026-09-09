@@ -392,6 +392,25 @@ TEST_CASE(
   CHECK(controller.SampleAction() == 0U);
 }
 
+TEST_CASE("UI2 digit fields ignore bare horizontal input and edit while Enter "
+          "is held") {
+  using namespace ui2;
+  Ui2InstrumentController controller(0U, 0U, 11U, 0U);
+  Tap(controller, TrackerAction::Down);
+  Tap(controller, TrackerAction::Down);
+  controller.ConfigureValueSubfields(Ui2InstrumentSubfieldMode::HexDigit, 4);
+  CHECK_FALSE(Tap(controller, TrackerAction::Left).HasValue());
+  CHECK_FALSE(Tap(controller, TrackerAction::Right).HasValue());
+  controller.Handle(TrackerAction::Enter, true);
+  const auto before = controller.Subfield();
+  CHECK_FALSE(Tap(controller, TrackerAction::Left).HasValue());
+  CHECK(controller.Subfield() == before - 1);
+  const auto edit = Tap(controller, TrackerAction::Up);
+  CHECK(edit.type == Ui2InstrumentCommandType::AdjustField);
+  CHECK(edit.subfieldMode == Ui2InstrumentSubfieldMode::HexDigit);
+  controller.Handle(TrackerAction::Enter, false);
+}
+
 TEST_CASE("UI2 Device cursor skips hidden rows and owns scroll position") {
   using namespace ui2;
   constexpr std::uint32_t visible =

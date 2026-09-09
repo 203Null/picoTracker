@@ -39,6 +39,7 @@ enum class UiInstrumentCursor : std::uint8_t {
 
 enum class UiInstrumentFieldBottom : std::uint8_t {
   SampleActions,
+  Edit,
   Hidden,
   Open,
   Adjustment,
