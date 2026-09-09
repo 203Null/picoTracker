@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "Application/Instruments/I_Instrument.h"
 #include "Application/Model/Song.h"
 #include "Application/UI2/Ui2FixedText.h"
 #include "Application/Utils/char.h"
@@ -19,7 +20,8 @@ namespace ui2 {
 
 // Format the tracker note cell without invoking printf in the 30 Hz capture
 // path. Display octaves 0–9; stored notes and playback pitch are unchanged.
-inline void FormatUiNote(std::uint8_t value, std::array<char, 5> &text) {
+inline void FormatUiNote(std::uint8_t value, std::array<char, 5> &text,
+                         const I_Instrument *instrument = nullptr) {
   text.fill('\0');
   if (value == NO_NOTE) {
     text = {'-', '-', '-', '\0', '\0'};
@@ -35,6 +37,8 @@ inline void FormatUiNote(std::uint8_t value, std::array<char, 5> &text) {
   }
 
   const char *pitch = noteNames[value % 12U];
+  if (instrument && instrument->FormatNote(value, text.data(), text.size()))
+    return;
   std::size_t cursor = 0U;
   text[cursor++] = pitch[0];
   text[cursor++] = pitch[1];
@@ -59,7 +63,10 @@ void CaptureUiTrackNotes(PlayerLike *player, bool playing, Notes &notes) {
       CopyUiText(notes[track], "--");
       continue;
     }
-    FormatUiNote(static_cast<std::uint8_t>(value), notes[track]);
+    const I_Instrument *instrument = nullptr;
+    if constexpr (requires { player->GetPlayedInstrument(track); })
+      instrument = player->GetPlayedInstrument(track);
+    FormatUiNote(static_cast<std::uint8_t>(value), notes[track], instrument);
   }
 }
 
@@ -82,8 +89,12 @@ void CaptureUiLiveTransportFallback(PlayerLike *player, bool liveMode,
         !transport.IsChannelPlaying(track) || transport.chain[track] == 0xFFU)
       continue;
     const std::uint8_t note = transport.note[track];
-    if (note <= HIGHEST_NOTE)
-      FormatUiNote(note, notes[track]);
+    if (note <= HIGHEST_NOTE) {
+      const I_Instrument *instrument = nullptr;
+      if constexpr (requires { player->GetPlayedInstrument(track); })
+        instrument = player->GetPlayedInstrument(track);
+      FormatUiNote(note, notes[track], instrument);
+    }
   }
 }
 

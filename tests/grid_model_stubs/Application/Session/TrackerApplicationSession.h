@@ -34,6 +34,9 @@ public:
   virtual ~I_Instrument() = default;
   virtual InstrumentType GetType() const { return type_; }
   virtual int GetTable() const { return table_; }
+  virtual bool EditNote(unsigned char, int, bool, unsigned char &) const {
+    return false;
+  }
   void SetType(InstrumentType type) { type_ = type; }
   void SetTable(int table) { table_ = table; }
 

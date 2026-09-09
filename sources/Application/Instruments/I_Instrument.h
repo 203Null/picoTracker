@@ -71,6 +71,15 @@ public:
 
   virtual InstrumentType GetType() = 0;
 
+  // Optional instrument-owned note semantics. UI keeps empty/Note Off handling;
+  // these hooks format and edit playable values without changing project data.
+  virtual bool FormatNote(unsigned char, char *, unsigned) const {
+    return false;
+  }
+  virtual bool EditNote(unsigned char, int, bool, unsigned char &) const {
+    return false;
+  }
+
   virtual etl::string<MAX_INSTRUMENT_NAME_LENGTH> GetDefaultName() {
     return etl::string<MAX_INSTRUMENT_NAME_LENGTH>(
         InstrumentTypeNames[GetType()]);

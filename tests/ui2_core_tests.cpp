@@ -3074,8 +3074,16 @@ TEST_CASE("UI2 Drum and Stack render approved fields and contextual bottom bars"
   auto drum = ui2::test::ApprovedInstrumentFixture("drum");
   REQUIRE(ui2::UiInstrumentView::Build(drum, palette, scene) == ui2::UiBuildStatus::Built);
   REQUIRE(scene.bottomVisible);
-  CHECK(FindTextCommand(scene.bottom.Stream(), "PITCH / NOTE / DECAY / WAVE") != nullptr);
-  CHECK(FindTextCommand(scene.bottom.Stream(), "ONE SOUND PER NOTE") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "PITCH DECAY") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "PITCH ENVELOPE RATE") !=
+        nullptr);
+  drum.adjustmentFocus = true;
+  drum.adjustmentCoarseStep = 16;
+  REQUIRE(ui2::UiInstrumentView::Build(drum, palette, scene) ==
+          ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "10") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "16") == nullptr);
+  drum.adjustmentFocus = false;
   auto tail = drum;
   tail.selectedField = 12;
   CHECK(ui2::UiInstrumentView::RevealCursor(0, tail) == 0);
@@ -3354,6 +3362,41 @@ TEST_CASE(
   ui2::UiFrameRenderer::RenderStatic(currentScene, expected, palette);
   CHECK(std::equal(surface.Pixels().begin(), surface.Pixels().end(),
                    expected.Pixels().begin(), expected.Pixels().end()));
+}
+
+TEST_CASE("UI2 Drum cell and wave delta matches a full redraw") {
+  using namespace ui2;
+  UiPalette palette;
+  UiInstrumentViewData previous;
+  previous.kind = UiInstrumentKind::Drum;
+  previous.cursor = UiInstrumentCursor::Field;
+  previous.fieldCount = 1;
+  previous.fields[0].label = "D01";
+  previous.fields[0].value = "4562";
+  previous.fields[0].y = 78;
+  previous.selectedSubfield = 0;
+  CHECK(UiInstrumentView::CursorTargetRect(previous).x == 96);
+  for (unsigned step = 0; step < 3; ++step) {
+    UiFrameScene scene;
+    REQUIRE(UiInstrumentView::Build(previous, palette, scene) ==
+            UiBuildStatus::Built);
+    UiSurfaceStorage storage, expectedStorage;
+    UiIndexedSurface surface(storage), expected(expectedStorage);
+    UiFrameRenderer::RenderStatic(scene, surface, palette);
+    auto current = previous;
+    current.selectedSubfield = 3;
+    if (step == 1)
+      current.fields[0].value = "4567";
+    if (step == 2)
+      current.fields[0].value = "4560";
+    REQUIRE(UiInstrumentView::Build(current, palette, scene) ==
+            UiBuildStatus::Built);
+    UiInstrumentView::RenderDelta(previous, current, scene, surface, palette);
+    UiFrameRenderer::RenderStatic(scene, expected, palette);
+    CHECK(std::equal(surface.Pixels().begin(), surface.Pixels().end(),
+                     expected.Pixels().begin()));
+    previous = current;
+  }
 }
 
 TEST_CASE("UI2 Mixer stereo meters use separate damage columns") {

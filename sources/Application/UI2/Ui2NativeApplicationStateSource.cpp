@@ -364,9 +364,18 @@ Ui2NativeApplicationStateSource::CapturePhrase(UiPhraseFrameState &state) {
         selection.Bottom());
   }
   const int base = controller.Number() * STEPS_PER_PHRASE;
+  I_Instrument *noteInstrument = nullptr;
   for (std::uint8_t row = 0; row < STEPS_PER_PHRASE; ++row) {
     const int index = base + row;
-    FormatUiNote(phrase.note_[index], state.rows[row].note);
+    if (phrase.instr_[index] != 0xFFU)
+      noteInstrument =
+          project.GetInstrumentBank()->GetInstrument(phrase.instr_[index]);
+    FormatUiNote(phrase.note_[index], state.rows[row].note, noteInstrument);
+    if (row == controller.Row() && noteInstrument) {
+      std::array<char, 5> noteText{};
+      state.customNote =
+          noteInstrument->FormatNote(0, noteText.data(), noteText.size());
+    }
     if (phrase.instr_[index] == 0xFFU)
       CopyUiText(state.rows[row].instrument, "I--");
     else {
@@ -698,6 +707,15 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
     }
   }
   state.selectedSubfield = instrument_.Subfield();
+  if (type == IT_DRUM && cursor.kind == Ui2InstrumentCursorKind::Field &&
+      cursor.index < 12) {
+    state.enterSubfieldFocus = false;
+    state.adjustmentFocus =
+        !state.numberFocus && state.selectedSubfield != 3 &&
+        (instrument_.HeldMask() & TrackerActionBit(TrackerAction::Enter)) != 0;
+    state.adjustmentFineStep = 1;
+    state.adjustmentCoarseStep = 16;
+  }
   state.subfieldTextOffset = activeSubfields.textOffset;
   FormatElapsed(state.elapsed);
   CaptureUiTrackNotes(Player::GetInstance(), PlayerRunning(), state.trackNotes);

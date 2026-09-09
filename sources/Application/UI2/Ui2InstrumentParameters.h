@@ -131,42 +131,42 @@ constexpr Ui2InstrumentParameterDescriptor Parameter(
 
 inline constexpr std::array<Ui2InstrumentParameterDescriptor, 13>
     kDrumParameters{
-        Parameter("C", FourCC::DrumVoice0, 0, 0xFFFF, 1, 1, 68, 4,
+        Parameter("D01", FourCC::DrumVoice0, 0, 0xFFFF, 1, 16, 78, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("C#", FourCC::DrumVoice1, 0, 0xFFFF, 1, 1, 78, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D02", FourCC::DrumVoice1, 0, 0xFFFF, 1, 16, 87, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("D", FourCC::DrumVoice2, 0, 0xFFFF, 1, 1, 88, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D03", FourCC::DrumVoice2, 0, 0xFFFF, 1, 16, 96, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("D#", FourCC::DrumVoice3, 0, 0xFFFF, 1, 1, 98, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D04", FourCC::DrumVoice3, 0, 0xFFFF, 1, 16, 105, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("E", FourCC::DrumVoice4, 0, 0xFFFF, 1, 1, 108, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D05", FourCC::DrumVoice4, 0, 0xFFFF, 1, 16, 114, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("F", FourCC::DrumVoice5, 0, 0xFFFF, 1, 1, 118, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D06", FourCC::DrumVoice5, 0, 0xFFFF, 1, 16, 123, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("F#", FourCC::DrumVoice6, 0, 0xFFFF, 1, 1, 128, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D07", FourCC::DrumVoice6, 0, 0xFFFF, 1, 16, 132, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("G", FourCC::DrumVoice7, 0, 0xFFFF, 1, 1, 138, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D08", FourCC::DrumVoice7, 0, 0xFFFF, 1, 16, 141, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("G#", FourCC::DrumVoice8, 0, 0xFFFF, 1, 1, 148, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D09", FourCC::DrumVoice8, 0, 0xFFFF, 1, 16, 150, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("A", FourCC::DrumVoice9, 0, 0xFFFF, 1, 1, 158, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D10", FourCC::DrumVoice9, 0, 0xFFFF, 1, 16, 159, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("A#", FourCC::DrumVoice10, 0, 0xFFFF, 1, 1, 168, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D11", FourCC::DrumVoice10, 0, 0xFFFF, 1, 16, 168, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-        Parameter("B", FourCC::DrumVoice11, 0, 0xFFFF, 1, 1, 178, 4,
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
+        Parameter("D12", FourCC::DrumVoice11, 0, 0xFFFF, 1, 16, 177, 4,
                   Ui2InstrumentValueFormat::Hex, false, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::DrumCell),
         Parameter("CHARACTER", FourCC::DrumCharacter, 0, 255, 1, 16, 192, 2,
                   Ui2InstrumentValueFormat::Hex),
     };
@@ -623,6 +623,21 @@ Ui2AdjustInstrumentParameter(const Ui2InstrumentParameterDescriptor &descriptor,
     Ui2InstrumentSubfieldMode mode, std::uint8_t leftToRightSubfield,
     Ui2InstrumentValueDirection direction) {
   const Ui2InstrumentSubfieldSpec spec = Ui2InstrumentSubfields(descriptor);
+  if (mode == Ui2InstrumentSubfieldMode::DrumCell && mode == spec.mode &&
+      leftToRightSubfield < 4 &&
+      direction != Ui2InstrumentValueDirection::None) {
+    const unsigned shift = (3 - leftToRightSubfield) * 4;
+    const int value = (current >> shift) & 15;
+    const bool down = direction == Ui2InstrumentValueDirection::Down ||
+                      direction == Ui2InstrumentValueDirection::Left;
+    const bool coarse = direction == Ui2InstrumentValueDirection::Up ||
+                        direction == Ui2InstrumentValueDirection::Down;
+    const int step = leftToRightSubfield == 3 ? 1 : (coarse ? 16 : 1);
+    const int next = leftToRightSubfield == 3
+                         ? ((value % 8) + (down ? -1 : 1) + 8) % 8
+                         : std::clamp(value + (down ? -step : step), 0, 15);
+    return (current & ~(15 << shift)) | (next << shift);
+  }
   if (mode == Ui2InstrumentSubfieldMode::None || mode != spec.mode ||
       leftToRightSubfield >= spec.count ||
       (direction != Ui2InstrumentValueDirection::Up &&

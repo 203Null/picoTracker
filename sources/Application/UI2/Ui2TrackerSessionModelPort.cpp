@@ -168,6 +168,22 @@ std::uint8_t AdjustPhraseNote(Project &project, const Phrase &phrase,
   if (current == NOTE_OFF)
     return NOTE_C3;
 
+  if (auto *bank = project.GetInstrumentBank()) {
+    const int first = phraseNumber * STEPS_PER_PHRASE;
+    for (int r = row; r >= 0; --r) {
+      const auto id = phrase.instr_[first + r];
+      if (id == 0xFF)
+        continue;
+      auto *instrument = bank->GetInstrument(id);
+      unsigned char edited = current;
+      if (instrument &&
+          instrument->EditNote(current, delta < 0 ? -1 : 1,
+                               delta == 12 || delta == -12, edited))
+        return edited;
+      break;
+    }
+  }
+
   SampleInstrument *sample = nullptr;
   std::uint8_t sliceFirst = 0U;
   std::uint8_t sliceLast = 0U;

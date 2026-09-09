@@ -28,12 +28,14 @@ inline UiInstrumentViewData ApprovedInstrumentFixture(std::string_view state) {
       data.kind = UiInstrumentKind::Drum;
       data.name = "DRUM KIT";
       constexpr std::array<std::string_view, 12> notes{
-          "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+          "D01", "D02", "D03", "D04", "D05", "D06",
+          "D07", "D08", "D09", "D10", "D11", "D12"};
       constexpr std::array<std::string_view, 12> values{
           "4562", "0845", "0464", "4F95", "2B64", "1452",
           "0F37", "1652", "0944", "1852", "0B6F", "1F84"};
       for (int i = 0; i < 12; ++i)
-        data.fields[i] = {notes[i], values[i], static_cast<std::int16_t>(68 + i * 10)};
+        data.fields[i] = {notes[i], values[i],
+                          static_cast<std::int16_t>(78 + i * 9)};
       data.fields[12] = {"CHARACTER", "00", 192};
       data.fieldBottom = UiInstrumentFieldBottom::Adjustment;
     } else {

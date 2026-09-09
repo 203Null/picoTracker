@@ -500,13 +500,15 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
     const bool semanticFine = !model.adjustment.fineLabel.empty();
     const bool semanticCoarse = !model.adjustment.coarseLabel.empty();
     if (!semanticFine)
-      std::snprintf(fine.data(), fine.size(), "%u",
+      std::snprintf(fine.data(), fine.size(),
+                    model.adjustment.hexadecimal ? "%X" : "%u",
                     static_cast<unsigned>(model.adjustment.fineStep));
     if (!semanticCoarse) {
       if (model.adjustment.coarseOctave)
         std::snprintf(coarse.data(), coarse.size(), "OCT");
       else
-        std::snprintf(coarse.data(), coarse.size(), "%u",
+        std::snprintf(coarse.data(), coarse.size(),
+                      model.adjustment.hexadecimal ? "%X" : "%u",
                       static_cast<unsigned>(model.adjustment.coarseStep));
     }
     const std::string_view fineText = semanticFine

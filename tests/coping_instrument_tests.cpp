@@ -1,8 +1,9 @@
-#include "doctest/doctest.h"
 #include "Application/Instruments/DrumInstrument.h"
-#include "Application/Instruments/StackInstrument.h"
 #include "Application/Instruments/InstrumentBankRestorePolicy.h"
+#include "Application/Instruments/StackInstrument.h"
 #include "Application/UI2/Ui2InstrumentParameters.h"
+#include "Application/UI2/Ui2NotePresentation.h"
+#include "doctest/doctest.h"
 #include <algorithm>
 #include <array>
 
@@ -73,12 +74,50 @@ TEST_CASE("Coping UI edits drum nibbles and wraps all Stack waves") {
   const auto drum = Ui2InstrumentFieldParameter(IT_DRUM, 0);
   const auto spec = Ui2InstrumentSubfields(drum);
   REQUIRE(spec.count == 4);
+  CHECK(Ui2AdjustInstrumentSubfieldParameter(
+            drum, 0x4562, spec.mode, 2, Ui2InstrumentValueDirection::Right) ==
+        0x4572);
   CHECK(Ui2AdjustInstrumentSubfieldParameter(drum, 0x4562, spec.mode, 2,
-      Ui2InstrumentValueDirection::Up) == 0x4572);
+                                             Ui2InstrumentValueDirection::Up) ==
+        0x45F2);
+  CHECK(Ui2AdjustInstrumentSubfieldParameter(
+            drum, 0x4562, spec.mode, 2, Ui2InstrumentValueDirection::Down) ==
+        0x4502);
+  CHECK(Ui2AdjustInstrumentSubfieldParameter(
+            drum, 0x4567, spec.mode, 3, Ui2InstrumentValueDirection::Right) ==
+        0x4560);
+  CHECK(Ui2AdjustInstrumentSubfieldParameter(
+            drum, 0x4560, spec.mode, 3, Ui2InstrumentValueDirection::Left) ==
+        0x4567);
+  CHECK(Ui2AdjustInstrumentSubfieldParameter(drum, 0x456F, spec.mode, 3,
+                                             Ui2InstrumentValueDirection::Up) ==
+        0x4560);
   const auto wave = Ui2InstrumentFieldParameter(IT_STACK, 0);
   CHECK(Ui2AdjustInstrumentParameter(wave, 6, Ui2InstrumentValueDirection::Right) == 0);
   CHECK(Ui2AdjustInstrumentParameter(wave, 0, Ui2InstrumentValueDirection::Left) == 6);
   const auto transpose = Ui2InstrumentFieldParameter(IT_STACK, 3);
   CHECK(Ui2AdjustInstrumentParameter(transpose, 0, Ui2InstrumentValueDirection::Up) == 12);
   CHECK(Ui2AdjustInstrumentParameter(transpose, 24, Ui2InstrumentValueDirection::Up) == 24);
+}
+
+TEST_CASE("Drum note presentation and editing keep the legacy stored octave") {
+  DrumInstrument drum;
+  std::array<char, 5> text{};
+  for (unsigned char note = 0; note <= HIGHEST_NOTE; ++note) {
+    ui2::FormatUiNote(note, text, &drum);
+    const unsigned slot = note % 12 + 1;
+    CHECK(text[0] == 'D');
+    CHECK(text[1] == '0' + slot / 10);
+    CHECK(text[2] == '0' + slot % 10);
+    unsigned char edited = NO_NOTE;
+    REQUIRE(drum.EditNote(note, 1, false, edited));
+    CHECK(edited / 12 == note / 12);
+    CHECK(edited % 12 == (note % 12 + 1) % 12);
+    REQUIRE(drum.EditNote(note, -1, true, edited));
+    CHECK(edited % 12 == (note % 12 + 24 - 10) % 12);
+  }
+  ui2::FormatUiNote(NO_NOTE, text, &drum);
+  CHECK(std::string_view(text.data()) == "---");
+  ui2::FormatUiNote(NOTE_OFF, text, &drum);
+  CHECK(std::string_view(text.data()) == "OFF");
 }

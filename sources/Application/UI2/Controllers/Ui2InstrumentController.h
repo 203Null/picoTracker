@@ -10,6 +10,7 @@
 #include "Application/UI2/Controllers/Ui2ControllerPrimitives.h"
 #include "UI2/Views/Instrument/UiInstrumentCapacity.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <type_traits>
 
@@ -46,6 +47,7 @@ enum class Ui2InstrumentValueDirection : std::uint8_t {
 enum class Ui2InstrumentSubfieldMode : std::uint8_t {
   None,
   HexDigit,
+  DrumCell,
   Bit,
 };
 
@@ -185,7 +187,9 @@ public:
     } else if (subfield_ >= subfieldCount_) {
       // Big-hex and bitmask fields enter on their right-most component, just
       // like the legacy fixed-capacity fields.
-      subfield_ = static_cast<std::uint8_t>(subfieldCount_ - 1U);
+      subfield_ = mode == Ui2InstrumentSubfieldMode::DrumCell
+                      ? 0U
+                      : static_cast<std::uint8_t>(subfieldCount_ - 1U);
     }
   }
 
@@ -292,12 +296,14 @@ public:
       return {};
 
     if (action == TrackerAction::Up) {
-      if (cursor_.MovePrevious())
+      if (cursor_.MovePrevious() &&
+          subfieldMode_ != Ui2InstrumentSubfieldMode::DrumCell)
         ResetSubfield();
       return {};
     }
     if (action == TrackerAction::Down) {
-      if (cursor_.MoveNext())
+      if (cursor_.MoveNext() &&
+          subfieldMode_ != Ui2InstrumentSubfieldMode::DrumCell)
         ResetSubfield();
       return {};
     }
@@ -422,6 +428,11 @@ private:
       return command;
     }
     if (cursor.kind == Ui2InstrumentCursorKind::Field) {
+      if (subfieldMode_ == Ui2InstrumentSubfieldMode::DrumCell) {
+        subfield_ =
+            static_cast<std::uint8_t>(std::clamp<int>(subfield_ + delta, 0, 3));
+        return {};
+      }
       Ui2InstrumentCommand command =
           MakeCommand(Ui2InstrumentCommandType::AdjustField);
       command.direction = delta < 0 ? Ui2InstrumentValueDirection::Left
@@ -453,6 +464,7 @@ private:
       return {};
     }
     if (subfieldMode_ != Ui2InstrumentSubfieldMode::None &&
+        subfieldMode_ != Ui2InstrumentSubfieldMode::DrumCell &&
         subfieldCount_ > 0U) {
       if (direction == Ui2InstrumentValueDirection::Left) {
         if (subfield_ > 0U)

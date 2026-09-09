@@ -12,6 +12,27 @@
 
 class DrumInstrument final : public I_Instrument {
 public:
+  bool FormatNote(unsigned char note, char *text,
+                  unsigned size) const override {
+    if (note > HIGHEST_NOTE || size < 4)
+      return false;
+    const unsigned slot = note % 12 + 1;
+    text[0] = 'D';
+    text[1] = '0' + slot / 10;
+    text[2] = '0' + slot % 10;
+    text[3] = '\0';
+    return true;
+  }
+  bool EditNote(unsigned char note, int direction, bool coarse,
+                unsigned char &result) const override {
+    if (note > HIGHEST_NOTE)
+      return false;
+    // Retain the stored octave for existing projects; only kit selection wraps.
+    const int slot =
+        ((note % 12 + direction * (coarse ? 10 : 1)) % 12 + 12) % 12;
+    result = static_cast<unsigned char>((note / 12) * 12 + slot);
+    return true;
+  }
   DrumInstrument();
   bool Init() override { return true; }
   bool IsInitialized() override { return true; }

@@ -582,6 +582,7 @@ UiApplicationRuntime::ViewDataFor(const PhraseFrameState &state) {
   data.topMetaInkVisible = state.topMetaInkVisible;
   data.bottomTrackInkVisible = state.bottomTrackInkVisible;
   data.fxSelector = state.fxSelector;
+  data.customNote = state.customNote;
   data.enterDigitFocus = state.enterDigitFocus;
   data.numberFocus = state.numberFocus;
   data.adjustmentFocus = state.adjustmentFocus;

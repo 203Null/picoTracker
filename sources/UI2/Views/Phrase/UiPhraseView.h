@@ -51,6 +51,7 @@ struct UiPhraseViewData {
   bool enterDigitFocus = false;
   bool numberFocus = false;
   bool adjustmentFocus = false;
+  bool customNote = false;
   bool selectionActive = false;
   bool selectionNextExpansionAll = false;
   bool clipboardReady = false;

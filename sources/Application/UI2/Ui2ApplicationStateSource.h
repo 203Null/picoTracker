@@ -143,6 +143,7 @@ struct UiChainFrameState {
 enum class UiPhraseContext : std::uint8_t { Hidden, Instrument, Fx };
 
 struct UiPhraseFrameState {
+  bool customNote = false;
   bool fxSelector = false;
   std::array<char, 3> number{};
   std::array<char, 6> elapsed{};

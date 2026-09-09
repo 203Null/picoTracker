@@ -113,6 +113,9 @@ public:
   double GetPlayTime();
 
   int GetPlayedNoteValue(int channel);
+  I_Instrument *GetPlayedInstrument(int channel) {
+    return mixer_.GetInstrument(channel);
+  }
   bool GetPlayedSliceIndex(int channel, uint8_t &sliceIndex);
 
   // info

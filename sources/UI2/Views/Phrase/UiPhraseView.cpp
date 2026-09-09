@@ -257,6 +257,7 @@ void UiPhraseView::RenderDelta(const UiPhraseViewData &previous,
       previous.bottomTrackVisualOverride != current.bottomTrackVisualOverride ||
       previous.bottomTrackInkVisible != current.bottomTrackInkVisible ||
       previous.adjustmentFocus != current.adjustmentFocus ||
+      previous.customNote != current.customNote ||
       previous.enterDigitFocus != current.enterDigitFocus ||
       previous.selectionActive != current.selectionActive ||
       previous.selectionNextExpansionAll != current.selectionNextExpansionAll ||
@@ -309,6 +310,8 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
   };
   const UiAdjustmentLegendModel instrumentAdjustment{.fineStep = 1,
                                                      .coarseStep = 16};
+  const UiAdjustmentLegendModel customNoteAdjustment{.fineStep = 1,
+                                                     .coarseStep = 10};
   const UiAdjustmentLegendModel parameterAdjustment{.fineLabel = "DIGIT",
                                                     .coarseLabel = "VALUE"};
   const UiBottomBarModel *cursorContext =
@@ -323,8 +326,10 @@ UiBuildStatus UiPhraseView::Build(const UiPhraseViewData &data, UiPalette &,
       .enterHeldAdjustment =
           data.enterDigitFocus ? &parameterAdjustment
           : data.adjustmentFocus && data.editColumn <= 1U
-              ? (data.editColumn == 0U ? &noteAdjustment
-                                       : &instrumentAdjustment)
+              ? (data.editColumn == 0U
+                     ? (data.customNote ? &customNoteAdjustment
+                                        : &noteAdjustment)
+                     : &instrumentAdjustment)
               : nullptr,
       .selectionActive = data.selectionActive,
       .selectionNextExpansionAll = data.selectionNextExpansionAll,

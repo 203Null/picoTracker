@@ -142,6 +142,7 @@ struct UiAdjustmentLegendModel {
   std::uint8_t fineStep = 1;
   std::uint8_t coarseStep = 10;
   bool coarseOctave = false;
+  bool hexadecimal = false;
   // Optional semantic labels for non-numeric domains such as notes. Empty
   // labels retain the compact numeric +/- presentation.
   std::string_view fineLabel{};
