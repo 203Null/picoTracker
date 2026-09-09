@@ -3325,7 +3325,12 @@ TEST_CASE("UI2 Sample Instrument supplies contextual bars for every field kind")
   REQUIRE(ui2::UiInstrumentView::Build(data, palette, scene) ==
           ui2::UiBuildStatus::Built);
   CHECK(FindTextCommand(scene.bottom.Stream(), "1") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "16") == nullptr);
+  data.adjustmentFocus = true;
+  REQUIRE(ui2::UiInstrumentView::Build(data, palette, scene) ==
+          ui2::UiBuildStatus::Built);
   CHECK(FindTextCommand(scene.bottom.Stream(), "16") != nullptr);
+  data.adjustmentFocus = false;
 
   data.fieldBottom = ui2::UiInstrumentFieldBottom::Selector;
   data.fieldOptions = ui2::UiInstrumentFieldOptions::SampleLoop;

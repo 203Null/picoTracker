@@ -147,6 +147,7 @@ struct UiAdjustmentLegendModel {
   // labels retain the compact numeric +/- presentation.
   std::string_view fineLabel{};
   std::string_view coarseLabel{};
+  bool showCoarse = true;
 };
 
 struct UiRgbBarModel {

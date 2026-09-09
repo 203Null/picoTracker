@@ -191,15 +191,14 @@ UiBuildStatus UiProjectView::Build(const UiProjectViewData &data, UiPalette &,
     bottom.actions.actions = {"NEW", "LOAD", "SAVE", "RENAME"};
     bottom.actions.count = 4;
     bottom.actions.active = std::min<std::uint8_t>(data.nameAction, 3);
-  } else if (data.enterHeld && (data.cursor == UiProjectCursor::Tempo ||
-                                data.cursor == UiProjectCursor::Transpose)) {
+  } else if (data.cursor == UiProjectCursor::Tempo ||
+             data.cursor == UiProjectCursor::Transpose) {
     bottom.kind = UiBottomBarKind::AdjustmentLegend;
     bottom.adjustment.fineStep = 1U;
+    bottom.adjustment.showCoarse = data.enterHeld;
     bottom.adjustment.coarseStep =
         data.cursor == UiProjectCursor::Tempo ? 10U : 12U;
-  } else if (data.cursor == UiProjectCursor::Tempo ||
-             data.cursor == UiProjectCursor::Transpose ||
-             data.cursor == UiProjectCursor::Scale ||
+  } else if (data.cursor == UiProjectCursor::Scale ||
              data.cursor == UiProjectCursor::Root) {
     bottom.kind = UiBottomBarKind::Selector;
     if (data.selectorCount > 0) {

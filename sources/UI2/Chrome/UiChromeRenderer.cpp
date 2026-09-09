@@ -522,6 +522,8 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
       DrawPlusMinus(builder, 54, 220);
     builder.CenteredText(fineText, 63, 220, UiColorToken::TextColored);
     builder.Text(">", 91, 220, UiColorToken::DerivedTextFaint);
+    if (!model.adjustment.showCoarse)
+      break;
     DrawVerticalArrow(builder, 142, 222, false);
     if (!semanticCoarse)
       DrawPlusMinus(builder, 170, 220);

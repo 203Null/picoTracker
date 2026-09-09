@@ -327,13 +327,13 @@ UiBuildStatus UiDeviceView::Build(const UiDeviceViewData &data, UiPalette &,
     return topStatus;
 
   UiBottomBarModel bottom{.kind = UiBottomBarKind::Hidden};
-  const bool numericAdjustment =
-      data.enterHeld && (data.cursor == UiDeviceCursor::Volume ||
-                         data.cursor == UiDeviceCursor::Brightness);
+  const bool numericAdjustment = data.cursor == UiDeviceCursor::Volume ||
+                                 data.cursor == UiDeviceCursor::Brightness;
   if (numericAdjustment) {
     bottom.kind = UiBottomBarKind::AdjustmentLegend;
     bottom.adjustment.fineStep = 1U;
     bottom.adjustment.coarseStep = 10U;
+    bottom.adjustment.showCoarse = data.enterHeld;
   } else if (CursorUsesSelector(data.cursor)) {
     bottom.kind = UiBottomBarKind::Selector;
     if (data.selectorCount > 0) {

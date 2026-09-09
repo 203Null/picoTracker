@@ -438,7 +438,8 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
         .fineLabel =
             data.adjustmentNote ? std::string_view("NOTE") : std::string_view{},
         .coarseLabel =
-            data.adjustmentNote ? std::string_view("OCT") : std::string_view{}};
+            data.adjustmentNote ? std::string_view("OCT") : std::string_view{},
+        .showCoarse = data.adjustmentFocus};
   } else if (data.fieldBottom == UiInstrumentFieldBottom::Selector) {
     const std::span<const std::string_view> options =
         OptionsFor(data.fieldOptions);
