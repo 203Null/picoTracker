@@ -732,6 +732,34 @@ TEST_CASE(
   CHECK(controller.Focus() == SampleSlicesViewUi2Focus::AutoSlice);
 }
 
+TEST_CASE("UI2 first slice Add preserves the implicit zero boundary") {
+  using namespace ui2;
+  SampleWaveFileSystem fileSystem;
+  fileSystem.BuildPcm(32U);
+  Ui2SampleWaveformBackend waveform;
+  Ui2SampleSlicesController controller(waveform);
+  REQUIRE(controller.OpenPath(fileSystem, "SHORT.WAV") ==
+          Ui2SampleWaveformLoadResult::Loaded);
+  const auto first = Tap(controller, TrackerAction::Enter);
+  CHECK(first.type == Ui2SampleSlicesCommandType::AddSlice);
+  CHECK(first.slice == 1U);
+  CHECK(first.value == 16U);
+  CHECK(controller.SlicePoints()[0] == 0U);
+  CHECK(controller.DefinedMask() == 3U);
+  Tap(controller, TrackerAction::Right);
+  CHECK(Tap(controller, TrackerAction::Enter).value == 24U);
+  Tap(controller, TrackerAction::Right);
+  CHECK(Tap(controller, TrackerAction::Enter).value == 28U);
+  Tap(controller, TrackerAction::Right);
+  CHECK(Tap(controller, TrackerAction::Enter).value == 30U);
+  Tap(controller, TrackerAction::Right);
+  CHECK(Tap(controller, TrackerAction::Enter).value == 31U);
+  Tap(controller, TrackerAction::Right);
+  CHECK(Tap(controller, TrackerAction::Enter).type ==
+        Ui2SampleSlicesCommandType::OperationUnavailable);
+  CHECK(controller.DefinedMask() == 0x3FU);
+}
+
 TEST_CASE("UI2 Sample Slices emits auto-slice request before replacement") {
   using namespace ui2;
   Config::SetImportResampler(0);

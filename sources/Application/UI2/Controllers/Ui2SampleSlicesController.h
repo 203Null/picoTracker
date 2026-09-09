@@ -335,6 +335,16 @@ public:
     if (IsDefined(selectedSlice_))
       return MakeFailure(Ui2SampleSlicesFailure::AddLocked);
     start = std::min(start, waveform_.FrameCount() - 1U);
+    // Legacy projects encode a zero first boundary implicitly whenever a
+    // later boundary exists. The first ADD therefore splits the whole sample,
+    // rather than dropping everything before the new midpoint.
+    if (definedMask_ == 0U) {
+      if (start == 0U)
+        return MakeFailure(Ui2SampleSlicesFailure::AddLocked);
+      selectedSlice_ = 1U;
+      slicePoints_[0] = 0U;
+      definedMask_ = previewableMask_ = 1U;
+    }
     for (std::uint8_t index = 0U; index < SliceCapacity; ++index) {
       if (IsDefined(index) && slicePoints_[index] == start)
         return MakeFailure(Ui2SampleSlicesFailure::AddLocked);
@@ -403,10 +413,9 @@ public:
   [[nodiscard]] SampleSlicesViewUi2Snapshot Snapshot() const {
     SampleSlicesViewUi2Snapshot snapshot;
     const std::uint8_t activeCount = DefinedCount();
-    std::snprintf(
-        snapshot.slice.data(), snapshot.slice.size(), "%02u / %02u",
+    std::snprintf(snapshot.slice.data(), snapshot.slice.size(), "%02u / %02u",
         activeCount == 0U ? 0U : static_cast<unsigned>(selectedSlice_ + 1U),
-        static_cast<unsigned>(activeCount));
+                  static_cast<unsigned>(activeCount));
     std::snprintf(snapshot.start.data(), snapshot.start.size(), "%07X",
                   static_cast<unsigned>(SelectedSliceStart()));
     const std::uint32_t zoom = std::uint32_t{1} << waveform_.ZoomLevel();
@@ -542,7 +551,7 @@ private:
         break;
       }
     }
-    std::uint32_t upper = waveform_.FrameCount() - 1U;
+    std::uint32_t upper = waveform_.FrameCount();
     for (std::uint8_t index = static_cast<std::uint8_t>(selectedSlice_ + 1U);
          index < SliceCapacity; ++index) {
       if (IsDefined(index)) {
@@ -550,6 +559,8 @@ private:
         break;
       }
     }
+    if (upper <= lower + 1U)
+      return lower;
     return lower + (upper - lower) / 2U;
   }
 

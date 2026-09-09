@@ -343,16 +343,7 @@ UiBuildStatus UiSampleSlicesView::Build(const UiSampleSlicesViewData &data,
   builder.SparseCoverageMask({9, 46, 222, 78}, data.waveformMask,
                              UiCoverage::Playback,
                              UiColorToken::DerivedVuTrack);
-  if (data.markers.empty()) {
-    constexpr std::array<std::int16_t, 5> kMarkerX{9, 64, 119, 174, 230};
-    for (std::size_t index = 0; index < kMarkerX.size(); ++index) {
-      builder.Fill({kMarkerX[index], 44, 1, 84}, index == data.selectedMarker
-                                                     ? UiColorToken::TextColored
-                                                     : UiColorToken::TextDim);
-    }
-  } else {
-    DrawMarkers(builder, data.markers, 44, 84);
-  }
+  DrawMarkers(builder, data.markers, 44, 84);
   DrawField(builder, "SLICE", data.slice, 139);
   DrawField(builder, "START", data.start, 150);
   DrawField(builder, "ZOOM", data.zoom, 161);
