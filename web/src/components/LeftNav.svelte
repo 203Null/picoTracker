@@ -1,6 +1,6 @@
 <script>
-  import { Activity, Book, Dashboard, DataBase, Music, Settings as SettingsGear, Terminal } from 'carbon-icons-svelte'
-  import { sectionLabel, WIKI_URL } from '../navigation.js'
+  import { Activity, Book, Chat, Dashboard, DataBase, Music, Settings as SettingsGear, Terminal } from 'carbon-icons-svelte'
+  import { sectionLabel, WIKI_URL, DISCORD_URL } from '../navigation.js'
 
   export let sections = []
   export let active = ''
@@ -23,6 +23,9 @@
   </div>
   {#if sections.includes('Settings')}
     <div class="settings-group">
+      <a class="nav-link" href={DISCORD_URL} target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord">
+        <Chat size={20} /><span class="nav-label">Discord</span>
+      </a>
       <a class="nav-link" href={WIKI_URL} target="_blank" rel="noopener noreferrer" aria-label="Wiki" title="Wiki">
         <Book size={20} /><span class="nav-label">Wiki</span>
       </a>

@@ -61,6 +61,13 @@ test('user tools stay available while developer tools add only diagnostics', asy
     await expect(navigation.getByRole('button', { name: section, exact: true })).toBeVisible()
   }
   const wiki = navigation.getByRole('link', { name: 'Wiki', exact: true })
+  const discord = navigation.getByRole('link', { name: 'Discord', exact: true })
+  await expect(discord).toHaveAttribute('href', 'https://discord.gg/rRVCBHHPfw')
+  await expect(discord).toHaveAttribute('target', '_blank')
+  await expect(discord).toHaveAttribute('rel', 'noopener noreferrer')
+  expect(await navigation.locator('.settings-group > *').evaluateAll((items) =>
+    items.map((item) => item.getAttribute('aria-label')),
+  )).toEqual(['Discord', 'Wiki', 'Settings'])
   await expect(wiki).toHaveAttribute('href', 'https://np-wiki.203.io/')
   await expect(wiki).toHaveAttribute('target', '_blank')
   await expect(wiki).toHaveAttribute('rel', 'noopener noreferrer')
@@ -223,6 +230,8 @@ test('short desktop pins Settings while keyboard navigation scrolls the main des
     }
   }
   const wiki = navigation.getByRole('link', { name: 'Wiki', exact: true })
+  await page.keyboard.press('Tab')
+  await expect(navigation.getByRole('link', { name: 'Discord', exact: true })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(wiki).toBeFocused()
   await page.keyboard.press('Tab')

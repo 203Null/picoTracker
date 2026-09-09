@@ -3,6 +3,7 @@
   import {
     Activity,
     Book,
+    Chat,
     Close,
     Dashboard,
     DataBase,
@@ -12,7 +13,7 @@
     Terminal,
   } from 'carbon-icons-svelte'
 
-  import { DEVELOPER_SECTIONS, PRIMARY_SECTIONS, sectionLabel, WIKI_URL } from '../navigation.js'
+  import { DEVELOPER_SECTIONS, PRIMARY_SECTIONS, sectionLabel, WIKI_URL, DISCORD_URL } from '../navigation.js'
   import ToggleSwitch from './ToggleSwitch.svelte'
 
   export let sections = []
@@ -163,6 +164,10 @@
 
       <p class="group-label application-label">Application</p>
       <nav class="utility" aria-label="Mobile application sections">
+        <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" aria-label="Discord" title="Discord" onclick={closeMenu}>
+          <Chat size={20}/>
+          <span><strong>Discord</strong><small>Join the community</small></span>
+        </a>
         <a href={WIKI_URL} target="_blank" rel="noopener noreferrer" aria-label="Wiki" title="Wiki" onclick={closeMenu}>
           <Book size={20}/>
           <span><strong>Wiki</strong><small>Guides and reference</small></span>

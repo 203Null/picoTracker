@@ -45,12 +45,16 @@ async function expectUserSections(menu) {
   await expect(applicationNavigation.getByRole('button')).toHaveCount(1)
   expect(await sectionNames(applicationNavigation)).toEqual(['Settings'])
   const wiki = applicationNavigation.getByRole('link', { name: 'Wiki', exact: true })
+  const discord = applicationNavigation.getByRole('link', { name: 'Discord', exact: true })
+  await expect(discord).toHaveAttribute('href', 'https://discord.gg/rRVCBHHPfw')
+  await expect(discord).toHaveAttribute('target', '_blank')
+  await expect(discord).toHaveAttribute('rel', 'noopener noreferrer')
   await expect(wiki).toHaveAttribute('href', 'https://np-wiki.203.io/')
   await expect(wiki).toHaveAttribute('target', '_blank')
   await expect(wiki).toHaveAttribute('rel', 'noopener noreferrer')
   expect(await applicationNavigation.locator(':scope > a, :scope > button').evaluateAll((items) =>
     items.map((item) => item.getAttribute('aria-label')),
-  )).toEqual(['Wiki', 'Settings'])
+  )).toEqual(['Discord', 'Wiki', 'Settings'])
 }
 
 async function expectTouchTargets(page, root = page.locator('body')) {
