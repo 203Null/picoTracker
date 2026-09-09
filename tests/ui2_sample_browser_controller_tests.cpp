@@ -21,6 +21,7 @@ public:
   ~SampleBrowserFileSystem() override { FileSystem::Install(previous_); }
 
   FileHandle Open(const char *, const char *) override { return {}; }
+  bool exposeLibraryParent = false;
 
   bool chdir(const char *path) override {
     if (rootsUnavailable_ &&
@@ -46,7 +47,8 @@ public:
       directory_ = Directory::Nested;
       return true;
     }
-    if (std::strcmp(path, SAMPLES_LIB_DIR) == 0) {
+    if (std::strcmp(path, SAMPLES_LIB_DIR) == 0 ||
+        (directory_ == Directory::Root && std::strcmp(path, "samples") == 0)) {
       directory_ = Directory::Library;
       return true;
     }
@@ -95,7 +97,8 @@ public:
       // make EDIT/DELETE resolve the nested leaf against the root pool path.
       PushIfVisible(indices, 25, filter, retainDirectories);
     } else if (directory_ == Directory::Library) {
-      PushIfVisible(indices, 20, filter, retainDirectories);
+      if (exposeLibraryParent)
+        PushIfVisible(indices, 20, filter, retainDirectories);
       PushIfVisible(indices, 21, filter, retainDirectories);
       PushIfVisible(indices, 22, filter, retainDirectories);
       if (denseLibrary_) {
@@ -107,6 +110,8 @@ public:
     } else if (directory_ == Directory::Drums) {
       PushIfVisible(indices, 20, filter, retainDirectories);
       PushIfVisible(indices, 23, filter, retainDirectories);
+    } else if (directory_ == Directory::Root && exposeLibraryParent) {
+      PushIfVisible(indices, 26, filter, retainDirectories);
     }
   }
 
@@ -120,13 +125,14 @@ public:
     } else if (index == 50) {
       std::snprintf(generated, sizeof(generated), "S11.WAV");
     }
-    const char *value = index == 10   ? "AKWF.WAV"
-                        : index == 20 ? ".."
-                        : index == 21 ? "KICK.WAV"
-                        : index == 22 ? "DRUMS"
-                        : index == 23 ? "SNARE.WAV"
-                        : index == 24 ? "NESTED"
-                        : index == 25 ? "AKWF.WAV"
+    const char *value = index == 10            ? "AKWF.WAV"
+                        : index == 20          ? ".."
+                        : index == 21          ? "KICK.WAV"
+                        : index == 22          ? "DRUMS"
+                        : index == 23          ? "SNARE.WAV"
+                        : index == 24          ? "NESTED"
+                        : index == 25          ? "AKWF.WAV"
+                        : index == 26          ? "samples"
                         : generated[0] != '\0' ? generated
                                                : "";
     std::snprintf(name, static_cast<std::size_t>(length), "%s", value);
@@ -137,7 +143,7 @@ public:
         (index >= 30 && index < 41) ||
         (!denseLibraryRewritten_ && index == 41) || index == 50)
       return PFT_FILE;
-    if (index == 20 || index == 22 || index == 24)
+    if (index == 20 || index == 22 || index == 24 || index == 26)
       return PFT_DIR;
     return PFT_UNKNOWN;
   }
@@ -355,11 +361,20 @@ TEST_CASE("UI2 Sample Browser directory BACK action is reachable") {
         Ui2SampleBrowserCommandType::Back);
 }
 
-TEST_CASE("UI2 Sample Browser parent chord cannot escape the library root") {
+TEST_CASE("UI2 Sample Browser starts in samples but can navigate to filesystem "
+          "root") {
   using namespace ui2;
   SampleBrowserFileSystem fileSystem;
+  fileSystem.exposeLibraryParent = true;
   Ui2SampleBrowserController controller;
   REQUIRE(controller.OpenLibrary("DEMO"));
+
+  REQUIRE(std::strcmp(controller.Snapshot(60).items[0].data(), "..") == 0);
+  CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
+  CHECK(fileSystem.isCurrentRoot());
+  CHECK(std::strcmp(controller.Snapshot(60).items[0].data(), "/samples") == 0);
+  CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
+  CHECK_FALSE(fileSystem.isCurrentRoot());
 
   controller.Handle(TrackerAction::Option, true);
   CHECK_FALSE(controller.Handle(TrackerAction::Left, true).HasValue());
@@ -367,9 +382,12 @@ TEST_CASE("UI2 Sample Browser parent chord cannot escape the library root") {
   controller.Handle(TrackerAction::Option, false);
 
   const Ui2BrowserSnapshot snapshot = controller.Snapshot(60);
-  REQUIRE(snapshot.visibleItemCount == 2U);
-  CHECK(std::strcmp(snapshot.items[0].data(), "~KICK.WAV") == 0);
-  CHECK(std::strcmp(snapshot.items[1].data(), "/DRUMS") == 0);
+  REQUIRE(snapshot.visibleItemCount == 1U);
+  CHECK(std::strcmp(snapshot.items[0].data(), "/samples") == 0);
+  controller.Handle(TrackerAction::Option, true);
+  Tap(controller, TrackerAction::Left);
+  controller.Handle(TrackerAction::Option, false);
+  CHECK(fileSystem.isCurrentRoot());
 }
 
 TEST_CASE("UI2 Sample Browser previews, imports, and restores pool mode") {

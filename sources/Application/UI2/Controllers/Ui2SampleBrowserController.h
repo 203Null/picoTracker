@@ -294,11 +294,9 @@ public:
       name[sizeof(name) - 1U] = '\0';
       if (name[0] == '\0' || std::strcmp(name, ".") == 0)
         continue;
-      // The configured sample library is the browser root. Some filesystem
-      // adapters synthesize ".." even there; accepting it would expose all
-      // of /data and can leave Import on an unrelated empty directory.
-      if (mode_ == Ui2SampleBrowserMode::Library && depth_ == 0U &&
-          std::strcmp(name, "..") == 0)
+      // samples is only the starting directory; the filesystem sandbox is
+      // the navigation boundary, just like the Project Browser.
+      if (fileSystem->isCurrentRoot() && std::strcmp(name, "..") == 0)
         continue;
       // SamplePool::Load() has a flat, files-only contract. Directory entries
       // must never become selectable in ProjectPool: after entering one, the
@@ -610,13 +608,11 @@ private:
 
   void NavigateParent() {
     FileSystem *fileSystem = FileSystem::GetInstance();
-    // depth_ is relative to the configured sample-library root. Do not let
-    // the legacy OPTION+LEFT shortcut escape that product boundary even when
-    // the filesystem adapter itself still has a parent directory.
-    if (depth_ == 0U || fileSystem == nullptr || fileSystem->isCurrentRoot() ||
+    if (fileSystem == nullptr || fileSystem->isCurrentRoot() ||
         !fileSystem->chdir(".."))
       return;
-    const std::uint16_t prior = selectedStack_[--depth_];
+    // No saved selection exists above the initial samples directory.
+    const std::uint16_t prior = depth_ > 0U ? selectedStack_[--depth_] : 0U;
     RefreshCurrentDirectory();
     if (count_ != 0U) {
       selected_ = std::min<std::uint16_t>(prior, count_ - 1U);
