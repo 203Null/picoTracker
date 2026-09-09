@@ -385,6 +385,11 @@ void Ui2TrackerApplication::DispatchLogicalAction(TrackerAction action,
     if (releaseOwner != UiApplicationPage::None)
       DispatchPageAction(releaseOwner, action, false);
   };
+  if (feedback_.NeedsAcknowledgement()) {
+    feedback_.Acknowledge(action == TrackerAction::Enter, pressed);
+    finishModalRelease();
+    return;
+  }
   if (projects_.render.Active()) {
     projects_.render.Handle(action, pressed);
     finishModalRelease();
@@ -1151,7 +1156,8 @@ void Ui2TrackerApplication::HandleFont(TrackerAction action, bool pressed) {
     configSave_.MarkDirty();
     break;
   case Ui2FontWorkflowResult::BrowserUnavailable:
-    font_.SetFeedback(Ui2FontFeedback::BrowserUnavailable);
+    font_.SetFeedback(Ui2FontFeedback::None);
+    feedback_.ShowAcknowledgement("FONT BROWSER UNAVAILABLE");
     Status::Set("FONT BROWSER UNAVAILABLE");
     runtime_.Invalidate();
     break;

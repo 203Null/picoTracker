@@ -38,11 +38,24 @@ public:
   void ShowError(const char *text, std::uint32_t nowMs) {
     Show(UiDialogTone::Error, text, nowMs, ErrorDurationMs);
   }
+  void ShowAcknowledgement(const char *text) {
+    Show(UiDialogTone::Message, text, 0U, 0U);
+    acknowledgementReady_ = false;
+  }
+  [[nodiscard]] bool NeedsAcknowledgement() const {
+    return active_ && durationMs_ == 0U;
+  }
+  void Acknowledge(bool enter, bool pressed) {
+    if (!pressed)
+      acknowledgementReady_ = true;
+    else if (enter && acknowledgementReady_)
+      Clear();
+  }
 
   // Returns true only when expiry changed visible state, allowing the owner to
   // invalidate the retained renderer without polling snapshot contents.
   bool Tick(std::uint32_t nowMs) {
-    if (!active_ || nowMs - shownAtMs_ < durationMs_)
+    if (!active_ || NeedsAcknowledgement() || nowMs - shownAtMs_ < durationMs_)
       return false;
     Clear();
     return true;
@@ -56,6 +69,10 @@ public:
   [[nodiscard]] Ui2DialogSnapshot Snapshot() const {
     Ui2DialogSnapshot snapshot;
     snapshot.kind = UiDialogKind::Feedback;
+    if (NeedsAcknowledgement()) {
+      snapshot.kind = UiDialogKind::Message;
+      snapshot.PushAction(UiDialogAction::Ok);
+    }
     snapshot.tone = tone_;
     snapshot.SetTitle(std::string_view(text_.data(), TextLength()));
     return snapshot;
@@ -92,6 +109,7 @@ private:
   std::uint32_t instanceId_ = 0U;
   UiDialogTone tone_ = UiDialogTone::Message;
   bool active_ = false;
+  bool acknowledgementReady_ = false;
 };
 
 static_assert(std::is_trivially_copyable_v<Ui2FeedbackController>);

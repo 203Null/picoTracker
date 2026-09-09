@@ -6,6 +6,21 @@
 #include <cstring>
 #include <type_traits>
 
+TEST_CASE(
+    "UI2 acknowledgement popup waits for a fresh Enter and never times out") {
+  ui2::Ui2FeedbackController feedback;
+  feedback.ShowAcknowledgement("FONT BROWSER UNAVAILABLE");
+  CHECK(feedback.NeedsAcknowledgement());
+  CHECK_FALSE(feedback.Tick(100000));
+  CHECK(feedback.Snapshot().kind == ui2::UiDialogKind::Message);
+  CHECK(feedback.Snapshot().actionCount == 1);
+  CHECK(feedback.Snapshot().actions[0] == ui2::UiDialogAction::Ok);
+  feedback.Acknowledge(true, true);
+  CHECK(feedback.Active());
+  feedback.Acknowledge(true, false);
+  feedback.Acknowledge(true, true);
+  CHECK_FALSE(feedback.Active());
+}
 TEST_CASE("UI2 clipboard notices expire after two seconds") {
   ui2::Ui2ClipboardNoticeController notice;
   notice.ShowCopied(3U, 2U, 100U);
