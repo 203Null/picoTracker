@@ -3163,6 +3163,12 @@ TEST_CASE("UI2 Instrument exposes fixed cursor targets for fields and OPAL "
   opal.selectedSubfield = 2;
   CHECK(ui2::UiInstrumentView::CursorTargetRect(opal) ==
         ui2::RectI16{200, 161, 9, 9});
+  ui2::UiPalette palette;
+  ui2::UiFrameScene scene;
+  REQUIRE(ui2::UiInstrumentView::Build(opal, palette, scene) ==
+          ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "DIGIT") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "VALUE") != nullptr);
 }
 
 TEST_CASE("UI2 Instrument operator headers and approved adjustment "

@@ -420,6 +420,12 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
       bottom.context.secondLine[0] = {hints[col], UiColorToken::TextNormal, 9};
       bottom.context.firstLineCount = bottom.context.secondLineCount = 1;
     }
+  } else if (data.enterSubfieldFocus) {
+    // ADSR, sample offsets and bit fields navigate a component horizontally;
+    // UP/DOWN edits that component, matching the FX parameter interaction.
+    bottom.kind = UiBottomBarKind::AdjustmentLegend;
+    bottom.adjustment.fineLabel = "DIGIT";
+    bottom.adjustment.coarseLabel = "VALUE";
   } else if (data.fieldBottom == UiInstrumentFieldBottom::SampleActions) {
     bottom.kind = UiBottomBarKind::Actions;
     bottom.actions.actions = {"LOAD", "EDIT", {}, {}};
