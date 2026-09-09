@@ -709,7 +709,8 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
   state.selectedSubfield = instrument_.Subfield();
   if (type == IT_DRUM && cursor.kind == Ui2InstrumentCursorKind::Field &&
       cursor.index < 12) {
-    state.enterSubfieldFocus = false;
+    state.enterSubfieldFocus =
+        state.selectedSubfield == 3 && instrument_.EnterSubfieldFocus();
     state.adjustmentFocus =
         !state.numberFocus && state.selectedSubfield != 3 &&
         (instrument_.HeldMask() & TrackerActionBit(TrackerAction::Enter)) != 0;

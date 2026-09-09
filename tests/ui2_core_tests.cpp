@@ -3084,6 +3084,23 @@ TEST_CASE("UI2 Drum and Stack render approved fields and contextual bottom bars"
   CHECK(FindTextCommand(scene.bottom.Stream(), "10") != nullptr);
   CHECK(FindTextCommand(scene.bottom.Stream(), "16") == nullptr);
   drum.adjustmentFocus = false;
+  auto wave = drum;
+  wave.selectedSubfield = 3;
+  REQUIRE(ui2::UiInstrumentView::Build(wave, palette, scene) ==
+          ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "WAVEFORM") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "50% PULSE") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "TRI") == nullptr);
+  auto heldWave = wave;
+  heldWave.enterSubfieldFocus = true;
+  REQUIRE(ui2::UiInstrumentView::Build(heldWave, palette, scene) ==
+          ui2::UiBuildStatus::Built);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "WAVEFORM") == nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "TRI") != nullptr);
+  CheckDeltaMatchesFullFrame(wave, heldWave, ui2::UiInstrumentView::Build,
+                             ui2::UiInstrumentView::RenderDelta);
+  CheckDeltaMatchesFullFrame(heldWave, wave, ui2::UiInstrumentView::Build,
+                             ui2::UiInstrumentView::RenderDelta);
   auto tail = drum;
   tail.selectedField = 12;
   CHECK(ui2::UiInstrumentView::RevealCursor(0, tail) == 0);

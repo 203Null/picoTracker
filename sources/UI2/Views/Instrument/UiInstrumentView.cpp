@@ -328,6 +328,7 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
   if ((DrumCell(current) && previous.fields[current.selectedField] !=
                                 current.fields[current.selectedField]) ||
       previous.selectedSubfield != current.selectedSubfield ||
+      previous.enterSubfieldFocus != current.enterSubfieldFocus ||
       previous.cursor != current.cursor ||
       previous.selectedField != current.selectedField ||
       previous.selectedOperator != current.selectedOperator ||
@@ -397,12 +398,21 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     constexpr std::array<std::string_view, 3> hints{
         "PITCH ENVELOPE RATE", "BASE DRUM PITCH", "VOLUME ENVELOPE DECAY"};
     const auto col = std::min<unsigned>(data.selectedSubfield, 3);
-    if (col == 3) {
+    if (col == 3 && data.enterSubfieldFocus) {
       bottom.kind = UiBottomBarKind::Selector;
       bottom.selector.options = kDrumWaves;
       bottom.selector.current =
           DrumWaveIndex(data.fields[data.selectedField].value);
       bottom.selector.wrap = true;
+    } else if (col == 3) {
+      constexpr std::array<std::string_view, 8> descriptions{
+          "12.5% PULSE",    "25% PULSE", "50% PULSE", "TRIANGLE",
+          "GAME BOY NOISE", "NES NOISE", "SN NOISE",  "WHITE NOISE"};
+      bottom.context.firstLine[0] = {"WAVEFORM", UiColorToken::TextColored, 9};
+      bottom.context.secondLine[0] = {
+          descriptions[DrumWaveIndex(data.fields[data.selectedField].value)],
+          UiColorToken::TextNormal, 9};
+      bottom.context.firstLineCount = bottom.context.secondLineCount = 1;
     } else {
       bottom.context.firstLine[0] = {titles[col], UiColorToken::TextColored, 9};
       bottom.context.secondLine[0] = {hints[col], UiColorToken::TextNormal, 9};
