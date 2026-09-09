@@ -518,12 +518,12 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
                                             ? model.adjustment.coarseLabel
                                             : std::string_view(coarse.data());
     if (!model.adjustment.showCoarse) {
-      builder.Text("<", 24, 220, UiColorToken::DerivedTextFaint);
+      builder.Text("<", 84, 220, UiColorToken::DerivedTextFaint);
       if (!semanticFine)
         DrawPlusMinus(builder, 114, 220);
       builder.CenteredText(fineText, semanticFine ? 120 : 123, 220,
                            UiColorToken::TextColored);
-      builder.Text(">", 210, 220, UiColorToken::DerivedTextFaint);
+      builder.Text(">", 150, 220, UiColorToken::DerivedTextFaint);
       break;
     }
     builder.Text("<", 24, 220, UiColorToken::DerivedTextFaint);
