@@ -103,6 +103,7 @@ public:
 
 enum class UiSampleSlicesCursor : std::uint8_t {
   Status,
+  Start,
   Waveform,
   AutoSliceCount,
   AutoSlice,
@@ -110,6 +111,9 @@ enum class UiSampleSlicesCursor : std::uint8_t {
 };
 
 struct UiSampleSlicesViewData {
+  bool enterDigitFocus = false;
+  bool enterHeld = false;
+  std::uint8_t focusDigit = 6;
   std::string_view slice = "01 / 04";
   std::string_view start = "000064";
   std::string_view zoom = "1X";
@@ -145,7 +149,13 @@ public:
   [[nodiscard]] static RectI16 CursorTargetRect(UiSampleSlicesCursor cursor);
   [[nodiscard]] static RectI16
   CursorTargetRect(const UiSampleSlicesViewData &data) {
-    return CursorTargetRect(data.cursor);
+    auto rect = CursorTargetRect(data.cursor);
+    if (data.enterDigitFocus && data.cursor == UiSampleSlicesCursor::Start) {
+      rect.x = static_cast<std::int16_t>(
+          90 + 6 * std::min<unsigned>(data.focusDigit, 6));
+      rect.width = 9;
+    }
+    return rect;
   }
 };
 

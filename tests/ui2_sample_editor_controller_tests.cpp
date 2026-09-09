@@ -676,11 +676,12 @@ TEST_CASE("UI2 Sample Slices selects moves previews adds and deletes") {
         Ui2SampleSlicesCommandType::PreviewStop);
 
   const Ui2SampleSlicesCommand moved =
-      Chord(controller, TrackerAction::Enter, TrackerAction::Right);
+      Chord(controller, TrackerAction::Enter, TrackerAction::Up);
   CHECK(moved.type == Ui2SampleSlicesCommandType::SetSlicePoint);
   CHECK(moved.slice == 1U);
   CHECK(moved.value > 256U);
 
+  Tap(controller, TrackerAction::Up);    // Return to slice selection.
   Tap(controller, TrackerAction::Right); // slot 2
   Tap(controller, TrackerAction::Right); // slot 3, initially undefined
   const Ui2SampleSlicesCommand added = Tap(controller, TrackerAction::Enter);
@@ -690,6 +691,45 @@ TEST_CASE("UI2 Sample Slices selects moves previews adds and deletes") {
       Chord(controller, TrackerAction::Shift, TrackerAction::Enter);
   CHECK(deleted.type == Ui2SampleSlicesCommandType::DeleteSlice);
   CHECK((controller.DefinedMask() & 0x0008U) == 0U);
+}
+
+TEST_CASE(
+    "UI2 Slices keeps field focus stable while editing and synchronizing") {
+  using namespace ui2;
+  SampleWaveFileSystem fileSystem;
+  fileSystem.BuildPcm(1024U);
+  Ui2SampleWaveformBackend waveform;
+  Ui2SampleSlicesController controller(waveform);
+  REQUIRE(controller.OpenPath(fileSystem, "LOOP.WAV") ==
+          Ui2SampleWaveformLoadResult::Loaded);
+  std::array<std::uint32_t, Ui2SampleSlicesController::SliceCapacity> points{};
+  points[0] = 16;
+  points[1] = 512;
+  controller.SynchronizeSlices(points, 3);
+  Tap(controller, TrackerAction::Up);
+  CHECK(controller.Focus() == SampleSlicesViewUi2Focus::Waveform);
+  auto state = MakeUiSampleSlicesControllerState(controller.Snapshot());
+  CHECK(state.cursor == UiSampleSlicesCursor::Status);
+  Tap(controller, TrackerAction::Down);
+  REQUIRE(controller.Focus() == SampleSlicesViewUi2Focus::Start);
+  CHECK(Tap(controller, TrackerAction::Right).value == 17);
+  Chord(controller, TrackerAction::Enter, TrackerAction::Left);
+  CHECK(Chord(controller, TrackerAction::Enter, TrackerAction::Up).value == 33);
+  CHECK(controller.Focus() == SampleSlicesViewUi2Focus::Start);
+  controller.SynchronizeSlices(controller.SlicePoints(),
+                               controller.DefinedMask());
+  CHECK(controller.Focus() == SampleSlicesViewUi2Focus::Start);
+  state = MakeUiSampleSlicesControllerState(
+      controller.Snapshot(), UiPowerState::BatteryNormal, {.enterHeld = true});
+  CHECK(state.ToViewData().enterDigitFocus);
+  CHECK(state.ToViewData().focusDigit == 5);
+  CHECK(state.ToViewData().help.empty());
+  Chord(controller, TrackerAction::Option, TrackerAction::Up);
+  CHECK(controller.Focus() == SampleSlicesViewUi2Focus::Start);
+  Tap(controller, TrackerAction::Down);
+  Tap(controller, TrackerAction::Down);
+  Tap(controller, TrackerAction::Down);
+  CHECK(controller.Focus() == SampleSlicesViewUi2Focus::AutoSlice);
 }
 
 TEST_CASE("UI2 Sample Slices emits auto-slice request before replacement") {
@@ -786,7 +826,7 @@ TEST_CASE("UI2 Sample Slices confirms replacement of existing slices") {
   const UiSampleSlicesControllerState state =
       MakeUiSampleSlicesControllerState(snapshot);
   CHECK_FALSE(state.ToViewData().autoSliceApplyAvailable);
-  CHECK(std::strcmp(state.help.data(), "ENTER REPLACE EVEN SLICES") == 0);
+  CHECK(state.help[0] == '\0');
 }
 
 TEST_CASE("UI2 Sample Slices clamps synchronized and moved markers") {
@@ -803,10 +843,10 @@ TEST_CASE("UI2 Sample Slices clamps synchronized and moved markers") {
   controller.SynchronizeSlices(points, 1U);
   CHECK(controller.SlicePoints()[0] == 31U);
   for (int move = 0; move < 100; ++move)
-    Chord(controller, TrackerAction::Enter, TrackerAction::Right);
+    Chord(controller, TrackerAction::Enter, TrackerAction::Up);
   CHECK(controller.SlicePoints()[0] == 31U);
   for (int move = 0; move < 100; ++move)
-    Chord(controller, TrackerAction::Enter, TrackerAction::Left);
+    Chord(controller, TrackerAction::Enter, TrackerAction::Down);
   CHECK(controller.SlicePoints()[0] == 0U);
 }
 

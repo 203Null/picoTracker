@@ -230,7 +230,8 @@ public:
 
     if (input_.Held(TrackerAction::Shift)) {
       if (action == TrackerAction::Enter &&
-          focus_ == SampleSlicesViewUi2Focus::Waveform) {
+          (focus_ == SampleSlicesViewUi2Focus::Waveform ||
+           focus_ == SampleSlicesViewUi2Focus::Start)) {
         if (IsDefined(selectedSlice_))
           return DeleteSelected();
         return MakeFailure(Ui2SampleSlicesFailure::DeleteLocked);
@@ -251,8 +252,11 @@ public:
     }
 
     if (focus_ == SampleSlicesViewUi2Focus::Waveform) {
-      if (enter && IsDirection(action))
-        return MoveSelectedSlice(action);
+      if (action == TrackerAction::Enter && IsDefined(selectedSlice_) &&
+          !repeatedPress) {
+        focus_ = SampleSlicesViewUi2Focus::Start;
+        return {};
+      }
       if (action == TrackerAction::Enter && !IsDefined(selectedSlice_))
         return AddSelectedAt(SuggestedSliceStart());
       if (!enter && !option && action == TrackerAction::Left) {
@@ -263,6 +267,21 @@ public:
         SelectNext();
         return {};
       }
+    }
+
+    if (focus_ == SampleSlicesViewUi2Focus::Start && IsDirection(action)) {
+      if (enter) {
+        if (action == TrackerAction::Left || action == TrackerAction::Right) {
+          focusDigit_ = static_cast<std::uint8_t>(std::clamp<int>(
+              focusDigit_ + (action == TrackerAction::Right ? 1 : -1), 0, 6));
+          return {};
+        }
+        const std::int64_t step = std::int64_t{1} << (4U * (6U - focusDigit_));
+        return MoveSliceBy(action == TrackerAction::Up ? step : -step);
+      }
+      if (!option &&
+          (action == TrackerAction::Left || action == TrackerAction::Right))
+        return MoveSliceBy(action == TrackerAction::Right ? 1 : -1);
     }
 
     if (focus_ == SampleSlicesViewUi2Focus::AutoSliceCount) {
@@ -396,6 +415,7 @@ public:
     snapshot.waveform = waveformPacket_;
     snapshot.focus = focus_;
     snapshot.selectedSlice = selectedSlice_;
+    snapshot.focusDigit = focusDigit_;
     snapshot.autoSliceCount = autoSliceCount_;
     snapshot.definedMask = definedMask_;
     snapshot.waveformReady = waveformReady_;
@@ -438,6 +458,7 @@ private:
     previewableMask_ = 0U;
     previewPlayhead_ = 0U;
     selectedSlice_ = 0U;
+    focusDigit_ = 6U;
     autoSliceCount_ = 4U;
     focus_ = SampleSlicesViewUi2Focus::Waveform;
     lastBuild_ = Ui2SampleWaveformBuildResult::NotLoaded;
@@ -567,16 +588,7 @@ private:
       RebuildWaveform();
   }
 
-  Ui2SampleSlicesCommand MoveSelectedSlice(TrackerAction action) {
-    const std::uint32_t span = waveform_.ViewEnd() - waveform_.ViewStart();
-    std::int64_t delta =
-        action == TrackerAction::Left || action == TrackerAction::Right
-            ? (waveform_.ZoomLevel() >= waveform_.MaxZoomLevel()
-                   ? 1U
-                   : std::max<std::uint32_t>(1U, span / 64U))
-            : std::max<std::uint32_t>(1U, span / 16U);
-    if (action == TrackerAction::Left || action == TrackerAction::Down)
-      delta = -delta;
+  Ui2SampleSlicesCommand MoveSliceBy(std::int64_t delta) {
     const std::uint32_t current = SelectedSliceStart();
     const std::uint32_t next =
         static_cast<std::uint32_t>(std::clamp<std::int64_t>(
@@ -595,14 +607,13 @@ private:
   }
 
   void MoveFocus(int delta) {
-    constexpr std::array<SampleSlicesViewUi2Focus, 3> order{
-        SampleSlicesViewUi2Focus::Waveform,
+    constexpr std::array<SampleSlicesViewUi2Focus, 4> order{
+        SampleSlicesViewUi2Focus::Waveform, SampleSlicesViewUi2Focus::Start,
         SampleSlicesViewUi2Focus::AutoSliceCount,
         SampleSlicesViewUi2Focus::AutoSlice};
-    std::size_t current = focus_ == order[1]   ? 1U
-                          : focus_ == order[2] ? 2U
-                                               : 0U;
-    focus_ = order[(static_cast<int>(current) + delta + 3) % 3];
+    const auto current =
+        std::find(order.begin(), order.end(), focus_) - order.begin();
+    focus_ = order[std::clamp<int>(static_cast<int>(current) + delta, 0, 3)];
   }
 
   Ui2SampleSlicesCommand MakeCommand(Ui2SampleSlicesCommandType type) const {
@@ -656,6 +667,7 @@ private:
   std::uint16_t previewableMask_ = 0U;
   std::uint32_t previewPlayhead_ = 0U;
   std::uint8_t selectedSlice_ = 0U;
+  std::uint8_t focusDigit_ = 6U;
   std::uint8_t autoSliceCount_ = 4U;
   SampleSlicesViewUi2Focus focus_ = SampleSlicesViewUi2Focus::Waveform;
   Ui2SampleWaveformBuildResult lastBuild_ =

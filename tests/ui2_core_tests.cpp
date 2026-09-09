@@ -4884,11 +4884,11 @@ TEST_CASE("UI2 Sample Slices adapter maps real markers focus and help") {
   CHECK(data.markers[1].x == 103U);
   CHECK(data.markers[1].selected);
   CHECK(data.markers[2].kind == ui2::UiSampleWaveformMarkerKind::Playhead);
-  CHECK(data.cursor == ui2::UiSampleSlicesCursor::Waveform);
+  CHECK(data.cursor == ui2::UiSampleSlicesCursor::Status);
   CHECK(data.bottomActive == 1U);
   CHECK(ui2::UiSampleSlicesView::CursorTargetRect(data) ==
-        ui2::RectI16{7, 43, 226, 86});
-  CHECK(data.help == "UP/DOWN ZOOM");
+        ui2::RectI16{7, 138, 226, 9});
+  CHECK(data.help.empty());
   CHECK(data.power == ui2::UiPowerState::Playing);
 
   const ui2::UiSampleSlicesControllerState deleting =

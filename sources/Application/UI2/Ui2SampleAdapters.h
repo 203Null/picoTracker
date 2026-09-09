@@ -95,6 +95,7 @@ inline bool EqualSlicesCapture(const SampleSlicesViewUi2Snapshot &left,
          left.markers.count == right.markers.count &&
          left.focus == right.focus &&
          left.selectedSlice == right.selectedSlice &&
+         left.focusDigit == right.focusDigit &&
          left.autoSliceCount == right.autoSliceCount &&
          left.definedMask == right.definedMask &&
          left.waveformReady == right.waveformReady &&
@@ -255,6 +256,7 @@ inline UiSampleEditorControllerState MakeUiSampleEditorControllerState(
 }
 
 struct UiSampleSlicesControllerState {
+  bool enterHeld = false;
   static constexpr std::size_t MarkerCapacity =
       SampleSlicesViewUi2Snapshot::SliceCapacity + 1U;
 
@@ -272,6 +274,9 @@ struct UiSampleSlicesControllerState {
 
   [[nodiscard]] UiSampleSlicesViewData ToViewData() const {
     UiSampleSlicesViewData data;
+    data.enterHeld = enterHeld;
+    data.enterDigitFocus = enterHeld && cursor == UiSampleSlicesCursor::Start;
+    data.focusDigit = capture.focusDigit;
     data.slice = detail::SampleCStringView(capture.slice);
     data.start = detail::SampleCStringView(capture.start);
     data.zoom = detail::SampleCStringView(capture.zoom);
@@ -299,8 +304,8 @@ struct UiSampleSlicesControllerState {
 
   bool operator==(const UiSampleSlicesControllerState &other) const {
     return detail::EqualSlicesCapture(capture, other.capture) &&
-           markers == other.markers && help == other.help &&
-           autoSliceCount == other.autoSliceCount &&
+           enterHeld == other.enterHeld && markers == other.markers &&
+           help == other.help && autoSliceCount == other.autoSliceCount &&
            cursorVisualRect == other.cursorVisualRect &&
            cursor == other.cursor && power == other.power &&
            markerCount == other.markerCount &&
@@ -315,6 +320,7 @@ inline UiSampleSlicesControllerState MakeUiSampleSlicesControllerState(
     UiPowerState power = UiPowerState::BatteryNormal,
     UiSampleControllerModifiers modifiers = {}) {
   UiSampleSlicesControllerState state;
+  state.enterHeld = modifiers.enterHeld;
   state.capture = snapshot;
   state.markerCount =
       detail::CopySampleMarkers(snapshot.markers, state.markers);
@@ -331,31 +337,24 @@ inline UiSampleSlicesControllerState MakeUiSampleSlicesControllerState(
                        : selectedDefined                      ? 1U
                                                               : 0U;
 
-  std::string_view help;
   switch (snapshot.focus) {
   case SampleSlicesViewUi2Focus::Waveform:
-    state.cursor = UiSampleSlicesCursor::Waveform;
-    if (modifiers.enterHeld)
-      help = "ARROWS MOVE  LEFT/RIGHT FINE";
-    else if (modifiers.optionHeld)
-      help = "UP/DOWN ZOOM";
-    else
-      help = "LEFT/RIGHT SELECT  PLAY PREVIEW";
+    state.cursor = UiSampleSlicesCursor::Status;
+    break;
+  case SampleSlicesViewUi2Focus::Start:
+    state.cursor = UiSampleSlicesCursor::Start;
     break;
   case SampleSlicesViewUi2Focus::AutoSliceCount:
     state.cursor = UiSampleSlicesCursor::AutoSliceCount;
-    help = "ENTER+UP/DOWN SET COUNT";
     break;
   case SampleSlicesViewUi2Focus::AutoSlice:
     state.cursor = UiSampleSlicesCursor::AutoSlice;
-    help = snapshot.autoSliceApplyAvailable ? "ENTER APPLY EVEN SLICES"
-                                            : "ENTER REPLACE EVEN SLICES";
     break;
   case SampleSlicesViewUi2Focus::Unknown:
     state.cursor = UiSampleSlicesCursor::None;
     break;
   }
-  detail::SetSampleText(state.help, help);
+  detail::SetSampleText(state.help, {});
   return state;
 }
 

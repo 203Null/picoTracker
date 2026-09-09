@@ -15,6 +15,15 @@ int main(int argc, char **argv) {
   if (state == "editor") {
     status = ui2::UiSampleEditorView::Build(
         ui2::test::ApprovedSampleEditorFixture(), palette, scene);
+  } else if (state == "slices-start" || state == "slices-digit") {
+    auto data = ui2::test::ApprovedSampleSlicesFixture();
+    data.cursor = ui2::UiSampleSlicesCursor::Start;
+    data.start = "0000100";
+    data.help = {};
+    data.autoSliceCount = "04";
+    data.enterHeld = data.enterDigitFocus = state == "slices-digit";
+    data.focusDigit = 5;
+    status = ui2::UiSampleSlicesView::Build(data, palette, scene);
   } else if (state == "slices") {
     status = ui2::UiSampleSlicesView::Build(
         ui2::test::ApprovedSampleSlicesFixture(), palette, scene);

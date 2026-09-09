@@ -232,6 +232,8 @@ RectI16 UiSampleSlicesView::CursorTargetRect(UiSampleSlicesCursor cursor) {
   switch (cursor) {
   case UiSampleSlicesCursor::Status:
     return {7, 138, 226, 9};
+  case UiSampleSlicesCursor::Start:
+    return {7, 149, 226, 9};
   case UiSampleSlicesCursor::Waveform:
     return {7, 43, 226, 86};
   case UiSampleSlicesCursor::AutoSliceCount:
@@ -270,7 +272,9 @@ void UiSampleSlicesView::RenderDelta(const UiSampleSlicesViewData &previous,
     render({5, 172, 230, 23});
   if (previous.help != current.help)
     render({5, 184, 230, 23});
-  if (previous.bottomActive != current.bottomActive)
+  if (previous.bottomActive != current.bottomActive ||
+      previous.cursor != current.cursor ||
+      previous.enterHeld != current.enterHeld)
     render({0, 208, 240, 32});
   const RectI16 oldCursor =
       ResolvedCursorRect(previous, CursorTargetRect(previous));
@@ -299,6 +303,30 @@ UiBuildStatus UiSampleSlicesView::Build(const UiSampleSlicesViewData &data,
   bottom.actions.actions = {"ADD", "MOVE", "DELETE", {}};
   bottom.actions.count = 3;
   bottom.actions.active = std::min<std::uint8_t>(data.bottomActive, 2U);
+  if (data.cursor == UiSampleSlicesCursor::Start ||
+      data.cursor == UiSampleSlicesCursor::AutoSliceCount) {
+    bottom.kind = UiBottomBarKind::AdjustmentLegend;
+    bottom.adjustment.showCoarse = data.enterHeld;
+    bottom.adjustment.coarseStep = 1;
+    if (data.enterDigitFocus) {
+      bottom.adjustment.fineLabel = "DIGIT";
+      bottom.adjustment.coarseLabel = "VALUE";
+    }
+  } else if (data.cursor == UiSampleSlicesCursor::AutoSlice) {
+    bottom.actions.actions = {
+        data.autoSliceApplyAvailable ? "APPLY" : "REPLACE", {}, {}, {}};
+    bottom.actions.count = 1;
+    bottom.actions.active = 0;
+  } else if (data.cursor == UiSampleSlicesCursor::Status) {
+    bottom.actions.actions = {data.bottomActive == 2   ? "DELETE"
+                              : data.bottomActive == 0 ? "ADD"
+                                                       : "EDIT",
+                              {},
+                              {},
+                              {}};
+    bottom.actions.count = 1;
+    bottom.actions.active = 0;
+  }
   const UiBuildStatus bottomStatus =
       UiChromeRenderer::BuildBottom(bottom, scene.bottom);
   if (bottomStatus != UiBuildStatus::Built)
@@ -343,6 +371,18 @@ UiBuildStatus UiSampleSlicesView::Build(const UiSampleSlicesViewData &data,
     case UiSampleSlicesCursor::Status:
       builder.Text("SLICE", 9, 139, UiColorToken::TextHighlighted);
       builder.Text(data.slice, 92, 139, UiColorToken::TextHighlighted);
+      break;
+    case UiSampleSlicesCursor::Start:
+      if (data.enterDigitFocus && !data.start.empty()) {
+        const auto digit =
+            std::min<std::size_t>(data.focusDigit, data.start.size() - 1);
+        builder.Text(data.start.substr(digit, 1),
+                     static_cast<std::int16_t>(92 + digit * 6), 150,
+                     UiColorToken::TextHighlighted);
+      } else {
+        builder.Text("START", 9, 150, UiColorToken::TextHighlighted);
+        builder.Text(data.start, 92, 150, UiColorToken::TextHighlighted);
+      }
       break;
     case UiSampleSlicesCursor::AutoSliceCount:
       builder.Text("AUTO", 9, 174, UiColorToken::TextHighlighted);
