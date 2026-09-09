@@ -1003,7 +1003,7 @@ UiApplicationPage Ui2TrackerApplication::BrowserReturnPage() const {
   if (settingsBrowser_.Mode() == Ui2SettingsBrowserMode::Theme)
     return UiApplicationPage::Theme;
   if (samples_.browser.Active())
-    return UiApplicationPage::Project;
+    return samples_.browserReturnPage;
   return instrumentBrowserActive_ ? UiApplicationPage::Instrument
                                   : UiApplicationPage::Project;
 }
@@ -1354,6 +1354,23 @@ void Ui2TrackerApplication::ExecuteInstrument(Ui2InstrumentCommand command) {
 
       if (instrument->GetType() != IT_SAMPLE || command.cursor.index > 1U)
         return;
+      if (command.cursor.index == 0U && command.value == 0) {
+        if (Player::GetInstance()->IsRunning()) {
+          ShowFeedbackError("NOT WHILE PLAYING");
+          return;
+        }
+        if (!samples_.browser.OpenLibrary(session_.ProjectName())) {
+          samples_.browser.Close();
+          ShowFeedbackError("SAMPLE LIB UNAVAILABLE");
+          return;
+        }
+        samples_.browserReturnPage = UiApplicationPage::Instrument;
+        settingsBrowser_.Close();
+        instrumentBrowserActive_ = false;
+        source_.SetInstrumentBrowserActive(false);
+        ActivatePage(UiApplicationPage::Browser);
+        return;
+      }
       auto *sample = static_cast<SampleInstrument *>(instrument);
       const auto filename = sample->GetSampleFileName();
       const Ui2InstrumentSampleOpenOutcome openOutcome =
@@ -1366,10 +1383,11 @@ void Ui2TrackerApplication::ExecuteInstrument(Ui2InstrumentCommand command) {
         ShowFeedbackError(message);
         return;
       }
-      if (command.cursor.index == 0U)
-        (void)OpenSampleEditor(filename.c_str(), true,
-                               UiApplicationPage::Instrument);
-      else if (command.cursor.index == 1U)
+      if (command.cursor.index == 0U) {
+        if (!OpenSampleEditor(filename.c_str(), true,
+                              UiApplicationPage::Instrument))
+          ShowFeedbackError("SAMPLE OPEN FAILED");
+      } else if (command.cursor.index == 1U)
         (void)OpenSampleSlices(filename.c_str(), UiApplicationPage::Instrument);
     }
     return;
@@ -2017,6 +2035,7 @@ void Ui2TrackerApplication::ExecuteProject(Ui2ProjectCommand command) {
     }
     if (!samples_.browser.Open(session_.ProjectName()))
       break;
+    samples_.browserReturnPage = UiApplicationPage::Project;
     settingsBrowser_.Close();
     instrumentBrowserActive_ = false;
     source_.SetInstrumentBrowserActive(false);

@@ -39,9 +39,11 @@ public:
     slices.Close();
     waveform.Reset();
     browser.Close();
+    browserReturnPage = UiApplicationPage::Project;
     returnPage = UiApplicationPage::Instrument;
   }
   Ui2SampleBrowserController browser{};
+  UiApplicationPage browserReturnPage = UiApplicationPage::Project;
   Ui2SampleWaveformBackend waveform{};
   Ui2SampleEditorController editor{waveform};
   Ui2SampleEditorTransaction transaction{};

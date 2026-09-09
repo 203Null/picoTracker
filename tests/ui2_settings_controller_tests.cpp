@@ -366,6 +366,32 @@ TEST_CASE("UI2 sample instrument fields emit editor and slices activation comman
         Ui2InstrumentCommandType::ActivateField);
 }
 
+TEST_CASE(
+    "UI2 Sample field offers Load and only enables Edit for a bound sample") {
+  using namespace ui2;
+  Ui2InstrumentController controller(0U, 0U, 11U, 0U);
+  controller.ConfigureSampleActions(true, false);
+  Tap(controller, TrackerAction::Down);
+  Tap(controller, TrackerAction::Down);
+  REQUIRE(controller.Cursor().index == 0U);
+  Tap(controller, TrackerAction::Right);
+  CHECK(controller.SampleAction() == 0U);
+  auto command = Tap(controller, TrackerAction::Enter);
+  CHECK(command.type == Ui2InstrumentCommandType::ActivateField);
+  CHECK(command.value == 0);
+  controller.ConfigureSampleActions(true, true);
+  Tap(controller, TrackerAction::Right);
+  CHECK(controller.SampleAction() == 1U);
+  command = Tap(controller, TrackerAction::Enter);
+  CHECK(command.type == Ui2InstrumentCommandType::ActivateField);
+  CHECK(command.value == 1);
+  Tap(controller, TrackerAction::Left);
+  CHECK(controller.SampleAction() == 0U);
+  Tap(controller, TrackerAction::Right);
+  controller.ConfigureSampleActions(true, false);
+  CHECK(controller.SampleAction() == 0U);
+}
+
 TEST_CASE("UI2 Device cursor skips hidden rows and owns scroll position") {
   using namespace ui2;
   constexpr std::uint32_t visible =

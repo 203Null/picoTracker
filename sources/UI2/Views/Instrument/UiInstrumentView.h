@@ -38,6 +38,7 @@ enum class UiInstrumentCursor : std::uint8_t {
 };
 
 enum class UiInstrumentFieldBottom : std::uint8_t {
+  SampleActions,
   Hidden,
   Open,
   Adjustment,
@@ -102,6 +103,8 @@ struct UiInstrumentViewData {
   bool adjustmentFocus = false;
   bool adjustmentNote = false;
   UiInstrumentFieldBottom fieldBottom = UiInstrumentFieldBottom::Hidden;
+  bool sampleLoaded = false;
+  std::uint8_t sampleAction = 0;
   std::uint8_t fieldOptionCurrent = 0;
   UiInstrumentFieldOptions fieldOptions = UiInstrumentFieldOptions::None;
   bool fieldOptionWrap = false;

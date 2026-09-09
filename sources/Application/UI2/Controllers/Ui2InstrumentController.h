@@ -250,6 +250,16 @@ public:
     return {};
   }
 
+  constexpr void ConfigureSampleActions(bool enabled, bool loaded) {
+    sampleActions_ = enabled;
+    sampleLoaded_ = loaded;
+    if (!enabled || !loaded)
+      sampleAction_ = 0;
+  }
+  [[nodiscard]] constexpr std::uint8_t SampleAction() const {
+    return sampleAction_;
+  }
+
   constexpr Ui2InstrumentCommand Handle(TrackerAction action, bool pressed) {
     if (!input_.Update(action, pressed))
       return {};
@@ -286,7 +296,11 @@ public:
         if (cursor.kind == Ui2InstrumentCursorKind::Field ||
             cursor.kind == Ui2InstrumentCursorKind::Operator1 ||
             cursor.kind == Ui2InstrumentCursorKind::Operator2) {
-          return MakeCommand(Ui2InstrumentCommandType::ActivateField);
+          auto command = MakeCommand(Ui2InstrumentCommandType::ActivateField);
+          if (sampleActions_ && cursor.kind == Ui2InstrumentCursorKind::Field &&
+              cursor.index == 0U)
+            command.value = sampleAction_;
+          return command;
         }
       }
       return {};
@@ -305,6 +319,12 @@ public:
       if (cursor_.MoveNext() &&
           subfieldMode_ != Ui2InstrumentSubfieldMode::DrumCell)
         ResetSubfield();
+      return {};
+    }
+    if (sampleActions_ && Cursor().kind == Ui2InstrumentCursorKind::Field &&
+        Cursor().index == 0U &&
+        (action == TrackerAction::Left || action == TrackerAction::Right)) {
+      sampleAction_ = sampleLoaded_ ? 1U - sampleAction_ : 0U;
       return {};
     }
     if (action == TrackerAction::Left || action == TrackerAction::Right)
@@ -556,6 +576,9 @@ private:
   Ui2InstrumentNameAction nameAction_ = Ui2InstrumentNameAction::Load;
   bool instrumentWrap_ = true;
   bool valueEditDirty_ = false;
+  bool sampleActions_ = false;
+  bool sampleLoaded_ = false;
+  std::uint8_t sampleAction_ = 0;
 };
 
 static_assert(std::is_trivially_copyable_v<Ui2InstrumentCursorPosition>);

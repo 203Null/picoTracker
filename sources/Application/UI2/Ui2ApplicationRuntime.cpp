@@ -884,6 +884,8 @@ UiApplicationRuntime::ViewDataFor(const InstrumentFrameState &state) {
   data.adjustmentFocus = state.adjustmentFocus;
   data.adjustmentNote = state.adjustmentNote;
   data.fieldBottom = state.fieldBottom;
+  data.sampleLoaded = state.sampleLoaded;
+  data.sampleAction = state.sampleAction;
   data.fieldOptionCurrent = state.fieldOptionCurrent;
   data.fieldOptions = state.fieldOptions;
   data.fieldOptionWrap = state.fieldOptionWrap;

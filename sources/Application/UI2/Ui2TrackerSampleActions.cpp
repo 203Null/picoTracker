@@ -70,8 +70,9 @@ void Ui2TrackerApplication::CloseSampleBrowser() {
 void Ui2TrackerApplication::ExecuteSampleBrowser(
     Ui2SampleBrowserCommand command) {
   if (command.type == Ui2SampleBrowserCommandType::Back) {
+    const auto returnPage = samples_.browserReturnPage;
     CloseSampleBrowser();
-    ActivatePage(UiApplicationPage::Project);
+    ActivatePage(returnPage);
     return;
   }
   if (!command.HasValue())
@@ -193,6 +194,10 @@ void Ui2TrackerApplication::ExecuteSampleBrowser(
     return;
   }
   samples_.browser.ClearError();
+  if (samples_.browserReturnPage == UiApplicationPage::Instrument) {
+    CloseSampleBrowser();
+    ActivatePage(UiApplicationPage::Instrument);
+  }
 }
 
 bool Ui2TrackerApplication::ImportSampleToCurrentInstrument(

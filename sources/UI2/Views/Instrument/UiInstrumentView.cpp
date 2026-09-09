@@ -338,6 +338,8 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
       previous.adjustmentFineStep != current.adjustmentFineStep ||
       previous.adjustmentCoarseStep != current.adjustmentCoarseStep ||
       previous.fieldBottom != current.fieldBottom ||
+      previous.sampleLoaded != current.sampleLoaded ||
+      previous.sampleAction != current.sampleAction ||
       previous.fieldOptionCurrent != current.fieldOptionCurrent ||
       previous.fieldOptions != current.fieldOptions ||
       previous.fieldOptionWrap != current.fieldOptionWrap ||
@@ -418,6 +420,11 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
       bottom.context.secondLine[0] = {hints[col], UiColorToken::TextNormal, 9};
       bottom.context.firstLineCount = bottom.context.secondLineCount = 1;
     }
+  } else if (data.fieldBottom == UiInstrumentFieldBottom::SampleActions) {
+    bottom.kind = UiBottomBarKind::Actions;
+    bottom.actions.actions = {"LOAD", "EDIT", {}, {}};
+    bottom.actions.count = data.sampleLoaded ? 2 : 1;
+    bottom.actions.active = data.sampleLoaded ? data.sampleAction : 0;
   } else if (data.fieldBottom == UiInstrumentFieldBottom::Open) {
     bottom.kind = UiBottomBarKind::Actions;
     bottom.actions.actions = {"OPEN", {}, {}, {}};

@@ -609,6 +609,12 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
   instrument_.Synchronize(number, editor.songX_,
                           {IT_LAST, static_cast<std::uint16_t>(type), true},
                           state.fieldCount, state.operatorCount);
+  const bool sampleLoaded =
+      type == IT_SAMPLE &&
+      static_cast<SampleInstrument *>(instrument)->GetSampleIndex() >= 0;
+  instrument_.ConfigureSampleActions(type == IT_SAMPLE, sampleLoaded);
+  state.sampleLoaded = sampleLoaded;
+  state.sampleAction = instrument_.SampleAction();
   const Ui2InstrumentCursorPosition cursor = instrument_.Cursor();
   const Ui2InstrumentParameterDescriptor activeDescriptor =
       Ui2InstrumentCursorParameter(type, cursor, sidFirstChip);
@@ -648,7 +654,9 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
   if (parameterCursor && activeDescriptor.Valid()) {
     if (type == IT_SAMPLE && cursor.kind == Ui2InstrumentCursorKind::Field &&
         cursor.index <= 1U) {
-      state.fieldBottom = UiInstrumentFieldBottom::Open;
+      state.fieldBottom = cursor.index == 0U
+                              ? UiInstrumentFieldBottom::SampleActions
+                              : UiInstrumentFieldBottom::Open;
     } else if (activeValue != nullptr &&
                activeValue->GetType() == Variable::BOOL) {
       state.fieldBottom = UiInstrumentFieldBottom::Selector;
