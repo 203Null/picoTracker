@@ -718,6 +718,11 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
           std::min<std::uint16_t>(activeDescriptor.coarseStep, 0xFFU));
     }
   }
+  // Bare LEFT/RIGHT navigates OP1/OP2; editing requires held Enter.
+  if ((cursor.kind == Ui2InstrumentCursorKind::Operator1 ||
+       cursor.kind == Ui2InstrumentCursorKind::Operator2) &&
+      (instrument_.HeldMask() & TrackerActionBit(TrackerAction::Enter)) == 0U)
+    state.fieldBottom = UiInstrumentFieldBottom::Edit;
   state.selectedSubfield = instrument_.Subfield();
   if (type == IT_DRUM && cursor.kind == Ui2InstrumentCursorKind::Field &&
       cursor.index < 12) {
