@@ -394,11 +394,6 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     bottom.selector.current = static_cast<std::uint8_t>(data.kind);
     bottom.selector.wrap = true;
   } else if (DrumCell(data)) {
-    bottom.kind = UiBottomBarKind::Context;
-    constexpr std::array<std::string_view, 3> titles{"PITCH DECAY", "TUNING",
-                                                     "DECAY"};
-    constexpr std::array<std::string_view, 3> hints{
-        "PITCH ENVELOPE RATE", "BASE DRUM PITCH", "VOLUME ENVELOPE DECAY"};
     const auto col = std::min<unsigned>(data.selectedSubfield, 3);
     if (col == 3 && data.enterSubfieldFocus) {
       bottom.kind = UiBottomBarKind::Selector;
@@ -406,19 +401,10 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
       bottom.selector.current =
           DrumWaveIndex(data.fields[data.selectedField].value);
       bottom.selector.wrap = true;
-    } else if (col == 3) {
-      constexpr std::array<std::string_view, 8> descriptions{
-          "12.5% PULSE",    "25% PULSE", "50% PULSE", "TRIANGLE",
-          "GAME BOY NOISE", "NES NOISE", "SN NOISE",  "WHITE NOISE"};
-      bottom.context.firstLine[0] = {"WAVEFORM", UiColorToken::TextColored, 9};
-      bottom.context.secondLine[0] = {
-          descriptions[DrumWaveIndex(data.fields[data.selectedField].value)],
-          UiColorToken::TextNormal, 9};
-      bottom.context.firstLineCount = bottom.context.secondLineCount = 1;
     } else {
-      bottom.context.firstLine[0] = {titles[col], UiColorToken::TextColored, 9};
-      bottom.context.secondLine[0] = {hints[col], UiColorToken::TextNormal, 9};
-      bottom.context.firstLineCount = bottom.context.secondLineCount = 1;
+      bottom.kind = UiBottomBarKind::Actions;
+      bottom.actions.actions = {"EDIT", {}, {}, {}};
+      bottom.actions.count = 1;
     }
   } else if (data.enterSubfieldFocus) {
     // ADSR, sample offsets and bit fields navigate a component horizontally;

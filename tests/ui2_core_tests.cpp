@@ -3100,9 +3100,8 @@ TEST_CASE("UI2 Drum and Stack render approved fields and contextual bottom bars"
   auto drum = ui2::test::ApprovedInstrumentFixture("drum");
   REQUIRE(ui2::UiInstrumentView::Build(drum, palette, scene) == ui2::UiBuildStatus::Built);
   REQUIRE(scene.bottomVisible);
-  CHECK(FindTextCommand(scene.bottom.Stream(), "PITCH DECAY") != nullptr);
-  CHECK(FindTextCommand(scene.bottom.Stream(), "PITCH ENVELOPE RATE") !=
-        nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "EDIT") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "PITCH ENVELOPE RATE") == nullptr);
   drum.adjustmentFocus = true;
   drum.adjustmentCoarseStep = 16;
   REQUIRE(ui2::UiInstrumentView::Build(drum, palette, scene) ==
@@ -3114,8 +3113,8 @@ TEST_CASE("UI2 Drum and Stack render approved fields and contextual bottom bars"
   wave.selectedSubfield = 3;
   REQUIRE(ui2::UiInstrumentView::Build(wave, palette, scene) ==
           ui2::UiBuildStatus::Built);
-  CHECK(FindTextCommand(scene.bottom.Stream(), "WAVEFORM") != nullptr);
-  CHECK(FindTextCommand(scene.bottom.Stream(), "50% PULSE") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "EDIT") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "50% PULSE") == nullptr);
   CHECK(FindTextCommand(scene.bottom.Stream(), "TRI") == nullptr);
   auto heldWave = wave;
   heldWave.enterSubfieldFocus = true;
