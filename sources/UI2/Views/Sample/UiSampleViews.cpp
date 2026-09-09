@@ -148,7 +148,7 @@ UiBuildStatus UiSampleEditorView::Build(const UiSampleEditorViewData &data,
   scene.bottomVisible = true;
   scene.topBackground = UiColorToken::SurfaceTopBar;
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
-  const UiTopBarModel top{.title = "SAMPLE", .power = data.power};
+  const UiTopBarModel top{.title = "SAMPLE EDIT", .power = data.power};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;
