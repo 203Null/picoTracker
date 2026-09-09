@@ -67,10 +67,12 @@ async function installNativeBridge(page) {
     globalThis.__nullPeratorNativeBattery = { percentage: 76, charging: false, available: true }
     globalThis.__nullPeratorIOSVersion = '1.0 (1)'
     globalThis.__nullPeratorFirmwareVersion = 'test'
+    globalThis.__nullPeratorNativeMessages = []
     globalThis.webkit = {
       messageHandlers: {
         nullPeratorNative: {
           postMessage(message) {
+            globalThis.__nullPeratorNativeMessages.push(message)
             switch (message?.command) {
               case 'nativeReady':
                 return Promise.resolve({
@@ -247,6 +249,18 @@ for (const device of devices) {
     expect(closeBox).not.toBeNull()
     expect(closeBox.width).toBeGreaterThanOrEqual(30)
     expect(closeBox.height).toBeGreaterThanOrEqual(30)
+
+    await expect(dialog.getByRole('button', { name: /^WIKI/ })).toBeVisible()
+    await expect(dialog.getByRole('button', { name: /^DISCORD/ })).toBeVisible()
+    if (device.name === 'iPhone Pro portrait') {
+      await dialog.getByRole('button', { name: /^WIKI/ }).click()
+      await dialog.getByRole('button', { name: /^DISCORD/ }).click()
+      await expect.poll(() => page.evaluate(() => (
+        globalThis.__nullPeratorNativeMessages
+          .map(({ command }) => command)
+          .filter((command) => command === 'openWiki' || command === 'openDiscord')
+      ))).toEqual(['openWiki', 'openDiscord'])
+    }
 
     await saveScreenshot(page, testInfo, device, 'settings')
 

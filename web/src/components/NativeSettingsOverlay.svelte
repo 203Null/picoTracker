@@ -199,7 +199,7 @@
 
           <section>
             <strong>EXTERNAL LINKS</strong>
-            <p>The hardware purchase button opens 203.io outside the app. Information you provide there is governed by the website's privacy terms.</p>
+            <p>Wiki, Discord, privacy policy, and hardware purchase links open outside the app. Information you provide there is governed by each website's privacy terms.</p>
           </section>
 
           <button class="privacy-contact" type="button" onclick={() => nativeCommand('openPrivacyPolicy')}>
@@ -228,6 +228,16 @@
         <button class="setting-row tappable" type="button" onclick={() => nativeCommand('openFiles')}>
           <span class="row-copy"><strong>FILES</strong><small>Open the NullPerator folder in Files</small></span>
           <span class="chevron">›</span>
+        </button>
+
+        <button class="setting-row tappable" type="button" onclick={() => nativeCommand('openWiki')}>
+          <span class="row-copy"><strong>WIKI</strong><small>Open NullPerator guides and reference</small></span>
+          <span class="chevron">↗</span>
+        </button>
+
+        <button class="setting-row tappable" type="button" onclick={() => nativeCommand('openDiscord')}>
+          <span class="row-copy"><strong>DISCORD</strong><small>Join the NullPerator community</small></span>
+          <span class="chevron">↗</span>
         </button>
 
         <button class="setting-row tappable purchase-row" type="button" onclick={() => nativeCommand('purchaseHardware')}>

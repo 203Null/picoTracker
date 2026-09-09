@@ -303,6 +303,26 @@ final class NativeCommandBridge: NSObject, WKScriptMessageHandlerWithReply {
             return
         }
 
+        if command == "openWiki" {
+            guard let wikiURL = URL(string: "https://np-wiki.203.io") else {
+                replyHandler(nil, "Invalid wiki URL")
+                return
+            }
+            UIApplication.shared.open(wikiURL)
+            replyHandler(["ok": true], nil)
+            return
+        }
+
+        if command == "openDiscord" {
+            guard let discordURL = URL(string: "https://discord.gg/rRVCBHHPfw") else {
+                replyHandler(nil, "Invalid Discord URL")
+                return
+            }
+            UIApplication.shared.open(discordURL)
+            replyHandler(["ok": true], nil)
+            return
+        }
+
         if command == "activateAudio" {
             do {
                 let session = AVAudioSession.sharedInstance()
