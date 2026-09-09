@@ -229,7 +229,7 @@ TEST_CASE("UI2 Sample Browser opens the approved project-pool state") {
   CHECK(snapshot.visibleItemCount == 1U);
   CHECK(std::strcmp(snapshot.footer.data(), "13 KB  /  60") == 0);
   REQUIRE(snapshot.actionCount == 3U);
-  CHECK(std::strcmp(snapshot.actions[0].data(), "EDIT") == 0);
+  CHECK(std::strcmp(snapshot.actions[0].data(), "LOAD") == 0);
   CHECK(std::strcmp(snapshot.actions[1].data(), "IMPORT") == 0);
   CHECK(std::strcmp(snapshot.actions[2].data(), "DELETE") == 0);
 }
@@ -247,9 +247,9 @@ TEST_CASE("UI2 Sample Browser can enter the import library directly") {
   REQUIRE(snapshot.visibleItemCount == 2U);
   CHECK(std::strcmp(snapshot.items[0].data(), "~KICK.WAV") == 0);
   CHECK(std::strcmp(snapshot.items[1].data(), "/DRUMS") == 0);
-  REQUIRE(snapshot.actionCount == 3U);
+  REQUIRE(snapshot.actionCount == 2U);
   CHECK(std::strcmp(snapshot.actions[0].data(), "IMPORT") == 0);
-  CHECK(std::strcmp(snapshot.actions[2].data(), "BACK") == 0);
+  CHECK(std::strcmp(snapshot.actions[1].data(), "BACK") == 0);
 }
 
 TEST_CASE("UI2 Sample Browser inherits Shift when returning from editor") {
@@ -291,7 +291,7 @@ TEST_CASE("UI2 Sample Browser keeps project pool flat and root-addressed") {
   // enter it. Therefore neither action can emit the same-named nested leaf.
   Tap(controller, TrackerAction::Down);
   const Ui2SampleBrowserCommand edit = Tap(controller, TrackerAction::Enter);
-  CHECK(edit.type == Ui2SampleBrowserCommandType::Edit);
+  CHECK(edit.type == Ui2SampleBrowserCommandType::Load);
   CHECK(edit.projectSample);
   CHECK(std::strcmp(edit.filename.data(), "AKWF.WAV") == 0);
 
@@ -320,8 +320,8 @@ TEST_CASE("UI2 Sample Browser library retains directories and parent chord") {
   REQUIRE(snapshot.visibleItemCount == 2U);
   CHECK(std::strcmp(snapshot.items[0].data(), "~KICK.WAV") == 0);
   CHECK(std::strcmp(snapshot.items[1].data(), "/DRUMS") == 0);
-  REQUIRE(snapshot.actionCount == 3U);
-  CHECK(std::strcmp(snapshot.actions[2].data(), "BACK") == 0);
+  REQUIRE(snapshot.actionCount == 2U);
+  CHECK(std::strcmp(snapshot.actions[1].data(), "BACK") == 0);
 
   Tap(controller, TrackerAction::Down);
   snapshot = controller.Snapshot(60);
@@ -666,5 +666,5 @@ TEST_CASE("UI2 Sample Browser clears modifier releases owned by its dialog") {
   // OPTION is no longer latched: ordinary ENTER opens the sample editor rather
   // than immediately requesting another delete.
   CHECK(Tap(controller, TrackerAction::Enter).type ==
-        Ui2SampleBrowserCommandType::Edit);
+        Ui2SampleBrowserCommandType::Load);
 }

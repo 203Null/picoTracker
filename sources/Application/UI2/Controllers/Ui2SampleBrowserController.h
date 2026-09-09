@@ -32,7 +32,7 @@ enum class Ui2SampleBrowserCommandType : std::uint8_t {
   PreviewStart,
   PreviewStop,
   Import,
-  Edit,
+  Load,
   RequestDelete,
   DeleteConfirmed,
   ModeChanged,
@@ -403,15 +403,14 @@ public:
     }
     if (mode_ == Ui2SampleBrowserMode::ProjectPool) {
       // Matches the approved 240x240 Sample Pool bottom bar exactly.
-      Ui2BrowserSnapshot::CopyText(snapshot.actions[0], "EDIT");
+      Ui2BrowserSnapshot::CopyText(snapshot.actions[0], "LOAD");
       Ui2BrowserSnapshot::CopyText(snapshot.actions[1], "IMPORT");
       Ui2BrowserSnapshot::CopyText(snapshot.actions[2], "DELETE");
       snapshot.actionCount = 3U;
     } else {
       Ui2BrowserSnapshot::CopyText(snapshot.actions[0], "IMPORT");
-      Ui2BrowserSnapshot::CopyText(snapshot.actions[1], "EDIT");
-      Ui2BrowserSnapshot::CopyText(snapshot.actions[2], "BACK");
-      snapshot.actionCount = 3U;
+      Ui2BrowserSnapshot::CopyText(snapshot.actions[1], "BACK");
+      snapshot.actionCount = 2U;
     }
     snapshot.activeAction = std::min<std::uint8_t>(
         selectedAction_, static_cast<std::uint8_t>(snapshot.actionCount - 1U));
@@ -530,7 +529,7 @@ private:
     }
     if (mode_ == Ui2SampleBrowserMode::ProjectPool) {
       if (selectedAction_ == 0U)
-        return MakeSelected(Ui2SampleBrowserCommandType::Edit);
+        return MakeSelected(Ui2SampleBrowserCommandType::Load);
       if (selectedAction_ == 1U) {
         mode_ = Ui2SampleBrowserMode::Library;
         if (!JumpToModeRoot()) {
@@ -542,11 +541,9 @@ private:
       }
       return MakeSelected(Ui2SampleBrowserCommandType::RequestDelete);
     }
-    if (selectedAction_ == 2U)
+    if (selectedAction_ == 1U)
       return {.type = Ui2SampleBrowserCommandType::Back};
-    return MakeSelected(selectedAction_ == 0U
-                            ? Ui2SampleBrowserCommandType::Import
-                            : Ui2SampleBrowserCommandType::Edit);
+    return MakeSelected(Ui2SampleBrowserCommandType::Import);
   }
 
   void MoveAction(int delta) {
@@ -554,9 +551,7 @@ private:
       selectedAction_ = 0U;
       return;
     }
-    const int count = mode_ == Ui2SampleBrowserMode::ProjectPool ? 3
-                      : IsSelectedDirectory()                    ? 2
-                                                                 : 3;
+    const int count = mode_ == Ui2SampleBrowserMode::ProjectPool ? 3 : 2;
     selectedAction_ = static_cast<std::uint8_t>(
         (count + static_cast<int>(selectedAction_) + delta) % count);
     ClearError();

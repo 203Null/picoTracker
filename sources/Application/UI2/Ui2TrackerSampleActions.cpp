@@ -124,15 +124,19 @@ void Ui2TrackerApplication::ExecuteSampleBrowser(
     return;
   }
 
-  if (command.type == Ui2SampleBrowserCommandType::Edit) {
-    if (player == nullptr || player->IsRunning() || fileSystem == nullptr ||
-        command.filename[0] == '\0' ||
-        !OpenSampleEditor(command.filename.data(), command.projectSample,
-                          UiApplicationPage::Browser)) {
-      samples_.browser.SetError("INVALID SAMPLE");
+  if (command.type == Ui2SampleBrowserCommandType::Load) {
+    const int sampleId = pool == nullptr
+                             ? -1
+                             : static_cast<int>(pool->FindSampleIndexByName(
+                                   command.filename.data()));
+    if (player == nullptr || player->IsRunning() ||
+        !BindSampleToCurrentInstrument(sampleId)) {
+      samples_.browser.SetError("SAMPLE LOAD FAILED");
       return;
     }
     samples_.browser.ClearError();
+    CloseSampleBrowser();
+    ActivatePage(UiApplicationPage::Instrument);
     return;
   }
 
@@ -210,6 +214,22 @@ bool Ui2TrackerApplication::ImportSampleToCurrentInstrument(
     error = "IMPORT UNAVAILABLE";
     return false;
   }
+  Ui2ProjectSampleName importedName{};
+  Ui2ProjectSamplePath importedPath{};
+  if (!Ui2ResolveImportedSampleName(path, importedName) ||
+      !Ui2BuildProjectSamplePath(session_.ProjectName(), importedName.data(),
+                                 importedPath)) {
+    error = "INVALID SAMPLE NAME";
+    return false;
+  }
+  const int existing =
+      static_cast<int>(pool->FindSampleIndexByName(importedName.data()));
+  // Reuse the project's authoritative copy; never overwrite an edited sample
+  // or allocate another pool slot merely to assign it to another instrument.
+  if (existing >= 0) {
+    error = "SAMPLE LOAD FAILED";
+    return BindSampleToCurrentInstrument(existing);
+  }
   if (pool->GetNameListSize() >= MAX_SAMPLES) {
     error = "SAMPLE POOL FULL";
     return false;
@@ -231,12 +251,7 @@ bool Ui2TrackerApplication::ImportSampleToCurrentInstrument(
     return false;
   }
 
-  Ui2ProjectSampleName importedName{};
-  Ui2ProjectSamplePath importedPath{};
-  if (!Ui2ResolveImportedSampleName(path, importedName) ||
-      !Ui2BuildProjectSamplePath(session_.ProjectName(), importedName.data(),
-                                 importedPath) ||
-      fileSystem->exists(importedPath.data())) {
+  if (fileSystem->exists(importedPath.data())) {
     error = "SAMPLE ALREADY EXISTS";
     return false;
   }
@@ -250,6 +265,17 @@ bool Ui2TrackerApplication::ImportSampleToCurrentInstrument(
     return false;
   }
 
+  error = nullptr;
+  // Project's pool browser also imports when no Sample instrument is selected.
+  if (!BindSampleToCurrentInstrument(sampleId))
+    MarkProjectDirty();
+  return true;
+}
+
+bool Ui2TrackerApplication::BindSampleToCurrentInstrument(int sampleId) {
+  SamplePool *pool = SamplePool::GetInstance();
+  if (pool == nullptr || sampleId < 0 || sampleId >= pool->GetNameListSize())
+    return false;
   InstrumentBank *bank = session_.ProjectModel().GetInstrumentBank();
   const std::uint8_t instrumentNumber =
       static_cast<std::uint8_t>(session_.EditorState().currentInstrumentID_);
@@ -257,10 +283,13 @@ bool Ui2TrackerApplication::ImportSampleToCurrentInstrument(
       bank == nullptr ? nullptr : bank->GetInstrument(instrumentNumber);
   if (instrument != nullptr && instrument->GetType() == IT_SAMPLE) {
     auto *sample = static_cast<SampleInstrument *>(instrument);
-    sample->AssignSample(sampleId);
-    sample->ClearSlices();
+    if (sample->GetSampleIndex() != sampleId) {
+      sample->AssignSample(sampleId);
+      sample->ClearSlices();
+    }
+  } else {
+    return false;
   }
-  error = nullptr;
   MarkProjectDirty();
   return true;
 }

@@ -121,6 +121,7 @@ private:
   [[nodiscard]] bool ReloadSampleEditorTransactionView();
   [[nodiscard]] bool CloseSampleEditor();
   [[nodiscard]] bool RecoverSampleEditorDestination();
+  [[nodiscard]] bool BindSampleToCurrentInstrument(int sampleId);
   [[nodiscard]] bool ImportSampleToCurrentInstrument(const char *path,
                                                      const char *&error);
   void HandleSampleSlices(TrackerAction action, bool pressed);
