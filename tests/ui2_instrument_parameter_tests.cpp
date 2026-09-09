@@ -1075,6 +1075,12 @@ TEST_CASE("UI2 every instrument parameter stays within declared edit bounds") {
       }
     }
     const auto spec = Ui2InstrumentSubfields(descriptor);
+    if (descriptor.format == Ui2InstrumentValueFormat::Hex &&
+        descriptor.width >= 3U &&
+        spec.mode != Ui2InstrumentSubfieldMode::DrumCell) {
+      CHECK(spec.mode == Ui2InstrumentSubfieldMode::HexDigit);
+      CHECK(spec.count == descriptor.width);
+    }
     if (spec.count) {
       CHECK_FALSE(Ui2InstrumentAdjustment(descriptor).visible);
       CHECK(spec.mode != Ui2InstrumentSubfieldMode::None);
@@ -1092,6 +1098,25 @@ TEST_CASE("UI2 every instrument parameter stays within declared edit bounds") {
          ++row) {
       check(Ui2InstrumentOperatorParameter(row, false));
       check(Ui2InstrumentOperatorParameter(row, true));
+    }
+  }
+}
+
+TEST_CASE("UI2 SID cutoff edits individual digits for either chip") {
+  using namespace ui2;
+  for (bool firstChip : {false, true}) {
+    const auto cutoff = Ui2InstrumentFieldParameter(IT_SID, 7U, firstChip);
+    const auto spec = Ui2InstrumentSubfields(cutoff);
+    REQUIRE(spec.mode == Ui2InstrumentSubfieldMode::HexDigit);
+    REQUIRE(spec.count == 3U);
+    CHECK_FALSE(Ui2InstrumentAdjustment(cutoff).visible);
+    for (std::uint8_t digit = 0; digit < 3; ++digit) {
+      CHECK(Ui2AdjustInstrumentSubfieldParameter(
+                cutoff, 0, spec.mode, digit,
+                Ui2InstrumentValueDirection::Up) == (0x100 >> (4 * digit)));
+      CHECK(Ui2AdjustInstrumentSubfieldParameter(
+                cutoff, 0x7FF, spec.mode, digit,
+                Ui2InstrumentValueDirection::Up) == 0x7FF);
     }
   }
 }
