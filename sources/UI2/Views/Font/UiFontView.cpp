@@ -76,7 +76,8 @@ void UiFontView::RenderDelta(const UiFontViewData &previous,
     render(ExpandedCursorDamage(previousCursor));
     render(ExpandedCursorDamage(currentCursor));
   }
-  if (previous.action != current.action || previous.cursor != current.cursor)
+  if (previous.action != current.action || previous.cursor != current.cursor ||
+      previous.textCase != current.textCase)
     render({0, 208, 240, 32});
 }
 
@@ -94,10 +95,19 @@ UiBuildStatus UiFontView::Build(const UiFontViewData &data, UiPalette &,
   if (topStatus != UiBuildStatus::Built)
     return topStatus;
   constexpr std::array<std::string_view, 2> actions{"BROWSE", "DEFAULT"};
+  constexpr std::array<std::string_view, 3> cases{"Case", "CASE", "case"};
   UiBottomBarModel bottom{.kind = UiBottomBarKind::Selector};
-  bottom.selector.options = actions;
-  bottom.selector.current = data.action == UiFontAction::Browse ? 0U : 1U;
-  bottom.selector.highlightCurrent = data.cursor == UiFontCursor::Browse;
+  if (data.cursor == UiFontCursor::TextCase) {
+    bottom.selector.options = cases;
+    bottom.selector.wrap = true;
+    bottom.selector.current = data.textCase == "Case"   ? 0U
+                              : data.textCase == "case" ? 2U
+                                                        : 1U;
+  } else {
+    bottom.selector.options = actions;
+    bottom.selector.current = data.action == UiFontAction::Browse ? 0U : 1U;
+  }
+  bottom.selector.highlightCurrent = true;
   bottom.selector.preserveCase = true;
   const UiBuildStatus bottomStatus =
       UiChromeRenderer::BuildBottom(bottom, scene.bottom);

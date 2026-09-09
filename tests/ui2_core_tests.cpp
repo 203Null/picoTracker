@@ -4067,8 +4067,9 @@ TEST_CASE("UI2 Font case choices remain literal under every case mode") {
           ui2::UiBuildStatus::Built);
 
   CHECK(FindLiteralTextCommand(scene.content.Stream(), "CASE") != nullptr);
-  CHECK(FindLiteralTextCommand(scene.bottom.Stream(), "BROWSE") != nullptr);
-  CHECK(FindLiteralTextCommand(scene.bottom.Stream(), "DEFAULT") != nullptr);
+  CHECK(FindLiteralTextCommand(scene.bottom.Stream(), "Case") != nullptr);
+  CHECK(FindLiteralTextCommand(scene.bottom.Stream(), "CASE") != nullptr);
+  CHECK(FindLiteralTextCommand(scene.bottom.Stream(), "case") != nullptr);
 
   ui2::UiSurfaceStorage upperStorage;
   ui2::UiIndexedSurface upper(upperStorage);
@@ -4151,12 +4152,11 @@ TEST_CASE("UI2 Font highlights bottom actions only while FONT is focused") {
       FindTextCommand(scene.bottom.Stream(), "BROWSE");
   const ui2::UiCommand *restoreDefault =
       FindTextCommand(scene.bottom.Stream(), "DEFAULT");
-  REQUIRE(browse != nullptr);
-  REQUIRE(restoreDefault != nullptr);
-  CHECK(browse->color ==
-        static_cast<ui2::PaletteIndex>(ui2::UiColorToken::TextDim));
-  CHECK(restoreDefault->color ==
-        static_cast<ui2::PaletteIndex>(ui2::UiColorToken::TextDim));
+  CHECK(browse == nullptr);
+  CHECK(restoreDefault == nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "Case") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "CASE") != nullptr);
+  CHECK(FindTextCommand(scene.bottom.Stream(), "case") != nullptr);
 
   data.cursor = ui2::UiFontCursor::Browse;
   REQUIRE(ui2::UiFontView::Build(data, palette, scene) ==
