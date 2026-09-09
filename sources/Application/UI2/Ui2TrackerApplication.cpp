@@ -1431,8 +1431,10 @@ void Ui2TrackerApplication::ExecuteInstrument(Ui2InstrumentCommand command) {
       instrument == nullptr)
     return;
 
-  const Ui2InstrumentParameterDescriptor descriptor =
+  Ui2InstrumentParameterDescriptor descriptor =
       ActiveInstrumentParameter(session_, command.cursor);
+  if (command.subfieldMode != Ui2InstrumentSubfieldMode::None)
+    descriptor = Ui2InstrumentComponentParameter(descriptor, command.subfield);
   if (!descriptor.Valid() || !descriptor.editable ||
       descriptor.primary == FourCC::Default)
     return;

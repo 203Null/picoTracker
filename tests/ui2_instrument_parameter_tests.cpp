@@ -1055,6 +1055,65 @@ TEST_CASE(
         0b0000);
 }
 
+TEST_CASE("UI2 every instrument parameter stays within declared edit bounds") {
+  using namespace ui2;
+  const auto check = [](const Ui2InstrumentParameterDescriptor &descriptor) {
+    REQUIRE(descriptor.Valid());
+    CAPTURE(descriptor.label);
+    if (!descriptor.editable)
+      return;
+    for (int current : {static_cast<int>(descriptor.minimum),
+                        static_cast<int>(descriptor.maximum)}) {
+      for (auto direction :
+           {Ui2InstrumentValueDirection::Left,
+            Ui2InstrumentValueDirection::Right, Ui2InstrumentValueDirection::Up,
+            Ui2InstrumentValueDirection::Down}) {
+        const int next =
+            Ui2AdjustInstrumentParameter(descriptor, current, direction);
+        CHECK(next >= (descriptor.offValue ? -1 : descriptor.minimum));
+        CHECK(next <= descriptor.maximum);
+      }
+    }
+    const auto spec = Ui2InstrumentSubfields(descriptor);
+    if (spec.count) {
+      CHECK_FALSE(Ui2InstrumentAdjustment(descriptor).visible);
+      CHECK(spec.mode != Ui2InstrumentSubfieldMode::None);
+    }
+  };
+  for (int type = IT_NONE; type < IT_LAST; ++type) {
+    const auto instrumentType = static_cast<InstrumentType>(type);
+    for (unsigned row = 0; row < Ui2InstrumentFieldCount(instrumentType);
+         ++row) {
+      check(Ui2InstrumentFieldParameter(instrumentType, row));
+      if (instrumentType == IT_SID)
+        check(Ui2InstrumentFieldParameter(instrumentType, row, false));
+    }
+    for (unsigned row = 0; row < Ui2InstrumentOperatorCount(instrumentType);
+         ++row) {
+      check(Ui2InstrumentOperatorParameter(row, false));
+      check(Ui2InstrumentOperatorParameter(row, true));
+    }
+  }
+}
+
+TEST_CASE(
+    "UI2 Sample filter digits address cutoff and resonance independently") {
+  using namespace ui2;
+  const auto filter = Ui2InstrumentFieldParameter(IT_SAMPLE, 9U);
+  REQUIRE(filter.format == Ui2InstrumentValueFormat::SampleFilter);
+  CHECK(Ui2InstrumentSubfields(filter).count == 4U);
+  for (std::uint8_t digit = 0; digit < 4; ++digit) {
+    auto local = digit;
+    const auto component = Ui2InstrumentComponentParameter(filter, local);
+    CHECK(component.primary == (digit < 2
+                                    ? FourCC::SampleInstrumentFilterCutOff
+                                    : FourCC::SampleInstrumentFilterResonance));
+    CHECK(Ui2AdjustInstrumentSubfieldParameter(
+              component, 0, Ui2InstrumentSubfieldMode::HexDigit, local,
+              Ui2InstrumentValueDirection::Up) == (digit % 2 == 0 ? 16 : 1));
+  }
+}
+
 TEST_CASE("UI2 Instrument adjustment legend applies only to approved numeric "
           "fields") {
   using namespace ui2;

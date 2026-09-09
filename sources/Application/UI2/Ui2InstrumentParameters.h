@@ -243,8 +243,9 @@ inline constexpr std::array<Ui2InstrumentParameterDescriptor, 19>
         Parameter("FILTER", FourCC::SampleInstrumentFilterCutOff,
                   SampleInstrumentParameterLimits::FilterMinimum,
                   SampleInstrumentParameterLimits::FilterMaximum, 1, 0x10, 156,
-                  2, Ui2InstrumentValueFormat::SampleFilter, false, false, true,
-                  FourCC::SampleInstrumentFilterResonance),
+                  4, Ui2InstrumentValueFormat::SampleFilter, false, false, true,
+                  FourCC::SampleInstrumentFilterResonance, false,
+                  Ui2InstrumentSubfieldMode::HexDigit, 5),
         Parameter("FILTER TYPE", FourCC::SampleInstrumentFilterType,
                   SampleInstrumentParameterLimits::FilterMinimum,
                   SampleInstrumentParameterLimits::FilterMaximum, 1, 0x10, 166,
@@ -505,6 +506,19 @@ struct Ui2InstrumentAdjustmentSpec {
   std::uint8_t coarseStep = 10;
   bool note = false;
 };
+
+// Composite FILTER prints two independently stored bytes in one row.
+[[nodiscard]] constexpr Ui2InstrumentParameterDescriptor
+Ui2InstrumentComponentParameter(Ui2InstrumentParameterDescriptor descriptor,
+                                std::uint8_t &subfield) {
+  if (descriptor.format == Ui2InstrumentValueFormat::SampleFilter) {
+    if (subfield >= 2U)
+      descriptor.primary = descriptor.secondary;
+    descriptor.width = 2U;
+    subfield %= 2U;
+  }
+  return descriptor;
+}
 
 [[nodiscard]] constexpr Ui2InstrumentSubfieldSpec
 Ui2InstrumentSubfields(const Ui2InstrumentParameterDescriptor &descriptor) {

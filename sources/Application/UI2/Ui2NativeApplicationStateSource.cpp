@@ -728,6 +728,9 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
     state.adjustmentCoarseStep = 16;
   }
   state.subfieldTextOffset = activeSubfields.textOffset;
+  if (activeDescriptor.format == Ui2InstrumentValueFormat::SampleFilter &&
+      state.selectedSubfield >= 2U)
+    ++state.subfieldTextOffset; // Skip the space between cutoff and resonance.
   FormatElapsed(state.elapsed);
   CaptureUiTrackNotes(Player::GetInstance(), PlayerRunning(), state.trackNotes);
   return {.active = PlayerRunning()};
