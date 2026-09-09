@@ -426,7 +426,7 @@ bool Config::IsValidThemeName(const char *themeName) {
   return IsSafeThemeName(themeName);
 }
 
-bool Config::ImportTheme(const char *themeName, bool *loaded) {
+bool Config::ImportTheme(const char *themeName, bool *loaded, bool fromCurrentDirectory) {
   if (loaded != nullptr)
     *loaded = false;
   FileSystem *fs = FileSystem::GetInstance();
@@ -467,7 +467,11 @@ bool Config::ImportTheme(const char *themeName, bool *loaded) {
   // decided by the NPT root magic, schema version and complete semantic-role
   // set. This also rejects an old PTT merely renamed to .npt.
   etl::string<ThemeExportPaths::BasePathCapacity> importPath;
-  if (extension == nullptr || hasThemeExtension) {
+  if (fromCurrentDirectory) {
+    // Browser-selected leaf resolves in its current directory, not /themes.
+    // Validation below still requires the full NPT magic/schema.
+    importPath = themeName;
+  } else if (extension == nullptr || hasThemeExtension) {
     if (!RecoverThemeExportJournal(*fs, journalPaths))
       return false;
     importPath = journalPaths.target;

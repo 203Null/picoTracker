@@ -47,17 +47,8 @@ public:
       SetError("THEME DIRECTORY UNAVAILABLE");
       return false;
     }
-    etl::vector<int, MAX_FILE_INDEX_SIZE> listed;
-    if (!fileSystem->listChecked(&listed, THEME_FILE_EXTENSION, false)) {
-      SetError("TOO MANY THEMES");
+    if (!Refresh())
       return false;
-    }
-    for (const int fileIndex : listed) {
-      if (themeCount_ >= themeIndices_.size() ||
-          fileSystem->getFileType(fileIndex) == PFT_DIR)
-        continue;
-      themeIndices_[themeCount_++] = fileIndex;
-    }
     if (currentTheme != nullptr && currentTheme[0] != '\0') {
       char candidate[Ui2BrowserSnapshot::ItemTextCapacity]{};
       for (std::uint16_t index = 0U; index < themeCount_; ++index) {
@@ -94,6 +85,10 @@ public:
       return {};
     if (!Active())
       return {};
+    if (action == TrackerAction::Left && input_.Held(TrackerAction::Option)) {
+      Navigate("..");
+      return {};
+    }
     if (action == TrackerAction::Up) {
       selected_ = Ui2MoveListIndex(
           selected_, ItemCount(), input_.Held(TrackerAction::Option) ? -8 : -1);
@@ -110,6 +105,12 @@ public:
       if (activeAction_ == 0U || ItemCount() == 0U)
         return {.type = Ui2SettingsBrowserCommandType::Back};
       if (mode_ == Ui2SettingsBrowserMode::Theme) {
+        if (IsDirectory(selected_)) {
+          char name[PFILENAME_SIZE]{};
+          ReadThemeName(selected_, name, sizeof(name));
+          Navigate(name);
+          return {};
+        }
         Ui2SettingsBrowserCommand command{
             .type = Ui2SettingsBrowserCommandType::ImportTheme};
         ReadThemeName(selected_, command.theme.data(), command.theme.size());
@@ -144,7 +145,8 @@ public:
     Ui2BrowserSnapshot::CopyText(snapshot.actions[0], "CANCEL");
     snapshot.actionCount = 1U;
     if (snapshot.hasSelection) {
-      Ui2BrowserSnapshot::CopyText(snapshot.actions[1], "IMPORT");
+      Ui2BrowserSnapshot::CopyText(snapshot.actions[1],
+                                   IsDirectory(selected_) ? "OPEN" : "IMPORT");
       snapshot.actionCount = 2U;
     }
     snapshot.activeAction =
@@ -153,6 +155,41 @@ public:
   }
 
 private:
+  bool IsDirectory(std::uint16_t index) const {
+    auto *fs = FileSystem::GetInstance();
+    return fs && index < themeCount_ &&
+           fs->getFileType(themeIndices_[index]) == PFT_DIR;
+  }
+  bool Refresh() {
+    themeCount_ = selected_ = top_ = 0;
+    auto *fs = FileSystem::GetInstance();
+    etl::vector<int, MAX_FILE_INDEX_SIZE> listed;
+    if (!fs || !fs->listBrowserChecked(&listed, THEME_FILE_EXTENSION)) {
+      SetError("THEME BROWSER UNAVAILABLE");
+      return false;
+    }
+    for (int index : listed) {
+      char name[PFILENAME_SIZE]{};
+      fs->getFileName(index, name, sizeof(name));
+      if (std::strcmp(name, ".") == 0 ||
+          (fs->isCurrentRoot() && std::strcmp(name, "..") == 0))
+        continue;
+      if (themeCount_ < themeIndices_.size())
+        themeIndices_[themeCount_++] = index;
+    }
+    SelectionChanged();
+    return true;
+  }
+  void Navigate(const char *name) {
+    auto *fs = FileSystem::GetInstance();
+    if (!fs || (std::strcmp(name, "..") == 0 && fs->isCurrentRoot()))
+      return;
+    if (!fs->chdir(name)) {
+      SetError("CANNOT OPEN DIRECTORY");
+      return;
+    }
+    Refresh();
+  }
   void Reset(Ui2SettingsBrowserMode mode) {
     mode_ = mode;
     themeCount_ = 0U;

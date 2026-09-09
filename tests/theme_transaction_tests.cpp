@@ -505,6 +505,20 @@ TEST_CASE("incomplete current device config is discarded instead of backfilled")
         std::string::npos);
 }
 
+TEST_CASE("browser theme import resolves selected leaf outside themes and "
+          "validates magic") {
+  ThemeFixture fixture;
+  Config config;
+  fixture.fileSystem_.Put("/CUSTOM.npt", NptThemeXml());
+  fixture.fileSystem_.Put("/themes/CUSTOM.npt", "invalid");
+  bool loaded = false;
+  REQUIRE(config.ImportTheme("CUSTOM.npt", &loaded, true));
+  CHECK(loaded);
+  fixture.fileSystem_.Put("/CUSTOM.npt", "invalid");
+  CHECK_FALSE(config.ImportTheme("CUSTOM.npt", &loaded, true));
+  CHECK_FALSE(loaded);
+}
+
 TEST_CASE("complete current device config loads without migration") {
   ThemeFixture fixture;
   Config::SemanticThemeColors expected = Config::DefaultSemanticThemeColors();

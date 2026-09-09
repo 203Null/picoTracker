@@ -917,8 +917,9 @@ void Ui2TrackerApplication::HandleBrowser(TrackerAction action, bool pressed) {
     if (command.type == Ui2SettingsBrowserCommandType::ImportTheme) {
       Config *config = Config::GetInstance();
       bool loaded = false;
-      const bool persisted = config != nullptr &&
-                             config->ImportTheme(command.theme.data(), &loaded);
+      const bool persisted =
+          config != nullptr &&
+          config->ImportTheme(command.theme.data(), &loaded, true);
       if (loaded) {
         configSave_.MarkDirty();
         ApplyCurrentTheme();

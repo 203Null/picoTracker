@@ -45,7 +45,7 @@ public:
   // `loaded` distinguishes a parsed/applied theme whose config sync failed
   // from a file that could not be loaded at all. Existing callers can ignore
   // the detail and retain the historical boolean success contract.
-  bool ImportTheme(const char *themeName, bool *loaded = nullptr);
+  bool ImportTheme(const char *themeName, bool *loaded = nullptr, bool fromCurrentDirectory = false);
 
   // UI2 persists all public semantic roles independently. Legacy
   // FourCC colors remain source-only UI1 reference data and never seed UI2.
