@@ -17,6 +17,12 @@ namespace ui2 {
 
 class UiAnimatedRect {
 public:
+  void Finish() {
+    x_.Finish();
+    y_.Finish();
+    width_.Finish();
+    height_.Finish();
+  }
   void Snap(RectI16 target, std::uint32_t nowMs) {
     initialized_ = true;
     x_.Start(target.x, target.x, nowMs, 1);
@@ -69,13 +75,22 @@ enum class UiCursorRole : std::uint8_t {
 
 class UiCursorAnimatorSet {
 public:
+  void SetEnabled(bool enabled) {
+    enabled_ = enabled;
+    if (!enabled)
+      for (auto &cursor : cursors_)
+        cursor.Finish();
+  }
   void Snap(UiCursorRole role, RectI16 target, std::uint32_t nowMs) {
     Cursor(role).Snap(target, nowMs);
   }
 
   void Retarget(UiCursorRole role, RectI16 target, std::uint32_t nowMs,
                 std::uint16_t durationMs = 120) {
-    Cursor(role).Retarget(target, nowMs, durationMs);
+    if (enabled_)
+      Cursor(role).Retarget(target, nowMs, durationMs);
+    else
+      Cursor(role).Snap(target, nowMs);
   }
 
   [[nodiscard]] RectI16 Sample(UiCursorRole role, std::uint32_t nowMs) const {
@@ -96,6 +111,7 @@ private:
 
   std::array<UiAnimatedRect, static_cast<std::size_t>(UiCursorRole::Count)>
       cursors_{};
+  bool enabled_ = true;
 };
 
 } // namespace ui2

@@ -69,7 +69,7 @@ public:
   }
 
 private:
-  etl::vector<Variable *, 22> variables_;
+  etl::vector<Variable *, 23> variables_;
   // Config variables (kept as members to avoid heap allocation)
   WatchedVariable background_;
   WatchedVariable foreground_;
@@ -89,6 +89,7 @@ private:
   WatchedVariable importResampler_;
   WatchedVariable uiFont_;
   WatchedVariable uiTextCase_;
+  WatchedVariable uiAnimation_;
   StringVariable<MAX_VARIABLE_STRING_LENGTH> themeName_;
   WatchedVariable backlightLevel_;
   WatchedVariable outputVolume_;

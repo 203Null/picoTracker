@@ -513,6 +513,9 @@ TEST_CASE("complete current device config loads without migration") {
   {
     Config config;
     config.FindVariable(FourCC::VarOutputVolume)->SetInt(77);
+    REQUIRE(config.FindVariable(FourCC::VarUIAnimation) != nullptr);
+    CHECK(config.FindVariable(FourCC::VarUIAnimation)->GetInt() == 1);
+    config.FindVariable(FourCC::VarUIAnimation)->SetInt(0);
     config.SetSemanticThemeColors(expected);
     REQUIRE(config.Save());
   }
@@ -521,6 +524,7 @@ TEST_CASE("complete current device config loads without migration") {
   CHECK(saved.find("REMOTEUI") == std::string::npos);
   Config loaded;
   CHECK(loaded.FindVariable(FourCC::VarOutputVolume)->GetInt() == 77);
+  CHECK(loaded.FindVariable(FourCC::VarUIAnimation)->GetInt() == 0);
   CHECK(loaded.GetSemanticThemeColors() == expected);
   CHECK(fixture.fileSystem_.Get("/.config.xml") == saved);
 }

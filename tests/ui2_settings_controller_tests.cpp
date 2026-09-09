@@ -427,6 +427,23 @@ TEST_CASE("UI2 Device selectors preserve each field's wrap contract") {
   controller.Handle(TrackerAction::Enter, false);
 }
 
+TEST_CASE("UI2 Device Animation toggles with and without Enter") {
+  using namespace ui2;
+  Ui2DeviceController controller(DeviceFieldBit(Ui2DeviceField::Animation),
+                                 Ui2DeviceField::Animation, 7);
+  controller.SetSelector(Ui2DeviceField::Animation, {2U, 1U, true});
+  CHECK(controller.Bottom().kind == Ui2DeviceBottomKind::Selector);
+  const auto off = Tap(controller, TrackerAction::Right);
+  CHECK(off.type == Ui2DeviceCommandType::SetSelector);
+  CHECK(off.field == Ui2DeviceField::Animation);
+  CHECK(off.value == 0U);
+  controller.Handle(TrackerAction::Enter, true);
+  const auto on = Tap(controller, TrackerAction::Left);
+  CHECK(on.type == Ui2DeviceCommandType::SetSelector);
+  CHECK(on.value == 1U);
+  controller.Handle(TrackerAction::Enter, false);
+}
+
 TEST_CASE("UI2 Theme owns NAME actions and every palette row") {
   using namespace ui2;
   Ui2ThemeController controller(-1, Ui2ThemeNameAction::New, 6);

@@ -28,6 +28,7 @@ enum class UiDeviceCursor : std::uint8_t {
   Brightness,
   Theme,
   Font,
+  Animation,
   UpdateFirmware,
 };
 
@@ -40,6 +41,7 @@ struct UiDeviceViewData {
   std::string_view brightness = "100%";
   std::string_view theme = "DEFAULT";
   std::string_view font = "REGULAR";
+  std::string_view animation = "ON";
   std::string_view version = nullperator_product::DisplayVersion;
   std::array<std::string_view, 8> selectorOptions{};
   std::uint8_t selectorCount = 0;

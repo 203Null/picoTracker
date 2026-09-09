@@ -293,6 +293,7 @@ struct FourCC {
     StackBrightness = 212,
     StackGlide = 213,
     StackChord = 214,
+    VarUIAnimation = 215,
 
     Default = 255, // "    "
   };
@@ -476,6 +477,7 @@ struct FourCC {
   ETL_ENUM_TYPE(VarOutputVolume, "outputvolume")
   ETL_ENUM_TYPE(VarImportResampler, "IMPORTRESAMP")
   ETL_ENUM_TYPE(VarUITextCase, "UITEXTCASE")
+  ETL_ENUM_TYPE(VarUIAnimation, "UIANIMATION")
 
   ETL_ENUM_TYPE(Default, "   ")
   ETL_END_ENUM_TYPE

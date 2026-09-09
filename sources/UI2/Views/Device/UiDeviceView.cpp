@@ -30,6 +30,7 @@ struct DeviceLayout {
   std::int16_t brightness = 134;
   std::int16_t theme = -1;
   std::int16_t font = -1;
+  std::int16_t animation = -1;
   std::int16_t version = 161;
   std::int16_t maintenance = -1;
   std::int16_t updateFirmware = -1;
@@ -64,6 +65,8 @@ DeviceLayout LayoutFor(const UiDeviceViewData &data) {
     layout.font = static_cast<std::int16_t>(lastDisplay + 11);
     lastDisplay = layout.font;
   }
+  layout.animation = static_cast<std::int16_t>(lastDisplay + 11);
+  lastDisplay = layout.animation;
   // Keep the product version attached to the bottom of the content area when
   // optional rows are absent. If a target adds enough rows to reach it, let
   // the version continue after those rows so the list can scroll normally.
@@ -165,6 +168,10 @@ void DrawSelectedInk(UiSceneBuilder<256, 1024> &builder,
     DrawField(builder, "UPDATE FIRMWARE", {}, layout.updateFirmware,
               UiColorToken::TextHighlighted, UiColorToken::TextHighlighted);
     break;
+  case UiDeviceCursor::Animation:
+    DrawField(builder, "ANIMATION", data.animation, layout.animation,
+              UiColorToken::TextHighlighted, UiColorToken::TextHighlighted);
+    break;
   }
 }
 
@@ -187,6 +194,8 @@ bool CursorUsesSelector(UiDeviceCursor cursor) {
   case UiDeviceCursor::Resampler:
   case UiDeviceCursor::Volume:
   case UiDeviceCursor::Brightness:
+    return true;
+  case UiDeviceCursor::Animation:
     return true;
   case UiDeviceCursor::Theme:
   case UiDeviceCursor::Font:
@@ -217,6 +226,8 @@ RectI16 UiDeviceView::CursorTargetRect(const UiDeviceViewData &data) {
     return RowRect(layout.theme);
   case UiDeviceCursor::Font:
     return RowRect(layout.font);
+  case UiDeviceCursor::Animation:
+    return RowRect(layout.animation);
   case UiDeviceCursor::UpdateFirmware:
     return RowRect(layout.updateFirmware);
   }
@@ -275,6 +286,7 @@ void UiDeviceView::RenderDelta(const UiDeviceViewData &previous,
   redrawField(previous.brightness != current.brightness, layout.brightness);
   redrawField(previous.theme != current.theme, layout.theme);
   redrawField(previous.font != current.font, layout.font);
+  redrawField(previous.animation != current.animation, layout.animation);
   redrawField(previous.version != current.version, layout.version);
 
   const RectI16 oldCursor = contentRect(ResolvedCursorRect(previous));
@@ -371,6 +383,7 @@ UiBuildStatus UiDeviceView::Build(const UiDeviceViewData &data, UiPalette &,
   DrawField(builder, "FONT", data.font, layout.font, UiColorToken::TextDim,
             UiColorToken::TextNormal, true);
   builder.Text(data.version, 9, layout.version, UiColorToken::DerivedTextFaint);
+  DrawField(builder, "ANIMATION", data.animation, layout.animation);
   if (layout.maintenance >= 0) {
     DrawSection(builder, "MAINTENANCE", layout.maintenance);
     DrawField(builder, "UPDATE FIRMWARE", {}, layout.updateFirmware);

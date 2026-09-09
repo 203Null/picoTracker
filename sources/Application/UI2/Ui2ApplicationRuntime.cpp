@@ -1086,6 +1086,7 @@ UiApplicationRuntime::ViewDataFor(const DeviceFrameState &state) {
   data.brightness = state.brightness.data();
   data.theme = state.theme.data();
   data.font = state.font.data();
+  data.animation = state.animation.data();
   data.version = state.version.data();
   for (std::size_t index = 0; index < state.selectorOptions.size(); ++index)
     data.selectorOptions[index] = state.selectorOptions[index].data();

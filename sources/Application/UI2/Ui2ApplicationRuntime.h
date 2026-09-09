@@ -85,6 +85,10 @@ public:
     bottomTrackTargetValid_ = false;
     dialogCursorTargetValid_ = false;
   }
+  void SetCursorAnimationEnabled(bool enabled) {
+    cursors_.SetEnabled(enabled);
+    Invalidate();
+  }
 
 private:
   struct PowerFrameState {

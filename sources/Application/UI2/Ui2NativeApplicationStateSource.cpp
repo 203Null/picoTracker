@@ -129,6 +129,8 @@ UiDeviceCursor DeviceCursorFor(Ui2DeviceField field) {
     return UiDeviceCursor::Theme;
   case Ui2DeviceField::Font:
     return UiDeviceCursor::Font;
+  case Ui2DeviceField::Animation:
+    return UiDeviceCursor::Animation;
   case Ui2DeviceField::UpdateFirmware:
   case Ui2DeviceField::Count:
     return UiDeviceCursor::UpdateFirmware;
@@ -806,6 +808,8 @@ Ui2NativeApplicationStateSource::CaptureDevice(UiDeviceFrameState &state) {
              currentText(Ui2DeviceField::MidiDevice, midiDevices, 4U));
   CopyUiText(state.midiSync,
              currentText(Ui2DeviceField::MidiSync, boolean, 2U));
+  CopyUiText(state.animation,
+             currentText(Ui2DeviceField::Animation, boolean, 2U));
   CopyUiText(state.resampler,
              currentText(Ui2DeviceField::Resampler, resamplers, 2U));
   CopyUiText(state.lineOut,

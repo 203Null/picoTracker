@@ -25,6 +25,7 @@ enum class Ui2DeviceField : std::uint8_t {
   Brightness,
   Theme,
   Font,
+  Animation,
   UpdateFirmware,
   Count,
 };
@@ -200,6 +201,7 @@ private:
     case Ui2DeviceField::LineOut:
     case Ui2DeviceField::Volume:
     case Ui2DeviceField::Brightness:
+    case Ui2DeviceField::Animation:
       return true;
     case Ui2DeviceField::Theme:
     case Ui2DeviceField::Font:
@@ -230,6 +232,7 @@ private:
     case Ui2DeviceField::LineOut:
     case Ui2DeviceField::Volume:
     case Ui2DeviceField::Brightness:
+    case Ui2DeviceField::Animation:
     case Ui2DeviceField::Count:
       return Ui2DeviceCommandType::None;
     }

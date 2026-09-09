@@ -22,6 +22,10 @@ using UnitQ16 = std::uint16_t;
 
 class UiMotionTrack {
 public:
+  void Finish() {
+    from_ = to_;
+    active_ = false;
+  }
   void Start(std::int32_t from, std::int32_t to, std::uint32_t nowMs,
              std::uint16_t durationMs) {
     from_ = from;

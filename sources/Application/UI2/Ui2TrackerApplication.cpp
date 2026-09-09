@@ -222,6 +222,7 @@ bool Ui2TrackerApplication::Init(Ui2StartupOptions options) {
                 session_.ProjectName());
 
   std::uint16_t brightnessPercent = 100U;
+  std::uint16_t animation = 1U;
   std::uint16_t midiDevice = 0U;
   std::uint16_t midiSync = 0U;
   std::uint16_t resampler = 0U;
@@ -244,6 +245,7 @@ bool Ui2TrackerApplication::Init(Ui2StartupOptions options) {
         configValue(FourCC::VarOutputVolume, 40, 100));
     font_.SetTextCase(static_cast<std::uint8_t>(configValue(
         FourCC::VarUITextCase, 1, Ui2FontController::TextCaseCount - 1U)));
+    animation = configValue(FourCC::VarUIAnimation, 1, 1);
     if (Variable *brightness =
             config->FindVariable(FourCC::VarBacklightLevel)) {
       const int configuredBrightness = brightness->GetInt();
@@ -273,6 +275,8 @@ bool Ui2TrackerApplication::Init(Ui2StartupOptions options) {
   device_.SetSelector(Ui2DeviceField::Volume, {101U, volume, false});
   device_.SetSelector(Ui2DeviceField::Brightness,
                       {101U, brightnessPercent, false});
+  device_.SetSelector(Ui2DeviceField::Animation, {2U, animation, true});
+  runtime_.SetCursorAnimationEnabled(animation != 0);
   std::uint32_t visibleDeviceFields = Ui2DeviceController::AllFieldsMask;
   visibleDeviceFields &=
       ~(std::uint32_t{1} << static_cast<std::uint8_t>(Ui2DeviceField::LineOut));
@@ -1078,6 +1082,10 @@ void Ui2TrackerApplication::ExecuteDevice(Ui2DeviceCommand command) {
     case Ui2DeviceField::Brightness:
       key = FourCC::VarBacklightLevel;
       storedValue = Ui2BrightnessRawFromPercent(command.value);
+      break;
+    case Ui2DeviceField::Animation:
+      key = FourCC::VarUIAnimation;
+      runtime_.SetCursorAnimationEnabled(command.value != 0);
       break;
     case Ui2DeviceField::Theme:
     case Ui2DeviceField::Font:

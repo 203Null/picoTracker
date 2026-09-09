@@ -368,6 +368,7 @@ struct UiDeviceFrameState {
   std::array<char, 8> brightness{};
   std::array<char, 24> theme{};
   std::array<char, 41> font{};
+  std::array<char, 4> animation{};
   std::array<char, 32> version{};
   std::array<std::array<char, 24>, 8> selectorOptions{};
   std::uint8_t selectorCount = 0;

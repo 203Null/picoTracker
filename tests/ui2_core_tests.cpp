@@ -1922,6 +1922,32 @@ TEST_CASE("UI2 cursor roles animate independently for dual-cursor input") {
         ui2::RectI16{98, 211, 15, 9});
 }
 
+TEST_CASE(
+    "UI2 disabled cursor animation snaps every role and can be reenabled") {
+  ui2::UiCursorAnimatorSet cursors;
+  for (unsigned i = 0; i < static_cast<unsigned>(ui2::UiCursorRole::Count);
+       ++i) {
+    const auto role = static_cast<ui2::UiCursorRole>(i);
+    cursors.Snap(role, {0, 0, 10, 10}, 100);
+    cursors.Retarget(role, {40, 50, 20, 30}, 100);
+    CHECK(cursors.Active(role, 110));
+  }
+  cursors.SetEnabled(false);
+  for (unsigned i = 0; i < static_cast<unsigned>(ui2::UiCursorRole::Count);
+       ++i) {
+    const auto role = static_cast<ui2::UiCursorRole>(i);
+    CHECK(cursors.Sample(role, 110) == ui2::RectI16{40, 50, 20, 30});
+    CHECK_FALSE(cursors.Active(role, 110));
+    cursors.Retarget(role, {80, 90, 15, 9}, 120);
+    CHECK(cursors.Sample(role, 120) == ui2::RectI16{80, 90, 15, 9});
+    CHECK_FALSE(cursors.Active(role, 120));
+  }
+  cursors.SetEnabled(true);
+  cursors.Retarget(ui2::UiCursorRole::Content, {120, 90, 15, 9}, 130);
+  CHECK(cursors.Active(ui2::UiCursorRole::Content, 140));
+  CHECK(cursors.Sample(ui2::UiCursorRole::Content, 140).x < 120);
+}
+
 TEST_CASE("UI2 cursor retarget continues from its current visual position") {
   ui2::UiAnimatedRect cursor;
   cursor.Snap({20, 40, 15, 9}, 1'000);
@@ -3863,6 +3889,7 @@ TEST_CASE("UI2 Device delta rendering is pixel-identical to a full redraw") {
   current.midiDevice = "ON";
   current.volume = "55";
   current.theme = "NIGHT";
+  current.animation = "OFF";
   current.batteryPercent = 82;
   current.batteryPercentValid = false;
   current.cursorVisualOverride = true;

@@ -185,6 +185,7 @@ static const ConfigParam configParams[] = {
      uiTextCaseOptions,
      kUiTextCaseOptionCount,
      false},
+    {"UIANIMATION", {.intValue = 1}, FourCC::VarUIAnimation, midiSendSync, 2, false},
 
     // {"RESERVED1", ThemeConstants::DEFAULT_RESERVED1,
     // FourCC::VarReserved1Color},
@@ -265,6 +266,7 @@ Config::Config()
               ThemeConstants::FONT_COUNT, ThemeConstants::DEFAULT_UIFONT),
       uiTextCase_(FourCC::VarUITextCase, uiTextCaseOptions,
                   kUiTextCaseOptionCount, 1),
+      uiAnimation_(FourCC::VarUIAnimation, midiSendSync, 2, 1),
       themeName_(FourCC::VarThemeName, ThemeConstants::DEFAULT_THEME_NAME),
       backlightLevel_(FourCC::VarBacklightLevel, DEFAULT_BACKLIGHT_LEVEL),
       outputVolume_(FourCC::VarOutputVolume, DEFAULT_OUTPUT_VOLUME),
@@ -288,6 +290,7 @@ Config::Config()
   variables_.push_back(&importResampler_);
   variables_.push_back(&uiFont_);
   variables_.push_back(&uiTextCase_);
+  variables_.push_back(&uiAnimation_);
   variables_.push_back(&themeName_);
   variables_.push_back(&backlightLevel_);
   variables_.push_back(&outputVolume_);
