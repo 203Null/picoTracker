@@ -4108,7 +4108,7 @@ TEST_CASE("UI2 Font case choices remain literal under every case mode") {
   }
 }
 
-TEST_CASE("UI2 user-selected theme and font names preserve authored case") {
+TEST_CASE("UI2 Device theme and font labels follow casing while Font preserves filenames") {
   ui2::UiPalette palette;
   ui2::UiFrameScene scene;
 
@@ -4117,12 +4117,14 @@ TEST_CASE("UI2 user-selected theme and font names preserve authored case") {
   device.font = "SoftFace.npf";
   device.showTheme = true;
   device.showFont = true;
-  REQUIRE(ui2::UiDeviceView::Build(device, palette, scene) ==
-          ui2::UiBuildStatus::Built);
-  CHECK(FindLiteralTextCommand(scene.content.Stream(), "NightShift") !=
-        nullptr);
-  CHECK(FindLiteralTextCommand(scene.content.Stream(), "SoftFace.npf") !=
-        nullptr);
+  for (const auto cursor : {ui2::UiDeviceCursor::Theme, ui2::UiDeviceCursor::Font}) {
+    device.cursor = cursor;
+    REQUIRE(ui2::UiDeviceView::Build(device, palette, scene) == ui2::UiBuildStatus::Built);
+    CHECK(FindTextCommand(scene.content.Stream(), "NightShift") != nullptr);
+    CHECK(FindTextCommand(scene.content.Stream(), "SoftFace.npf") != nullptr);
+    CHECK(FindLiteralTextCommand(scene.content.Stream(), "NightShift") == nullptr);
+    CHECK(FindLiteralTextCommand(scene.content.Stream(), "SoftFace.npf") == nullptr);
+  }
 
   ui2::UiFontViewData font;
   font.font = "SoftFace.npf";
