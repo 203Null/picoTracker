@@ -187,3 +187,20 @@ TEST_CASE("coordinator cadence handles a wrapping millisecond clock") {
   CHECK(coordinator.Tick(start + 60'000U, Eligible()) ==
         AutoSaveCoordinator::TickResult::SaveRequested);
 }
+
+TEST_CASE("recovery autosave does not clear destructive-action confirmation") {
+  AutoSaveCoordinator coordinator;
+  coordinator.OnProjectCreated(0U);
+  CHECK_FALSE(coordinator.HasUnsavedChanges());
+  coordinator.MarkDirty(1U);
+  REQUIRE(coordinator.Tick(60000U, Eligible()) ==
+          AutoSaveCoordinator::TickResult::SaveRequested);
+  coordinator.CompleteAutoSave(60000U, true);
+  CHECK_FALSE(coordinator.Dirty());
+  CHECK(coordinator.HasUnsavedChanges());
+  coordinator.OnProjectSaved(60001U);
+  CHECK_FALSE(coordinator.HasUnsavedChanges());
+  coordinator.MarkDirty(60002U);
+  coordinator.OnProjectLoaded(60003U);
+  CHECK_FALSE(coordinator.HasUnsavedChanges());
+}

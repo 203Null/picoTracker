@@ -52,6 +52,10 @@ public:
   [[nodiscard]] bool Dirty() const noexcept {
     return revision_ != persistedRevision_;
   }
+  // Recovery autosaves do not replace the user's explicit saved project.
+  [[nodiscard]] bool HasUnsavedChanges() const noexcept {
+    return revision_ != 0U;
+  }
   [[nodiscard]] bool PersistBusy() const noexcept { return persistBusy_; }
   [[nodiscard]] bool SaveAsPending() const noexcept { return saveAsPending_; }
   [[nodiscard]] bool AutoSaveInFlight() const noexcept {

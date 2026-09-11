@@ -995,7 +995,7 @@ void Ui2TrackerApplication::HandleBrowser(TrackerAction action, bool pressed) {
   Ui2ProjectLifecycleCommand lifecycleCommand;
   if (command.type == Ui2ProjectBrowserCommandType::Load) {
     lifecycleCommand = projects_.lifecycle.RequestLoad(
-        command.project.data(), autoSave_.Dirty(),
+        command.project.data(), autoSave_.HasUnsavedChanges(),
         Player::GetInstance()->IsRunning(), TrackerAction::Enter);
   } else if (command.type == Ui2ProjectBrowserCommandType::Delete) {
     lifecycleCommand = projects_.lifecycle.RequestDelete(
@@ -2011,7 +2011,7 @@ void Ui2TrackerApplication::ExecuteProject(Ui2ProjectCommand command) {
   }
   case Ui2ProjectCommandType::NewProject:
     ExecuteProjectLifecycle(projects_.lifecycle.RequestNew(
-        autoSave_.Dirty(), Player::GetInstance()->IsRunning(),
+        autoSave_.HasUnsavedChanges(), Player::GetInstance()->IsRunning(),
         TrackerAction::Enter));
     break;
   case Ui2ProjectCommandType::RenameProject:
