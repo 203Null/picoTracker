@@ -23,9 +23,23 @@ struct BatteryState {
   bool error; // error: no available state for battery
 };
 
+enum class SampleImportStatus : uint32_t {
+  Pending,
+  Imported,
+  Cancelled,
+  Failed
+};
+struct SampleImportResult {
+  char path[256]{};
+  SampleImportStatus status = SampleImportStatus::Pending;
+};
+
 class System : public T_Factory<System> {
 
 public:                                 // Override in implementation
+  virtual bool CanImportSample() const { return false; }
+  virtual bool RequestSampleImport(const char *projectName) { return false; }
+  virtual SampleImportResult PollSampleImport() { return {}; }
   virtual unsigned long GetClock() = 0; // millisecs
   virtual void GetBatteryState(BatteryState &state) = 0;
   virtual void SetDisplayBrightness(unsigned char value) = 0;

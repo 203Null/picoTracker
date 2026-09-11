@@ -171,3 +171,44 @@ std::uint32_t WasmSystem::Micros() { return clock_.Micros(); }
 
 std::uint32_t WasmSystem::Millis() { return clock_.Millis(); }
 #endif
+
+#ifndef HOST_TEST
+namespace {
+// Browser main publishes the bytes before the release store to status.
+struct ImportMailbox {
+  std::atomic<std::uint32_t> status{0};
+  char path[256]{};
+};
+ImportMailbox importMailbox;
+}
+bool WasmSystem::RequestSampleImport(const char *projectName) {
+  importMailbox.status.store(0U, std::memory_order_release);
+#ifdef __EMSCRIPTEN__
+  MAIN_THREAD_EM_ASM({
+    const status = $0;
+    const path = $1;
+    const finish = (result, name) => {
+      if (name) {
+        const bytes = new TextEncoder().encode(name);
+        HEAPU8.set(bytes, path);
+        HEAPU8[path + bytes.length] = 0;
+      }
+      Atomics.store(HEAPU32, status >>> 2, result);
+    };
+    if (!Module.nullPeratorImportSample) { finish(3); return; }
+    Module.nullPeratorImportSample(UTF8ToString($2)).then(
+      name => finish(name ? 1 : 2, name), () => finish(3));
+  }, &importMailbox.status, importMailbox.path, projectName);
+  return true;
+#else
+  return false;
+#endif
+}
+SampleImportResult WasmSystem::PollSampleImport() {
+  SampleImportResult result;
+  result.status = static_cast<SampleImportStatus>(importMailbox.status.load(std::memory_order_acquire));
+  if (result.status == SampleImportStatus::Imported)
+    std::snprintf(result.path, sizeof(result.path), "%s", importMailbox.path);
+  return result;
+}
+#endif

@@ -51,3 +51,12 @@ void IOSSystem::SetBatteryState(std::uint8_t percentage, bool charging,
                     (charging ? kCharging : 0U) | (available ? kAvailable : 0U),
                 std::memory_order_release);
 }
+
+extern "C" bool NullPeratorIOSRequestSampleImport(const char *projectName);
+extern "C" SampleImportResult NullPeratorIOSPollSampleImport();
+bool IOSSystem::RequestSampleImport(const char *projectName) {
+  return NullPeratorIOSRequestSampleImport(projectName);
+}
+SampleImportResult IOSSystem::PollSampleImport() {
+  return NullPeratorIOSPollSampleImport();
+}

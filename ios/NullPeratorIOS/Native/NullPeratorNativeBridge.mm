@@ -8,9 +8,13 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
+#include <cstdio>
+#include <cstring>
 #include <dispatch/dispatch.h>
+#include <fcntl.h>
 #include <memory>
 #include <string>
+#include <unistd.h>
 
 namespace {
 NSString *Base64(const std::uint8_t *bytes, std::size_t size) {
@@ -49,6 +53,239 @@ extern "C" bool NullPeratorIOSSetRecordingSession(bool recording) {
                         error:&error] &&
          [session setPreferredSampleRate:44100 error:&error] &&
          [session setActive:YES error:&error];
+}
+
+#include "System/System/System.h"
+#import <UIKit/UIKit.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#include <mutex>
+
+namespace {
+std::mutex sampleImportMutex;
+SampleImportResult sampleImportResult;
+NSString *sampleImportProject = nil;
+void CompleteSampleImport(SampleImportStatus status, NSString *path = nil) {
+  std::lock_guard<std::mutex> lock(sampleImportMutex);
+  sampleImportResult = {};
+  sampleImportResult.status = status;
+  if (path != nil)
+    std::snprintf(sampleImportResult.path, sizeof(sampleImportResult.path),
+                  "%s", path.UTF8String);
+}
+UIViewController *ImportPresenter() {
+  for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+    if (![scene isKindOfClass:UIWindowScene.class] ||
+        scene.activationState != UISceneActivationStateForegroundActive)
+      continue;
+    for (UIWindow *window in ((UIWindowScene *)scene).windows) {
+      if (!window.isKeyWindow)
+        continue;
+      UIViewController *controller = window.rootViewController;
+      while (controller.presentedViewController)
+        controller = controller.presentedViewController;
+      return controller;
+    }
+  }
+  return nil;
+}
+} // namespace
+
+@interface TrackerSampleImporter : NSObject <UIDocumentPickerDelegate>
+- (void)renameFile:(NSURL *)url
+             draft:(NSString *)draft
+             error:(NSString *)message;
+@end
+@implementation TrackerSampleImporter
+- (void)documentPickerWasCancelled:
+    (UIDocumentPickerViewController *)controller {
+  CompleteSampleImport(SampleImportStatus::Cancelled);
+}
+- (void)documentPicker:(UIDocumentPickerViewController *)controller
+    didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
+  NSURL *url = urls.firstObject;
+  if (url == nil) {
+    CompleteSampleImport(SampleImportStatus::Cancelled);
+    return;
+  }
+  // The picker imports a local copy; defer the alert until its dismissal
+  // completes.
+  [controller
+      dismissViewControllerAnimated:YES
+                         completion:^{
+                           [self renameFile:url
+                                      draft:url.lastPathComponent
+                                                .stringByDeletingPathExtension
+                                      error:nil];
+                         }];
+}
+- (void)renameFile:(NSURL *)url
+             draft:(NSString *)draft
+             error:(NSString *)message {
+  UIViewController *presenter = ImportPresenter();
+  if (presenter == nil) {
+    CompleteSampleImport(SampleImportStatus::Failed);
+    return;
+  }
+  UIAlertController *alert =
+      [UIAlertController alertControllerWithTitle:@"Import sample"
+                                          message:message
+                                   preferredStyle:UIAlertControllerStyleAlert];
+  [alert addTextFieldWithConfigurationHandler:^(UITextField *field) {
+    field.text = draft;
+    field.autocorrectionType = UITextAutocorrectionTypeNo;
+  }];
+  [alert addAction:[UIAlertAction actionWithTitle:@"Cancel"
+                                            style:UIAlertActionStyleCancel
+                                          handler:^(UIAlertAction *) {
+                                            CompleteSampleImport(
+                                                SampleImportStatus::Cancelled);
+                                          }]];
+  __block UIAlertController *inputAlert = alert;
+  [alert
+      addAction:
+          [UIAlertAction
+              actionWithTitle:@"Import"
+                        style:UIAlertActionStyleDefault
+                      handler:^(UIAlertAction *) {
+                        NSString *name = [inputAlert.textFields.firstObject.text
+                            stringByTrimmingCharactersInSet:
+                                NSCharacterSet
+                                    .whitespaceAndNewlineCharacterSet];
+                        if ([name.pathExtension.lowercaseString
+                                isEqualToString:@"wav"])
+                          name = name.stringByDeletingPathExtension;
+                        NSCharacterSet *invalid = [NSCharacterSet
+                            characterSetWithCharactersInString:@"/\\:"];
+                        if (name.length == 0 || [name hasPrefix:@"."] ||
+                            [name lengthOfBytesUsingEncoding:
+                                      NSUTF8StringEncoding] > 20 ||
+                            [name rangeOfCharacterFromSet:invalid].location !=
+                                NSNotFound ||
+                            [name rangeOfCharacterFromSet:
+                                      NSCharacterSet.controlCharacterSet]
+                                    .location != NSNotFound) {
+                          dispatch_async(dispatch_get_main_queue(), ^{
+                            [self
+                                renameFile:url
+                                     draft:name
+                                     error:
+                                         @"Choose a name of 1–20 bytes without "
+                                         @"slashes or a leading dot."];
+                          });
+                          return;
+                        }
+                        NSFileHandle *file =
+                            [NSFileHandle fileHandleForReadingFromURL:url
+                                                                error:nil];
+                        NSData *header = [file readDataUpToLength:12 error:nil];
+                        [file closeFile];
+                        if (header.length != 12 ||
+                            memcmp(header.bytes, "RIFF", 4) ||
+                            memcmp((const char *)header.bytes + 8, "WAVE", 4)) {
+                          CompleteSampleImport(SampleImportStatus::Failed);
+                          return;
+                        }
+                        NSURL *documents =
+                            [NSFileManager.defaultManager
+                                URLsForDirectory:NSDocumentDirectory
+                                       inDomains:NSUserDomainMask]
+                                .firstObject;
+                        NSURL *directory =
+                            [documents URLByAppendingPathComponent:@"samples"
+                                                       isDirectory:YES];
+                        NSError *error = nil;
+                        if (![NSFileManager.defaultManager
+                                       createDirectoryAtURL:directory
+                                withIntermediateDirectories:YES
+                                                 attributes:nil
+                                                      error:&error]) {
+                          CompleteSampleImport(SampleImportStatus::Failed);
+                          return;
+                        }
+                        NSString *leaf = [name stringByAppendingString:@".wav"];
+                        NSURL *destination =
+                            [directory URLByAppendingPathComponent:leaf];
+                        NSURL *projectSamples = [[[[documents
+                            URLByAppendingPathComponent:@"projects"]
+                            URLByAppendingPathComponent:sampleImportProject]
+                            URLByAppendingPathComponent:@"samples"]
+                            URLByAppendingPathComponent:leaf];
+                        if ([NSFileManager.defaultManager
+                                fileExistsAtPath:projectSamples.path]) {
+                          dispatch_async(dispatch_get_main_queue(), ^{
+                            [self renameFile:url
+                                       draft:name
+                                       error:@"This project already has a "
+                                             @"sample with that name. Choose "
+                                             @"another name."];
+                          });
+                          return;
+                        }
+                        if (![NSFileManager.defaultManager
+                                copyItemAtURL:url
+                                        toURL:destination
+                                        error:&error]) {
+                          dispatch_async(dispatch_get_main_queue(), ^{
+                            [self renameFile:url
+                                       draft:name
+                                       error:error.localizedDescription];
+                          });
+                          return;
+                        }
+                        const int descriptor = open(
+                            destination.fileSystemRepresentation, O_RDONLY);
+                        const bool synced =
+                            descriptor >= 0 && fsync(descriptor) == 0;
+                        if (descriptor >= 0)
+                          close(descriptor);
+                        const int parent =
+                            open(directory.fileSystemRepresentation, O_RDONLY);
+                        const bool directorySynced =
+                            parent >= 0 && fsync(parent) == 0;
+                        if (parent >= 0)
+                          close(parent);
+                        if (!synced || !directorySynced) {
+                          CompleteSampleImport(SampleImportStatus::Failed);
+                          return;
+                        }
+                        CompleteSampleImport(
+                            SampleImportStatus::Imported,
+                            [@"/samples/" stringByAppendingString:leaf]);
+                      }]];
+  [presenter presentViewController:alert animated:YES completion:nil];
+}
+@end
+
+extern "C" bool NullPeratorIOSRequestSampleImport(const char *projectName) {
+  NSString *project = [NSString stringWithUTF8String:projectName];
+  {
+    std::lock_guard<std::mutex> lock(sampleImportMutex);
+    sampleImportResult = {};
+  }
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [sampleImportProject release];
+    sampleImportProject = [project copy];
+    static TrackerSampleImporter *importer =
+        [[TrackerSampleImporter alloc] init];
+    UIViewController *presenter = ImportPresenter();
+    if (presenter == nil) {
+      CompleteSampleImport(SampleImportStatus::Failed);
+      return;
+    }
+    UIDocumentPickerViewController *picker =
+        [[UIDocumentPickerViewController alloc]
+            initForOpeningContentTypes:@[ UTTypeWAV ]
+                                asCopy:YES];
+    picker.delegate = importer;
+    picker.allowsMultipleSelection = NO;
+    [presenter presentViewController:picker animated:YES completion:nil];
+    [picker release];
+  });
+  return true;
+}
+extern "C" SampleImportResult NullPeratorIOSPollSampleImport() {
+  std::lock_guard<std::mutex> lock(sampleImportMutex);
+  return sampleImportResult;
 }
 
 @implementation NullPeratorNativeBridge {

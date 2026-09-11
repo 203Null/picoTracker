@@ -612,7 +612,10 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
   const bool sampleLoaded =
       type == IT_SAMPLE &&
       static_cast<SampleInstrument *>(instrument)->GetSampleIndex() >= 0;
-  instrument_.ConfigureSampleActions(type == IT_SAMPLE, sampleLoaded);
+  state.sampleImport = System::GetInstance()->CanImportSample();
+  state.sampleRecord = IsRecordingAvailable();
+  instrument_.ConfigureSampleActions(type == IT_SAMPLE, sampleLoaded,
+                                     state.sampleImport, state.sampleRecord);
   state.sampleLoaded = sampleLoaded;
   state.sampleAction = instrument_.SampleAction();
   const Ui2InstrumentCursorPosition cursor = instrument_.Cursor();

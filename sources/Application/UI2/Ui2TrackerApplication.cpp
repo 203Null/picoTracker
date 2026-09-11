@@ -334,6 +334,9 @@ void Ui2TrackerApplication::DispatchTrackerAction(TrackerAction action,
   else
     physicalHeldMask_ &= static_cast<std::uint16_t>(~bit);
 
+  if (sampleImportPending_ && pressed)
+    return;
+
   if (!acceptInput)
     return;
 
@@ -664,6 +667,7 @@ void Ui2TrackerApplication::Tick(std::uint32_t nowMs) {
   projects_.render.Tick();
   TickRecordLifecycle();
   TickSampleEditorApply();
+  TickSampleImport();
   UpdateSamplePreview(nowMs);
   SynchronizeProjectMutationState();
   if (pendingSave_ != PendingSaveKind::None) {
@@ -1376,6 +1380,29 @@ void Ui2TrackerApplication::ExecuteInstrument(Ui2InstrumentCommand command) {
         instrumentBrowserActive_ = false;
         source_.SetInstrumentBrowserActive(false);
         ActivatePage(UiApplicationPage::Browser);
+        return;
+      }
+      if (command.cursor.index == 0U && command.value == 1 &&
+          System::GetInstance()->CanImportSample()) {
+        if (Player::GetInstance()->IsRunning()) {
+          ShowFeedbackError("NOT WHILE PLAYING");
+          return;
+        }
+        instrument_.ReleaseHeldInput();
+        sampleImportPending_ =
+            System::GetInstance()->RequestSampleImport(session_.ProjectName());
+        if (!sampleImportPending_)
+          ShowFeedbackError("SAMPLE IMPORT FAILED");
+        return;
+      }
+      if (command.cursor.index == 0U && IsRecordingAvailable() &&
+          command.value == 1 + int(System::GetInstance()->CanImportSample())) {
+        if (Player::GetInstance()->IsRunning()) {
+          ShowFeedbackError("NOT WHILE PLAYING");
+          return;
+        }
+        instrument_.ReleaseHeldInput();
+        ActivatePage(UiApplicationPage::Record);
         return;
       }
       auto *sample = static_cast<SampleInstrument *>(instrument);

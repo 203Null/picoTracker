@@ -309,6 +309,8 @@ struct UiInstrumentFrameState {
   bool adjustmentNote = false;
   UiInstrumentFieldBottom fieldBottom = UiInstrumentFieldBottom::Hidden;
   bool sampleLoaded = false;
+  bool sampleImport = false;
+  bool sampleRecord = false;
   std::uint8_t sampleAction = 0;
   std::uint8_t fieldOptionCurrent = 0;
   UiInstrumentFieldOptions fieldOptions = UiInstrumentFieldOptions::None;

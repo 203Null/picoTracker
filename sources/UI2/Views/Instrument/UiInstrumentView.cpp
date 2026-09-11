@@ -339,6 +339,8 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
       previous.adjustmentCoarseStep != current.adjustmentCoarseStep ||
       previous.fieldBottom != current.fieldBottom ||
       previous.sampleLoaded != current.sampleLoaded ||
+      previous.sampleImport != current.sampleImport ||
+      previous.sampleRecord != current.sampleRecord ||
       previous.sampleAction != current.sampleAction ||
       previous.fieldOptionCurrent != current.fieldOptionCurrent ||
       previous.fieldOptions != current.fieldOptions ||
@@ -414,9 +416,15 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     bottom.adjustment.coarseLabel = "VALUE";
   } else if (data.fieldBottom == UiInstrumentFieldBottom::SampleActions) {
     bottom.kind = UiBottomBarKind::Actions;
-    bottom.actions.actions = {"LOAD", "EDIT", {}, {}};
-    bottom.actions.count = data.sampleLoaded ? 2 : 1;
-    bottom.actions.active = data.sampleLoaded ? data.sampleAction : 0;
+    bottom.actions.actions = {"LOAD", {}, {}, {}};
+    bottom.actions.count = 1;
+    if (data.sampleImport)
+      bottom.actions.actions[bottom.actions.count++] = "IMPORT";
+    if (data.sampleRecord)
+      bottom.actions.actions[bottom.actions.count++] = "RECORD";
+    if (data.sampleLoaded)
+      bottom.actions.actions[bottom.actions.count++] = "EDIT";
+    bottom.actions.active = data.sampleAction;
   } else if (data.fieldBottom == UiInstrumentFieldBottom::Edit) {
     bottom.kind = UiBottomBarKind::Actions;
     bottom.actions.actions = {"EDIT", {}, {}, {}};

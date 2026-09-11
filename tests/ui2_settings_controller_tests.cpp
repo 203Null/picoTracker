@@ -1542,3 +1542,44 @@ TEST_CASE("UI2 settings controllers keep fixed-capacity trivial state") {
   CHECK(sizeof(Ui2RecordController) <= 16U);
   CHECK(sizeof(Ui2SettingsBrowserController) <= 1'100U);
 }
+
+TEST_CASE("host Sample actions insert Import between Load and Edit") {
+  using namespace ui2;
+  Ui2InstrumentController controller(0U, 0U, 11U, 0U);
+  controller.ConfigureSampleActions(true, false, true);
+  Tap(controller, TrackerAction::Down);
+  Tap(controller, TrackerAction::Down);
+  Tap(controller, TrackerAction::Right);
+  CHECK(Tap(controller, TrackerAction::Enter).value == 1);
+  controller.ConfigureSampleActions(true, false, true);
+  CHECK(controller.SampleAction() == 1U);
+  Tap(controller, TrackerAction::Right);
+  CHECK(controller.SampleAction() == 0U);
+  controller.ConfigureSampleActions(true, true, true);
+  Tap(controller, TrackerAction::Left);
+  CHECK(Tap(controller, TrackerAction::Enter).value == 2);
+  Tap(controller, TrackerAction::Left);
+  CHECK(Tap(controller, TrackerAction::Enter).value == 1);
+}
+
+TEST_CASE("Sample Record is available before loading and precedes Edit") {
+  using namespace ui2;
+  Ui2InstrumentController controller(0U, 0U, 11U, 0U);
+  controller.ConfigureSampleActions(true, false, true, true);
+  Tap(controller, TrackerAction::Down);
+  Tap(controller, TrackerAction::Down);
+  Tap(controller, TrackerAction::Right); // Import
+  Tap(controller, TrackerAction::Right); // Record
+  CHECK(Tap(controller, TrackerAction::Enter).value == 2);
+  Tap(controller, TrackerAction::Right); // Wrap to Load without a sample
+  CHECK(controller.SampleAction() == 0U);
+  controller.ConfigureSampleActions(true, true, true, true);
+  Tap(controller, TrackerAction::Left); // Edit
+  CHECK(Tap(controller, TrackerAction::Enter).value == 3);
+  Tap(controller, TrackerAction::Left); // Record
+  CHECK(Tap(controller, TrackerAction::Enter).value == 2);
+  controller.ConfigureSampleActions(true, false, false, true);
+  CHECK(controller.SampleAction() == 0U);
+  Tap(controller, TrackerAction::Right); // Record on a platform without Import
+  CHECK(Tap(controller, TrackerAction::Enter).value == 1);
+}

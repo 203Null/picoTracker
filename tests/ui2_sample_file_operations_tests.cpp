@@ -270,3 +270,11 @@ TEST_CASE("UI2 sample delete recovery fails closed on conflicts and I/O") {
         ui2::Ui2RecoverStagedProjectSampleDeletes(fileSystem, "../DEMO"));
   }
 }
+
+TEST_CASE("absolute imported sample paths resolve to flat pool names") {
+  ui2::Ui2ProjectSampleName name;
+  REQUIRE(ui2::Ui2ResolveImportedSampleName("/samples/Kick.wav", name));
+  CHECK(std::string(name.data()) == "Kick.wav");
+  CHECK_FALSE(ui2::Ui2ResolveImportedSampleName("/samples/", name));
+  CHECK_FALSE(ui2::Ui2ResolveImportedSampleName("/samples/..", name));
+}

@@ -110,6 +110,8 @@ private:
   void HandleProject(TrackerAction action, bool pressed);
   void HandleProjectLifecycle(TrackerAction action, bool pressed);
   void HandleBrowser(TrackerAction action, bool pressed);
+  bool sampleImportPending_ = false;
+  void TickSampleImport();
   void HandleSampleBrowserDialog(TrackerAction action, bool pressed);
   void ExecuteSampleBrowser(Ui2SampleBrowserCommand command);
   void CloseSampleBrowser();

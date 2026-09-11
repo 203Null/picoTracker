@@ -97,6 +97,10 @@ bool Ui2ResolveImportedSampleName(const char *sourceName,
   destination.fill('\0');
   if (sourceName == nullptr || sourceName[0] == '\0')
     return false;
+  if (const char *separator = std::strrchr(sourceName, '/'))
+    sourceName = separator + 1;
+  if (!Ui2IsFlatProjectSampleLeaf(sourceName))
+    return false;
   const std::size_t length = std::strlen(sourceName);
   if (length <= MAX_INSTRUMENT_FILENAME_LENGTH) {
     std::memcpy(destination.data(), sourceName, length);

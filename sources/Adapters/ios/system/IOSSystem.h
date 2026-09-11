@@ -9,6 +9,9 @@
 
 class IOSSystem final : public System {
 public:
+  bool CanImportSample() const override { return true; }
+  bool RequestSampleImport(const char *projectName) override;
+  SampleImportResult PollSampleImport() override;
   unsigned long GetClock() override;
   void GetBatteryState(BatteryState &state) override;
   void SetDisplayBrightness(unsigned char value) override;

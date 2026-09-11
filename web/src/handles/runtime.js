@@ -1,4 +1,5 @@
 import { createRecordingHandle } from './recording.js'
+import { importSample } from './sampleImport.js'
 import { createInputBridge } from './input.js'
 import { createAudioBridge } from './audio.js'
 import { createFilesHandle } from './files.js'
@@ -369,6 +370,7 @@ export async function createRuntime(options = {}) {
     files = module.FS ? createFilesHandle(module, storage) : null
     recording = files ? createRecordingHandle(files) : null
     module.nullPeratorRecording = recording
+    module.nullPeratorImportSample = (projectName) => importSample(files, projectName)
     hostFolder = files ? createHostFolderManager({ browser: files.createHostSyncEndpoint() }) : null
     // Permission restoration only queries the persisted handle. It never makes
     // a browser permission request during automatic runtime startup.

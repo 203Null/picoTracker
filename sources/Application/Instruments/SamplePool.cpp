@@ -23,6 +23,7 @@
 #include "System/io/Status.h"
 #include "WavReadPolicy.h"
 #include <cstdint>
+#include <cstring>
 #include <memory>
 #include <stdlib.h>
 #include <string.h>
@@ -200,7 +201,9 @@ int SamplePool::ImportSample(const char *name, const char *projectName) {
 
   // will truncate too long filenames to make sure the filename imported into
   // the project is with filename length limit
-  etl::string<MAX_INSTRUMENT_FILENAME_LENGTH> projSampleFilename(name);
+  const char *leaf = std::strrchr(name, '/');
+  etl::string<MAX_INSTRUMENT_FILENAME_LENGTH> projSampleFilename(leaf ? leaf + 1
+                                                                      : name);
   if (projSampleFilename.is_truncated()) {
     // Truncate the string in-place and then append the extension
     projSampleFilename =

@@ -885,6 +885,8 @@ UiApplicationRuntime::ViewDataFor(const InstrumentFrameState &state) {
   data.adjustmentNote = state.adjustmentNote;
   data.fieldBottom = state.fieldBottom;
   data.sampleLoaded = state.sampleLoaded;
+  data.sampleImport = state.sampleImport;
+  data.sampleRecord = state.sampleRecord;
   data.sampleAction = state.sampleAction;
   data.fieldOptionCurrent = state.fieldOptionCurrent;
   data.fieldOptions = state.fieldOptions;

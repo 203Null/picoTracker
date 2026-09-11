@@ -250,10 +250,15 @@ public:
     return {};
   }
 
-  constexpr void ConfigureSampleActions(bool enabled, bool loaded) {
+  constexpr void ConfigureSampleActions(bool enabled, bool loaded,
+                                        bool canImport = false,
+                                        bool canRecord = false) {
     sampleActions_ = enabled;
     sampleLoaded_ = loaded;
-    if (!enabled || !loaded)
+    sampleImport_ = canImport;
+    sampleRecord_ = canRecord;
+    if (!enabled ||
+        sampleAction_ >= 1U + unsigned(loaded) + unsigned(canImport) + unsigned(canRecord))
       sampleAction_ = 0;
   }
   [[nodiscard]] constexpr std::uint8_t SampleAction() const {
@@ -324,7 +329,11 @@ public:
     if (sampleActions_ && Cursor().kind == Ui2InstrumentCursorKind::Field &&
         Cursor().index == 0U &&
         (action == TrackerAction::Left || action == TrackerAction::Right)) {
-      sampleAction_ = sampleLoaded_ ? 1U - sampleAction_ : 0U;
+      const unsigned count =
+          1U + unsigned(sampleLoaded_) + unsigned(sampleImport_) + unsigned(sampleRecord_);
+      sampleAction_ =
+          (sampleAction_ + count + (action == TrackerAction::Right ? 1 : -1)) %
+          count;
       return {};
     }
     if (action == TrackerAction::Left || action == TrackerAction::Right)
@@ -580,6 +589,8 @@ private:
   bool valueEditDirty_ = false;
   bool sampleActions_ = false;
   bool sampleLoaded_ = false;
+  bool sampleImport_ = false;
+  bool sampleRecord_ = false;
   std::uint8_t sampleAction_ = 0;
 };
 

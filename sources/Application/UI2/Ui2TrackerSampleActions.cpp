@@ -38,6 +38,23 @@
 #include <cstring>
 
 namespace ui2 {
+
+void Ui2TrackerApplication::TickSampleImport() {
+  if (!sampleImportPending_)
+    return;
+  const auto result = System::GetInstance()->PollSampleImport();
+  if (result.status == SampleImportStatus::Pending)
+    return;
+  sampleImportPending_ = false;
+  if (result.status == SampleImportStatus::Cancelled)
+    return;
+  const char *error = nullptr;
+  if (result.status != SampleImportStatus::Imported ||
+      !ImportSampleToCurrentInstrument(result.path, error))
+    ShowFeedbackError(error == nullptr ? "SAMPLE IMPORT FAILED" : error);
+  runtime_.Invalidate();
+}
+
 namespace {
 SampleInstrument *CurrentSampleInstrument(TrackerApplicationSession &session) {
   InstrumentBank *bank = session.ProjectModel().GetInstrumentBank();
