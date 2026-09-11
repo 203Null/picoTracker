@@ -3296,6 +3296,26 @@ TEST_CASE("UI2 Instrument operator headers and approved adjustment "
   CheckDeltaMatchesFullFrame(op1, op2, ui2::UiInstrumentView::Build,
                              ui2::UiInstrumentView::RenderDelta);
 
+  for (auto cursor : {ui2::UiInstrumentCursor::Name,
+                      ui2::UiInstrumentCursor::Type,
+                      ui2::UiInstrumentCursor::Field,
+                      ui2::UiInstrumentCursor::None}) {
+    auto outside = op1;
+    outside.cursor = cursor;
+    REQUIRE(ui2::UiInstrumentView::Build(outside, palette, scene) ==
+            ui2::UiBuildStatus::Built);
+    CHECK(FindTextCommand(scene.content.Stream(), "OP 1")->color ==
+          palette.Index(ui2::UiColorToken::TextDim));
+    CHECK(FindTextCommand(scene.content.Stream(), "OP 2")->color ==
+          palette.Index(ui2::UiColorToken::TextDim));
+    for (const auto &focused : {op1, op2}) {
+      CheckDeltaMatchesFullFrame(outside, focused, ui2::UiInstrumentView::Build,
+                                 ui2::UiInstrumentView::RenderDelta);
+      CheckDeltaMatchesFullFrame(focused, outside, ui2::UiInstrumentView::Build,
+                                 ui2::UiInstrumentView::RenderDelta);
+    }
+  }
+
   ui2::UiInstrumentViewData numeric =
       ui2::test::ApprovedInstrumentFixture("sample");
   numeric.cursor = ui2::UiInstrumentCursor::Field;

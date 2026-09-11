@@ -104,6 +104,13 @@ std::string_view TypeName(UiInstrumentKind kind) {
   return kTypeOptions[static_cast<std::size_t>(kind)];
 }
 
+unsigned FocusedOperator(const UiInstrumentViewData &data) {
+  if (data.numberFocus || data.selectedOperator >= data.operatorCount)
+    return 0;
+  return data.cursor == UiInstrumentCursor::Operator1 ? 1
+         : data.cursor == UiInstrumentCursor::Operator2 ? 2 : 0;
+}
+
 RectI16 ResolvedCursorRect(const UiInstrumentViewData &data) {
   if (data.cursorVisualOverride && !data.cursorVisualRect.Empty()) {
     // Instrument cursor animation runs in the scrollable content's logical
@@ -384,13 +391,8 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
       previous.bottomTrackInkVisible != current.bottomTrackInkVisible) {
     render({0, 208, 240, 32});
   }
-  const auto operatorHeader = [](UiInstrumentCursor cursor) {
-    return cursor == UiInstrumentCursor::Operator1   ? 1
-           : cursor == UiInstrumentCursor::Operator2 ? 2
-                                                     : 0;
-  };
   if (!contentRedrawn &&
-      operatorHeader(previous.cursor) != operatorHeader(current.cursor)) {
+      FocusedOperator(previous) != FocusedOperator(current)) {
     render(contentRect(FieldDamageRect(kUiInstrumentOperatorHeaderY)));
   }
 }
@@ -542,13 +544,13 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
                 data.fields[index].userData);
     }
     DrawSection(builder, "OPERATOR SETTINGS", kUiInstrumentOperatorHeaderY, 136);
-    const bool operator2Focused = data.cursor == UiInstrumentCursor::Operator2;
+    const unsigned focusedOperator = FocusedOperator(data);
     builder.Text("OP 1", 144, kUiInstrumentOperatorHeaderY,
-                 operator2Focused ? UiColorToken::TextDim
-                                  : UiColorToken::TextColored);
+                 focusedOperator == 1 ? UiColorToken::TextColored
+                                      : UiColorToken::TextDim);
     builder.Text("OP 2", 190, kUiInstrumentOperatorHeaderY,
-                 operator2Focused ? UiColorToken::TextColored
-                                  : UiColorToken::TextDim);
+                 focusedOperator == 2 ? UiColorToken::TextColored
+                                      : UiColorToken::TextDim);
     for (std::uint8_t index = 0; index < data.operatorCount; ++index) {
       const std::int16_t y = UiInstrumentOperatorRowY(index);
       builder.Text(data.operators[index].label, 9, y, UiColorToken::TextDim);
