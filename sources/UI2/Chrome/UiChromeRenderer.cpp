@@ -172,7 +172,7 @@ UiBuildStatus UiChromeRenderer::BuildTop(const UiTopBarModel &model,
   }
 
   if (model.power == UiPowerState::Playing) {
-    DrawPlayTriangle(builder, 194, 13);
+    DrawPlayTriangle(builder, 193, 13);
     constexpr std::int16_t kPlayingTextRight = 230;
     const std::int16_t elapsedX = static_cast<std::int16_t>(
         kPlayingTextRight - UiFont5x7::TextWidth(model.elapsed.size()));

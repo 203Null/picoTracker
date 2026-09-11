@@ -1611,7 +1611,7 @@ TEST_CASE("UI2 playing state uses a solid pixel triangle") {
   constexpr std::array<std::int16_t, 9> widths{1, 2, 3, 4, 5, 4, 3, 2, 1};
   for (std::int16_t row = 0; row < static_cast<std::int16_t>(widths.size());
        ++row) {
-    const ui2::RectI16 expected{194, static_cast<std::int16_t>(13 + row),
+    const ui2::RectI16 expected{193, static_cast<std::int16_t>(13 + row),
                                 widths[row], 1};
     CHECK(std::any_of(scene.Stream().commands.begin(),
                       scene.Stream().commands.end(),
