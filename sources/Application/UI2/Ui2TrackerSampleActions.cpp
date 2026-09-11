@@ -35,6 +35,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cctype>
 #include <cstring>
 
 namespace ui2 {
@@ -489,6 +490,106 @@ void Ui2TrackerApplication::TickSampleEditorApply() {
     CompleteSampleEditorApply(result);
 }
 
+void Ui2TrackerApplication::RequestSampleEditorBack(TrackerAction trigger) {
+  StopSamplePreview();
+  if (samples_.transaction.HasWorkingCopy() || samples_.editor.HasRangeEdits() ||
+      samples_.returnPage == UiApplicationPage::Record) {
+    samples_.editor.RequestDiscardConfirmation(trigger);
+    return;
+  }
+  (void)ActivatePage(samples_.returnPage);
+}
+
+void Ui2TrackerApplication::SaveSampleAs(const char *name) {
+  FileSystem *fs = FileSystem::GetInstance();
+  if (fs == nullptr || !samples_.editor.Active())
+    return;
+  std::array<char, 25> leaf{};
+  std::size_t length = std::strlen(name);
+  if (length >= 4U && name[length - 4U] == '.' &&
+      std::tolower(static_cast<unsigned char>(name[length - 3U])) == 'w' &&
+      std::tolower(static_cast<unsigned char>(name[length - 2U])) == 'a' &&
+      std::tolower(static_cast<unsigned char>(name[length - 1U])) == 'v')
+    length -= 4U;
+  std::snprintf(leaf.data(), leaf.size(), "%.*s.wav", static_cast<int>(length), name);
+  std::array<char, PFILENAME_SIZE> destination{};
+  std::snprintf(destination.data(), destination.size(), "/samples/%s", leaf.data());
+  Ui2ProjectSamplePath projectPath{};
+  if (length == 0U || !Ui2BuildProjectSamplePath(session_.ProjectName(), leaf.data(), projectPath)) {
+    ShowFeedbackError("INVALID SAMPLE NAME");
+    return;
+  }
+  class NameScan final : public FileSystemDirectorySnapshot {
+  public:
+    explicit NameScan(const char *leaf) : leaf_(leaf) {}
+    void Reset() override { found = false; }
+    bool Add(const char *name, PicoFileType, uint64_t) override {
+      const char *a = name;
+      const char *b = leaf_;
+      while (*a && *b && std::tolower(static_cast<unsigned char>(*a)) ==
+                             std::tolower(static_cast<unsigned char>(*b))) {
+        ++a;
+        ++b;
+      }
+      found = (*a == '\0' && *b == '\0');
+      return !found;
+    }
+    bool found = false;
+  private:
+    const char *leaf_;
+  } scan(leaf.data());
+  std::array<char, PFILENAME_SIZE> projectDirectory{};
+  std::snprintf(projectDirectory.data(), projectDirectory.size(), "%s/%s/%s",
+                PROJECTS_DIR, session_.ProjectName(), PROJECT_SAMPLES_DIR);
+  for (const char *directory : std::array<const char *, 2>{"/samples", projectDirectory.data()}) {
+    if (!fs->exists(directory))
+      continue;
+    if (!fs->listPathChecked(directory, scan, nullptr, false, true)) {
+      ShowFeedbackError("SAMPLE NAME CHECK FAILED");
+      return;
+    }
+    if (scan.found) {
+      // Keep the entered name editable after rejecting a collision.
+      std::array<char, 21> draft{};
+      std::snprintf(draft.data(), draft.size(), "%s", name);
+      renameTarget_ = RenameTarget::SampleSaveAs;
+      rename_.Begin(draft.data(), 20U, nullptr, TrackerAction::Enter);
+      rename_.ReportNameConflict();
+      return;
+    }
+  }
+  constexpr const char *staging = "/samples/.recording-save.pending";
+  if ((!fs->exists("/samples") && !fs->makeDir("/samples")) ||
+      !fs->CopyFile(samples_.transaction.WorkingPath(), staging)) {
+    (void)fs->DeleteFile(staging);
+    ShowFeedbackError("SAMPLE SAVE FAILED");
+    return;
+  }
+  auto file = fs->Open(staging, "rb");
+  const bool synced = file && file->Sync();
+  const bool closed = file.Close();
+  if (!synced || !closed || !fs->MoveFile(staging, destination.data())) {
+    (void)fs->DeleteFile(staging);
+    ShowFeedbackError("SAMPLE SAVE FAILED");
+    return;
+  }
+  file = fs->Open(destination.data(), "rb");
+  const bool saved = file && file->Sync();
+  const bool savedClosed = file.Close();
+  if (!saved || !savedClosed) {
+    (void)fs->DeleteFile(destination.data());
+    ShowFeedbackError("SAMPLE SAVE FAILED");
+    return;
+  }
+  const char *error = nullptr;
+  const bool loaded = ImportSampleToCurrentInstrument(destination.data(), error);
+  const bool recording = samples_.returnPage == UiApplicationPage::Record;
+  if (ActivatePage(UiApplicationPage::Instrument) && recording)
+    (void)fs->DeleteFile(RECORDINGS_DIR "/" RECORDING_FILENAME);
+  if (!loaded)
+    ShowFeedbackError("SAMPLE SAVED; LOAD FAILED");
+}
+
 void Ui2TrackerApplication::ExecuteSampleEditor(
     Ui2SampleEditorCommand command) {
   if (!command.HasValue())
@@ -535,8 +636,15 @@ void Ui2TrackerApplication::ExecuteSampleEditor(
     StopSamplePreview();
     break;
   case Ui2SampleEditorCommandType::NavigateBack:
+    RequestSampleEditorBack(TrackerAction::Left);
+    break;
   case Ui2SampleEditorCommandType::RequestDiscard:
-    (void)ActivatePage(samples_.returnPage);
+    if (samples_.returnPage == UiApplicationPage::Record) {
+      if (ActivatePage(UiApplicationPage::Instrument))
+        (void)FileSystem::GetInstance()->DeleteFile(RECORDINGS_DIR "/" RECORDING_FILENAME);
+    } else {
+      (void)ActivatePage(samples_.returnPage);
+    }
     break;
   case Ui2SampleEditorCommandType::SetStart:
   case Ui2SampleEditorCommandType::SetEnd:
@@ -544,10 +652,6 @@ void Ui2TrackerApplication::ExecuteSampleEditor(
     // They stay local until SAVE/APPLY succeeds, matching the legacy editor.
     break;
   case Ui2SampleEditorCommandType::RequestApplyOperation:
-    StopSamplePreview();
-    samples_.editor.RequestApplyConfirmation(command.operation, command.start,
-                                             command.end, TrackerAction::Enter);
-    break;
   case Ui2SampleEditorCommandType::ApplyConfirmed: {
     StopSamplePreview();
     const Ui2SampleEditorTransactionResult result =
@@ -571,8 +675,32 @@ void Ui2TrackerApplication::ExecuteSampleEditor(
     break;
   }
   case Ui2SampleEditorCommandType::RequestSave:
-  case Ui2SampleEditorCommandType::RequestSaveAndLoad: {
+  case Ui2SampleEditorCommandType::RequestSaveAs: {
     StopSamplePreview();
+    if (samples_.returnPage == UiApplicationPage::Record ||
+        command.type == Ui2SampleEditorCommandType::RequestSaveAs) {
+      renameTarget_ = RenameTarget::SampleSaveAs;
+      std::array<char, 21> draft{};
+      if (samples_.returnPage == UiApplicationPage::Record) {
+        std::snprintf(draft.data(), draft.size(), "Recording");
+      } else {
+        const char *leaf = std::strrchr(samples_.transaction.DestinationPath(), '/');
+        leaf = leaf == nullptr ? samples_.transaction.DestinationPath() : leaf + 1;
+        const char *extension = std::strrchr(leaf, '.');
+        const int length = extension == nullptr ? std::strlen(leaf) : extension - leaf;
+        std::snprintf(draft.data(), draft.size(), "%.*s-copy", std::min(length, 15), leaf);
+      }
+      rename_.Begin(draft.data(), 20U, [](const char *name) {
+        if (name == nullptr || name[0] == '\0' || name[0] == '.')
+          return false;
+        for (const unsigned char *p = reinterpret_cast<const unsigned char *>(name); *p; ++p)
+          if (*p < 32U || std::strchr("/\\:*?\"<>|", *p) != nullptr)
+            return false;
+        return name[std::strlen(name) - 1U] != ' ';
+      }, TrackerAction::Enter);
+      break;
+    }
+
     std::array<char, PFILENAME_SIZE> destination{};
     const int written =
         std::snprintf(destination.data(), destination.size(), "%s",
@@ -597,10 +725,10 @@ void Ui2TrackerApplication::ExecuteSampleEditor(
       break;
     }
 
-    const Ui2SampleEditorSaveFollowUp followUp =
+    (void)
         Ui2SampleEditorSaveWorkflow::PrepareFollowUp(
             result,
-            command.type == Ui2SampleEditorCommandType::RequestSaveAndLoad,
+            false,
             samples_.returnPage == UiApplicationPage::Browser &&
                 samples_.browser.Active(),
             [this, &destination]() {
@@ -610,19 +738,6 @@ void Ui2TrackerApplication::ExecuteSampleEditor(
               (void)samples_.browser.RefreshCurrentDirectoryAndSelect(
                   destination.data());
             });
-    if (followUp == Ui2SampleEditorSaveFollowUp::SaveAndLoad) {
-      const char *error = nullptr;
-      const bool imported =
-          ImportSampleToCurrentInstrument(destination.data(), error);
-      if (imported)
-        (void)samples_.browser.Open(session_.ProjectName());
-      (void)ActivatePage(imported ? UiApplicationPage::Browser
-                                  : samples_.returnPage);
-      if (!imported)
-        ShowFeedbackError("SAMPLE SAVED; LOAD FAILED");
-      break;
-    }
-
     const bool projectPool = command.projectPool;
     (void)ActivatePage(samples_.returnPage);
     if (projectPool) {

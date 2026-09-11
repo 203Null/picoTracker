@@ -320,10 +320,9 @@ TEST_CASE("UI2 Sample Editor exposes real endpoints markers zoom and preview") {
   CHECK(controller.Handle(TrackerAction::Play, false).type ==
         Ui2SampleEditorCommandType::PreviewStop);
 
-  controller.SetFocus(SampleEditorViewUi2Focus::Waveform);
-  Chord(controller, TrackerAction::Option, TrackerAction::Right);
+  controller.SetFocus(SampleEditorViewUi2Focus::End);
   const Ui2SampleEditorCommand moved =
-      Chord(controller, TrackerAction::Enter, TrackerAction::Left);
+      Chord(controller, TrackerAction::Enter, TrackerAction::Down);
   CHECK(moved.type == Ui2SampleEditorCommandType::SetEnd);
   CHECK(moved.value < 511U);
   CHECK(controller.End() == moved.value);
@@ -410,14 +409,14 @@ TEST_CASE("UI2 Sample Editor keeps operation browsing read-only") {
   CHECK(controller.Operation() == Ui2SampleEditorOperation::Normalize);
   CHECK_FALSE(controller.SetFocus(SampleEditorViewUi2Focus::Apply));
   CHECK_FALSE(controller.SetFocus(SampleEditorViewUi2Focus::Save));
-  CHECK_FALSE(controller.SetFocus(SampleEditorViewUi2Focus::SaveAndLoad));
+  CHECK_FALSE(controller.SetFocus(SampleEditorViewUi2Focus::SaveAs));
   CHECK(controller.Focus() == SampleEditorViewUi2Focus::Operation);
   CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
 
   Tap(controller, TrackerAction::Down);
-  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Discard);
+  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Start);
   CHECK(Tap(controller, TrackerAction::Enter).type ==
-        Ui2SampleEditorCommandType::RequestDiscard);
+        Ui2SampleEditorCommandType::None);
 }
 
 TEST_CASE("UI2 Sample Editor exposes a read-only runtime model") {
@@ -429,41 +428,40 @@ TEST_CASE("UI2 Sample Editor exposes a read-only runtime model") {
   Ui2SampleEditorController controller(waveform);
   REQUIRE(controller.OpenLibrary(fileSystem, "VOICE.WAV") ==
           Ui2SampleWaveformLoadResult::Loaded);
-  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Waveform);
+  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Start);
   CHECK_FALSE(controller.Snapshot().fileMutationAvailable);
 
   REQUIRE(controller.SetFocus(SampleEditorViewUi2Focus::Operation));
   const UiSampleEditorControllerState operationState =
       MakeUiSampleEditorControllerState(controller.Snapshot());
   const UiSampleEditorViewData operationData = operationState.ToViewData();
-  CHECK(operationData.field3Label == "OP");
-  CHECK(operationData.field4Label.empty());
+  CHECK(operationData.field3Label == "OPERATION");
+  CHECK(operationData.field4Label == "SAVE");
   CHECK(operationData.help == "LEFT/RIGHT BROWSE (NO APPLY)");
-  CHECK(operationData.bottomActionCount == 1U);
-  CHECK(operationData.bottomActions[0] == "DISCARD");
+  CHECK(operationData.bottomActionCount == 2U);
+  CHECK(operationData.bottomActions[0] == "TRIM");
 
   Tap(controller, TrackerAction::Down);
-  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Discard);
+  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Start);
   Tap(controller, TrackerAction::Left);
-  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Discard);
+  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Start);
   Tap(controller, TrackerAction::Right);
-  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Discard);
+  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Start);
 
   const SampleEditorViewUi2Snapshot snapshot = controller.Snapshot();
-  CHECK(snapshot.focus == SampleEditorViewUi2Focus::Discard);
+  CHECK(snapshot.focus == SampleEditorViewUi2Focus::Start);
   CHECK_FALSE(snapshot.projectPool);
   const UiSampleEditorControllerState discardState =
       MakeUiSampleEditorControllerState(snapshot);
   const UiSampleEditorViewData discardData = discardState.ToViewData();
-  CHECK(discardData.bottomActive == 0U);
-  CHECK(discardData.help == "ENTER DISCARD");
+  CHECK(discardData.bottomActions[0] == "EDIT");
 
   controller.Close();
   REQUIRE(controller.OpenProjectPool(fileSystem, "DEMO", "VOICE.WAV") ==
           Ui2SampleWaveformLoadResult::Loaded);
   REQUIRE(controller.SetFocus(SampleEditorViewUi2Focus::Operation));
   Tap(controller, TrackerAction::Down);
-  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Discard);
+  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Start);
   CHECK_FALSE(controller.SetFocus(SampleEditorViewUi2Focus::Save));
   CHECK(controller.Snapshot().projectPool);
 }
@@ -484,28 +482,27 @@ TEST_CASE("UI2 Sample Editor exposes rewrite transactions") {
   CHECK(Tap(controller, TrackerAction::Enter).type ==
         Ui2SampleEditorCommandType::RequestApplyOperation);
   CHECK(controller.SetFocus(SampleEditorViewUi2Focus::Save));
-  CHECK(controller.SetFocus(SampleEditorViewUi2Focus::SaveAndLoad));
+  CHECK(controller.SetFocus(SampleEditorViewUi2Focus::SaveAs));
 
   const UiSampleEditorViewData library =
       MakeUiSampleEditorControllerState(controller.Snapshot()).ToViewData();
-  CHECK(library.field4Label == "APPLY");
-  CHECK(library.bottomActionCount == 3U);
+  CHECK(library.field4Label == "SAVE");
+  CHECK(library.bottomActionCount == 2U);
+  CHECK(library.bottomActions[1] == "SAVE AS");
   CHECK(library.bottomActions[0] == "SAVE");
-  CHECK(library.bottomActions[1] == "SAVE&LOAD");
-  CHECK(library.bottomActions[2] == "DISCARD");
 
   controller.Close();
   REQUIRE(controller.OpenProjectPool(fileSystem, "DEMO", "VOICE.WAV") ==
           Ui2SampleWaveformLoadResult::Loaded);
   CHECK_FALSE(controller.Snapshot().fileMutationAvailable);
   controller.SetTransactionCapabilities(true);
-  CHECK_FALSE(controller.SetFocus(SampleEditorViewUi2Focus::SaveAndLoad));
+  CHECK(controller.SetFocus(SampleEditorViewUi2Focus::SaveAs));
   REQUIRE(controller.SetFocus(SampleEditorViewUi2Focus::Save));
   const UiSampleEditorViewData pool =
       MakeUiSampleEditorControllerState(controller.Snapshot()).ToViewData();
   CHECK(pool.bottomActionCount == 2U);
+  CHECK(pool.bottomActions[1] == "SAVE AS");
   CHECK(pool.bottomActions[0] == "SAVE");
-  CHECK(pool.bottomActions[1] == "DISCARD");
 }
 
 TEST_CASE("UI2 Sample Editor apply confirmation defaults to no") {
@@ -531,7 +528,7 @@ TEST_CASE("UI2 Sample Editor apply confirmation defaults to no") {
   const Ui2DialogSnapshot dialog = controller.DialogSnapshot();
   CHECK(std::strcmp(dialog.title.data(), "Apply TRIM?") == 0);
   CHECK(std::strcmp(dialog.label.data(), "Saved only after Save") == 0);
-  CHECK(dialog.selectedAction == 1U);
+  CHECK(dialog.selectedAction == 0U);
 
   controller.HandleDialog(TrackerAction::Enter, false);
   controller.Handle(TrackerAction::Enter, false);
@@ -542,8 +539,8 @@ TEST_CASE("UI2 Sample Editor apply confirmation defaults to no") {
   controller.RequestApplyConfirmation(
       Ui2SampleEditorOperation::Normalize, 4U, 900U);
   REQUIRE(controller.DialogActive());
-  controller.HandleDialog(TrackerAction::Left, true);
-  controller.HandleDialog(TrackerAction::Left, false);
+  controller.HandleDialog(TrackerAction::Right, true);
+  controller.HandleDialog(TrackerAction::Right, false);
   const Ui2SampleEditorCommand confirmed =
       controller.HandleDialog(TrackerAction::Enter, true);
   CHECK(confirmed.type == Ui2SampleEditorCommandType::ApplyConfirmed);
@@ -566,8 +563,8 @@ TEST_CASE("UI2 Sample Editor apply progress accepts only explicit cancel") {
   Ui2SampleEditorController controller(waveform);
   REQUIRE(controller.OpenLibrary(fileSystem, "VOICE.WAV") ==
           Ui2SampleWaveformLoadResult::Loaded);
-  REQUIRE(controller.SetFocus(SampleEditorViewUi2Focus::Waveform));
-  REQUIRE(Chord(controller, TrackerAction::Enter, TrackerAction::Right)
+  REQUIRE(controller.SetFocus(SampleEditorViewUi2Focus::Start));
+  REQUIRE(Chord(controller, TrackerAction::Enter, TrackerAction::Up)
               .HasValue());
   REQUIRE(controller.SetFocus(SampleEditorViewUi2Focus::End));
   const SampleEditorViewUi2Snapshot before = controller.Snapshot();
@@ -587,8 +584,8 @@ TEST_CASE("UI2 Sample Editor apply progress accepts only explicit cancel") {
 
   // The ENTER that confirmed the operation cannot immediately cancel it, and
   // directions do not create an accidental progress-dialog selection.
-  CHECK_FALSE(controller.HandleDialog(TrackerAction::Left, true).HasValue());
-  CHECK_FALSE(controller.HandleDialog(TrackerAction::Left, false).HasValue());
+  CHECK_FALSE(controller.HandleDialog(TrackerAction::Right, true).HasValue());
+  CHECK_FALSE(controller.HandleDialog(TrackerAction::Right, false).HasValue());
   CHECK_FALSE(controller.HandleDialog(TrackerAction::Enter, false).HasValue());
   CHECK(controller.ApplyProgressActive());
   CHECK_FALSE(controller.HandleDialog(TrackerAction::Right, true).HasValue());
@@ -630,14 +627,14 @@ TEST_CASE("UI2 Sample Editor endpoints cannot cross or leave the WAV") {
   Ui2SampleEditorController controller(waveform);
   REQUIRE(controller.OpenPath(fileSystem, "TINY.WAV", true) ==
           Ui2SampleWaveformLoadResult::Loaded);
-  controller.SetFocus(SampleEditorViewUi2Focus::Waveform);
+  controller.SetFocus(SampleEditorViewUi2Focus::Start);
   for (int move = 0; move < 100; ++move)
-    Chord(controller, TrackerAction::Enter, TrackerAction::Right);
+    Chord(controller, TrackerAction::Enter, TrackerAction::Up);
   CHECK(controller.Start() <= controller.End());
   CHECK(controller.End() == 63U);
-  Chord(controller, TrackerAction::Option, TrackerAction::Right);
+  controller.SetFocus(SampleEditorViewUi2Focus::End);
   for (int move = 0; move < 100; ++move)
-    Chord(controller, TrackerAction::Enter, TrackerAction::Left);
+    Chord(controller, TrackerAction::Enter, TrackerAction::Down);
   CHECK(controller.End() == controller.Start());
 }
 
@@ -927,4 +924,107 @@ TEST_CASE("UI2 Sample controllers remain inert without a sample") {
   CHECK_FALSE(slices.Active());
   CHECK_FALSE(slices.Snapshot().hasSample);
   CHECK_FALSE(slices.DeleteSelected().HasValue());
+}
+
+TEST_CASE("Sample operation buttons select horizontally and execute on Enter") {
+  using namespace ui2;
+  Config::SetImportResampler(0);
+  SampleWaveFileSystem fileSystem;
+  fileSystem.BuildPcm(1024U);
+  Ui2SampleWaveformBackend waveform;
+  Ui2SampleEditorController controller(waveform);
+  REQUIRE(controller.OpenLibrary(fileSystem, "VOICE.WAV") == Ui2SampleWaveformLoadResult::Loaded);
+  controller.SetTransactionCapabilities(true);
+  REQUIRE(controller.Focus() == SampleEditorViewUi2Focus::Start);
+  CHECK_FALSE(controller.SetFocus(SampleEditorViewUi2Focus::Waveform));
+  for (int i = 0; i < 2; ++i) Tap(controller, TrackerAction::Down);
+  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Operation);
+  Tap(controller, TrackerAction::Left);
+  auto trim = Tap(controller, TrackerAction::Enter);
+  CHECK(trim.type == Ui2SampleEditorCommandType::RequestApplyOperation);
+  CHECK(trim.operation == Ui2SampleEditorOperation::Trim);
+  CHECK(trim.start == 0U);
+  CHECK(trim.end == 1023U);
+  Tap(controller, TrackerAction::Right);
+  Tap(controller, TrackerAction::Right);
+  auto normalize = Tap(controller, TrackerAction::Enter);
+  CHECK(normalize.type == Ui2SampleEditorCommandType::RequestApplyOperation);
+  CHECK(normalize.operation == Ui2SampleEditorOperation::Normalize);
+  auto view = MakeUiSampleEditorControllerState(controller.Snapshot()).ToViewData();
+  CHECK(UiSampleEditorView::CursorTargetRect(view) == RectI16{7, 166, 226, 9});
+  Tap(controller, TrackerAction::Left);
+  view = MakeUiSampleEditorControllerState(controller.Snapshot()).ToViewData();
+  CHECK(UiSampleEditorView::CursorTargetRect(view) == RectI16{7, 166, 226, 9});
+  Tap(controller, TrackerAction::Down);
+  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Save);
+}
+
+TEST_CASE("Sample Save actions share one vertical row") {
+  using namespace ui2;
+  SampleWaveFileSystem fileSystem;
+  fileSystem.BuildPcm(1024U);
+  Ui2SampleWaveformBackend waveform;
+  Ui2SampleEditorController controller(waveform);
+  REQUIRE(controller.OpenLibrary(fileSystem, "VOICE.WAV") == Ui2SampleWaveformLoadResult::Loaded);
+  controller.SetTransactionCapabilities(true);
+  for (int i = 0; i < 3; ++i) Tap(controller, TrackerAction::Down);
+  auto view = MakeUiSampleEditorControllerState(controller.Snapshot()).ToViewData();
+  CHECK(view.bottomActions[0] == "SAVE");
+  CHECK(view.bottomActions[1] == "SAVE AS");
+  CHECK(UiSampleEditorView::CursorTargetRect(view) == RectI16{7, 177, 226, 9});
+  Tap(controller, TrackerAction::Left);
+  Tap(controller, TrackerAction::Up);
+  CHECK(controller.Focus() == SampleEditorViewUi2Focus::Operation);
+  view = MakeUiSampleEditorControllerState(controller.Snapshot()).ToViewData();
+  CHECK(view.bottomActions[0] == "TRIM");
+  CHECK(view.bottomActions[1] == "NORMALIZE");
+}
+
+TEST_CASE("Sample unsaved-exit confirmation defaults to keeping edits") {
+  using namespace ui2;
+  SampleWaveFileSystem fs;
+  fs.BuildPcm(1024U);
+  Ui2SampleWaveformBackend waveform;
+  Ui2SampleEditorController controller(waveform);
+  REQUIRE(controller.OpenLibrary(fs, "VOICE.WAV") == Ui2SampleWaveformLoadResult::Loaded);
+  controller.SetTransactionCapabilities(true);
+  controller.RequestDiscardConfirmation(TrackerAction::Right);
+  REQUIRE(controller.DialogActive());
+  CHECK(controller.DialogSnapshot().selectedAction == 0U);
+  CHECK(std::string_view(controller.DialogSnapshot().label.data()) == "Unsaved edits will be lost");
+  controller.HandleDialog(TrackerAction::Right, false);
+  CHECK_FALSE(controller.HandleDialog(TrackerAction::Enter, true).HasValue());
+  CHECK_FALSE(controller.DialogActive());
+  controller.RequestDiscardConfirmation(TrackerAction::Right);
+  controller.HandleDialog(TrackerAction::Right, false);
+  controller.HandleDialog(TrackerAction::Right, true);
+  controller.HandleDialog(TrackerAction::Right, false);
+  CHECK(controller.HandleDialog(TrackerAction::Enter, true).type == Ui2SampleEditorCommandType::RequestDiscard);
+}
+
+TEST_CASE("Sample endpoint edits are unsaved until the range is restored") {
+  using namespace ui2;
+  SampleWaveFileSystem fs;
+  fs.BuildPcm(1024U);
+  Ui2SampleWaveformBackend waveform;
+  Ui2SampleEditorController controller(waveform);
+  REQUIRE(controller.OpenLibrary(fs, "VOICE.WAV") == Ui2SampleWaveformLoadResult::Loaded);
+  CHECK_FALSE(controller.HasRangeEdits());
+  REQUIRE(controller.SetFocus(SampleEditorViewUi2Focus::Start));
+  for (int i = 0; i < 6; ++i) Tap(controller, TrackerAction::Right);
+  Chord(controller, TrackerAction::Enter, TrackerAction::Up);
+  CHECK(controller.Start() == 1U);
+  CHECK(controller.HasRangeEdits());
+  controller.RequestDiscardConfirmation(TrackerAction::Right);
+  CHECK(controller.DialogActive());
+  controller.HandleDialog(TrackerAction::Right, false);
+  controller.HandleDialog(TrackerAction::Enter, true); // No
+  CHECK(controller.HasRangeEdits());
+  Chord(controller, TrackerAction::Enter, TrackerAction::Down);
+  CHECK_FALSE(controller.HasRangeEdits());
+  REQUIRE(controller.SetFocus(SampleEditorViewUi2Focus::End));
+  Chord(controller, TrackerAction::Enter, TrackerAction::Down);
+  CHECK(controller.HasRangeEdits());
+  Chord(controller, TrackerAction::Enter, TrackerAction::Up);
+  CHECK_FALSE(controller.HasRangeEdits());
 }

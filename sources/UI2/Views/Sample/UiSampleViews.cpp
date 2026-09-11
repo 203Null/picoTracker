@@ -71,7 +71,7 @@ void DrawUserSection(UiSceneBuilder<256, 1024> &builder, std::string_view label,
   builder.UserText(label, 9, y, UiColorToken::TextColored);
   builder.Fill({static_cast<std::int16_t>(9 + width + 7),
                 static_cast<std::int16_t>(y + 3),
-                static_cast<std::int16_t>(222 - width), 1},
+                static_cast<std::int16_t>(215 - width), 1},
                UiColorToken::CursorRow);
 }
 
@@ -90,7 +90,7 @@ RectI16 UiSampleEditorView::CursorTargetRect(UiSampleEditorCursor cursor) {
   case UiSampleEditorCursor::Field4:
     return {7, 177, 226, 9};
   case UiSampleEditorCursor::Save:
-  case UiSampleEditorCursor::SaveAndLoad:
+  case UiSampleEditorCursor::SaveAs:
   case UiSampleEditorCursor::Discard:
   case UiSampleEditorCursor::None:
     return {};
@@ -123,8 +123,6 @@ void UiSampleEditorView::RenderDelta(const UiSampleEditorViewData &previous,
   if (previous.field4Label != current.field4Label ||
       previous.field4Value != current.field4Value)
     render({5, 176, 230, 12});
-  if (previous.help != current.help)
-    render({5, 191, 230, 16});
   const RectI16 oldCursor =
       ResolvedCursorRect(previous, CursorTargetRect(previous));
   const RectI16 newCursor =
@@ -136,7 +134,8 @@ void UiSampleEditorView::RenderDelta(const UiSampleEditorViewData &previous,
   }
   if (previous.bottomActions != current.bottomActions ||
       previous.bottomActionCount != current.bottomActionCount ||
-      previous.bottomActive != current.bottomActive)
+      previous.bottomActive != current.bottomActive ||
+      previous.enterDigitFocus != current.enterDigitFocus)
     render({0, 208, 240, 32});
 }
 
@@ -148,16 +147,26 @@ UiBuildStatus UiSampleEditorView::Build(const UiSampleEditorViewData &data,
   scene.bottomVisible = true;
   scene.topBackground = UiColorToken::SurfaceTopBar;
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
-  const UiTopBarModel top{.title = "SAMPLE EDIT", .power = data.power};
+  const UiTopBarModel top{.title = "SAMPLE EDIT", .power = data.power, .backNavigation = true};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;
-  UiBottomBarModel bottom{.kind = UiBottomBarKind::Actions};
+  UiBottomBarModel bottom{.kind = data.bottomActionCount == 0U
+                                     ? UiBottomBarKind::Hidden
+                                     : UiBottomBarKind::Actions};
+  scene.bottomVisible = data.bottomActionCount != 0U;
   bottom.actions.actions = data.bottomActions;
   bottom.actions.count = std::min<std::uint8_t>(
       data.bottomActionCount,
       static_cast<std::uint8_t>(data.bottomActions.size()));
   bottom.actions.active = data.bottomActive;
+  if (data.enterDigitFocus && (data.cursor == UiSampleEditorCursor::Start ||
+                               data.cursor == UiSampleEditorCursor::End)) {
+    bottom.kind = UiBottomBarKind::AdjustmentLegend;
+    bottom.adjustment.fineLabel = "DIGIT";
+    bottom.adjustment.coarseLabel = "VALUE";
+    scene.bottomVisible = true;
+  }
   const UiBuildStatus bottomStatus =
       UiChromeRenderer::BuildBottom(bottom, scene.bottom);
   if (bottomStatus != UiBuildStatus::Built)
@@ -179,8 +188,6 @@ UiBuildStatus UiSampleEditorView::Build(const UiSampleEditorViewData &data,
   DrawField(builder, "END", data.end, 156);
   DrawField(builder, data.field3Label, data.field3Value, 167);
   DrawField(builder, data.field4Label, data.field4Value, 178);
-  if (!data.help.empty())
-    builder.Text(data.help, 9, 198, UiColorToken::DerivedTextFaint);
   if (!waveformFocused && !cursor.Empty())
     builder.Selection(cursor);
   if (data.cursorInkVisible) {
@@ -219,7 +226,7 @@ UiBuildStatus UiSampleEditorView::Build(const UiSampleEditorViewData &data,
       break;
     case UiSampleEditorCursor::Waveform:
     case UiSampleEditorCursor::Save:
-    case UiSampleEditorCursor::SaveAndLoad:
+    case UiSampleEditorCursor::SaveAs:
     case UiSampleEditorCursor::Discard:
     case UiSampleEditorCursor::None:
       break;
@@ -295,7 +302,7 @@ UiBuildStatus UiSampleSlicesView::Build(const UiSampleSlicesViewData &data,
   scene.bottomVisible = true;
   scene.topBackground = UiColorToken::SurfaceTopBar;
   scene.bottomBackground = UiColorToken::SurfaceBottomBar;
-  const UiTopBarModel top{.title = "SLICES", .power = data.power};
+  const UiTopBarModel top{.title = "SLICES", .power = data.power, .backNavigation = true};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;

@@ -36,10 +36,13 @@ public:
     uppercase_ = true;
     focus_ = Focus::Input;
     active_ = true;
+    nameConflict_ = false;
     ++instanceId_;
     input_ = {};
     releaseGate_.BlockUntilRelease(trigger);
   }
+
+  void ReportNameConflict() { nameConflict_ = true; }
 
   [[nodiscard]] bool Active() const { return active_; }
   [[nodiscard]] const char *Value() const { return draft_.data(); }
@@ -127,7 +130,7 @@ public:
     Ui2DialogSnapshot snapshot;
     snapshot.kind = UiDialogKind::Rename;
     snapshot.SetTitle("RENAME");
-    snapshot.SetLabel("NAME");
+    snapshot.SetLabel(nameConflict_ ? "NAME ALREADY EXISTS" : "NAME");
     snapshot.SetValue(draft_.data());
     snapshot.PushAction(UiDialogAction::Cancel);
     snapshot.PushAction(UiDialogAction::Random);
@@ -163,6 +166,7 @@ private:
   void Append(char character) {
     if (length_ >= maximumLength_)
       return;
+    nameConflict_ = false;
     draft_[length_++] = character;
     draft_[length_] = '\0';
   }
@@ -171,6 +175,7 @@ private:
       Append(character);
   }
   void Backspace() {
+    nameConflict_ = false;
     if (length_ != 0U)
       draft_[--length_] = '\0';
     if (!CanSave() && selectedAction_ == 2U)
@@ -275,6 +280,7 @@ private:
   Focus focus_ = Focus::Input;
   bool uppercase_ = true;
   bool active_ = false;
+  bool nameConflict_ = false;
 };
 
 } // namespace ui2

@@ -1128,7 +1128,8 @@ Ui2NativeApplicationStateSource::CaptureRecord(UiRecordFrameState &state) {
                                      "HEADPHONE MIC"};
   CopyUiText(state.snapshot.source, sources[source]);
   const std::uint32_t elapsedSeconds =
-      GetRecordingElapsedMilliseconds() / 1000U;
+      (IsRecordingActive() || IsSavingRecording())
+          ? GetRecordingElapsedMilliseconds() / 1000U : 0U;
   std::snprintf(
       state.snapshot.elapsed.data(), state.snapshot.elapsed.size(), "%02u:%02u",
       static_cast<unsigned>(std::min<std::uint32_t>(elapsedSeconds / 60U, 99U)),
@@ -1137,7 +1138,7 @@ Ui2NativeApplicationStateSource::CaptureRecord(UiRecordFrameState &state) {
   state.snapshot.sourceSelectable = sourceSelectable;
   const bool available = record_.Available();
   state.snapshot.recordingAvailable = available;
-  state.snapshot.meterAvailable = IsMonitoringActive() || IsRecordingActive();
+  state.snapshot.meterAvailable = IsRecordingActive();
   if (state.snapshot.meterAvailable) {
     const std::uint32_t width =
         (static_cast<std::uint32_t>(GetRecordingInputPeak()) * 222U) / 32767U;
@@ -1166,10 +1167,8 @@ Ui2NativeApplicationStateSource::CaptureRecord(UiRecordFrameState &state) {
     }
   }
   state.cursorInkVisible = available && sourceSelectable;
-  const bool recordingBusy =
-      available && (state.snapshot.state != RecordViewUi2State::Idle ||
-                    IsMonitoringActive());
-  return {.active = PlayerRunning() || recordingBusy};
+  // Microphone capture is not song playback; keep the battery in the header.
+  return {.active = PlayerRunning()};
 }
 
 } // namespace ui2

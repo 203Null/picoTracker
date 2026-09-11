@@ -592,11 +592,20 @@ bool Ui2TrackerApplication::TryNavigate(TrackerAction action) {
       target = BrowserReturnPage();
     break;
   case UiApplicationPage::SampleEditor:
+    if (action == TrackerAction::Left) {
+      RequestSampleEditorBack(action);
+      return true;
+    }
+    break;
   case UiApplicationPage::SampleSlices:
     if (action == TrackerAction::Left)
       target = samples_.returnPage;
     break;
   case UiApplicationPage::Record:
+    if (action == TrackerAction::Left) {
+      target = UiApplicationPage::Instrument;
+    }
+    break;
   case UiApplicationPage::None:
     break;
   }
@@ -629,7 +638,8 @@ bool Ui2TrackerApplication::TryNavigate(TrackerAction action) {
       source_.SetInstrumentBrowserActive(false);
     }
   }
-  ActivatePage(target);
+  if (target != activePage_ && !ActivatePage(target))
+    return true;
   if (trackerTarget != Ui2TrackerPage::None) {
     tracker_.Hub().Activate(trackerTarget);
     modelPort_.StoreGridState(tracker_.Hub().State());
@@ -771,7 +781,6 @@ bool Ui2TrackerApplication::ActivatePage(UiApplicationPage page) {
         static_cast<std::uint8_t>(value(FourCC::VarRecordSource)));
     SetInputSource(static_cast<RecordSource>(
         std::clamp(value(FourCC::VarRecordSource), 0, 2)));
-    StartMonitoring();
   }
   const Ui2TrackerPage trackerPage = TrackerPageFor(page);
   if (trackerPage != Ui2TrackerPage::None) {
@@ -1191,7 +1200,11 @@ void Ui2TrackerApplication::HandleRename(TrackerAction action, bool pressed) {
   if (command == Ui2RenameCommand::Randomize) {
     rename_.Randomize(System::GetInstance()->GetRandomNumber());
   } else if (command == Ui2RenameCommand::Save) {
-    if (renameTarget_ == RenameTarget::Instrument) {
+    if (renameTarget_ == RenameTarget::SampleSaveAs) {
+      renameTarget_ = RenameTarget::None;
+      SaveSampleAs(rename_.Value());
+      return;
+    } else if (renameTarget_ == RenameTarget::Instrument) {
       InstrumentBank *bank = session_.ProjectModel().GetInstrumentBank();
       I_Instrument *instrument =
           bank == nullptr ? nullptr
@@ -1602,7 +1615,6 @@ void Ui2TrackerApplication::ExecuteRecord(Ui2RecordCommand command) {
     constexpr const char *recordingPath = RECORDINGS_DIR "/" RECORDING_FILENAME;
     if (!StartRecording(recordingPath, 0U, 0U)) {
       ShowFeedbackError("RECORDING START FAILED");
-      StartMonitoring();
       return;
     }
     recordSessionPending_ = true;
@@ -1627,15 +1639,11 @@ void Ui2TrackerApplication::TickRecordLifecycle() {
   recordSessionPending_ = false;
   if (!DidLastRecordingCaptureAudio()) {
     ShowFeedbackError("RECORDING SAVE FAILED");
-    if (activePage_ == UiApplicationPage::Record)
-      StartMonitoring();
     return;
   }
   constexpr const char *recordingPath = RECORDINGS_DIR "/" RECORDING_FILENAME;
   if (!OpenSampleEditor(recordingPath, false, UiApplicationPage::Record)) {
     ShowFeedbackError("RECORDING OPEN FAILED");
-    if (activePage_ == UiApplicationPage::Record)
-      StartMonitoring();
   }
 }
 

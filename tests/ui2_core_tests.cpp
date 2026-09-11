@@ -2402,6 +2402,9 @@ TEST_CASE("UI2 submenu back hint appears only while navigating") {
       CHECK(FindTextCommand(scene.top.Stream(), "BACK") == nullptr);
     }
   };
+  check(ui2::UiSampleEditorViewData{}, ui2::UiSampleEditorView::Build);
+  check(ui2::UiSampleSlicesViewData{}, ui2::UiSampleSlicesView::Build);
+  check(ui2::UiRecordViewData{}, ui2::UiRecordView::Build);
   check(ui2::UiFontViewData{}, ui2::UiFontView::Build);
   check(ui2::UiThemeViewData{}, ui2::UiThemeView::Build);
   check(ui2::test::ApprovedBrowserFixture("projects"), ui2::UiBrowserView::Build);
@@ -4581,9 +4584,9 @@ TEST_CASE("UI2 Record centers semantic state text and saving progress") {
     bool bottomVisible;
   };
   constexpr std::array cases{
-      Case{ui2::UiRecordState::Armed, "PRESS PLAY TO RECORD",
+      Case{ui2::UiRecordState::Armed, "PRESS ENTER TO RECORD",
            ui2::UiColorToken::PlaybackActive, true},
-      Case{ui2::UiRecordState::Recording, "PRESS PLAY TO STOP",
+      Case{ui2::UiRecordState::Recording, "PRESS ENTER TO STOP",
            ui2::UiColorToken::SystemError, true},
       Case{ui2::UiRecordState::Saving, "SAVING",
            ui2::UiColorToken::SystemWarning, false},
@@ -4602,6 +4605,8 @@ TEST_CASE("UI2 Record centers semantic state text and saving progress") {
     REQUIRE(ui2::UiRecordView::Build(data, palette, scene) ==
             ui2::UiBuildStatus::Built);
     CHECK(scene.bottomVisible == test.bottomVisible);
+    CHECK((FindTextCommand(scene.content.Stream(), "LEVEL") != nullptr) ==
+          (test.state == ui2::UiRecordState::Recording));
     if (test.state == ui2::UiRecordState::Unavailable)
       CHECK(ui2::UiRecordView::CursorTargetRect(data.focus).Empty());
 
@@ -4610,15 +4615,21 @@ TEST_CASE("UI2 Record centers semantic state text and saving progress") {
     REQUIRE(instruction != nullptr);
     CHECK(instruction->bounds.x ==
           120 - ui2::UiFont5x7::TextWidth(test.text.size()) / 2);
-    CHECK(instruction->bounds.y == 164);
+    CHECK(instruction->bounds.y == 145);
     CHECK(instruction->color == palette.Index(test.color));
 
+    if (test.state != ui2::UiRecordState::Saving) {
+      const auto *timer = FindTextCommand(scene.content.Stream(), data.elapsed);
+      REQUIRE(timer != nullptr);
+      CHECK(timer->bounds.x + timer->bounds.width / 2 == 120);
+      CHECK(timer->bounds.y + timer->bounds.height / 2 == 120);
+    }
     if (test.state == ui2::UiRecordState::Saving) {
       const ui2::UiCommand *progress =
           FindTextCommand(scene.content.Stream(), "42%");
       REQUIRE(progress != nullptr);
       CHECK(progress->bounds.x == 120 - ui2::UiFont5x7::TextWidth(3U, 2U) / 2);
-      CHECK(progress->bounds.y == 132);
+      CHECK(progress->bounds.y == 113);
       CHECK(progress->color == palette.Index(ui2::UiColorToken::SystemWarning));
     }
   }
@@ -4783,9 +4794,9 @@ TEST_CASE("UI2 Sample Editor adapter owns controller text waveform and modes") {
   CHECK(data.name == "LIVE TAKE");
   CHECK(data.start == "0000123");
   CHECK(data.end == "0004567");
-  CHECK(data.field3Label == "OP");
-  CHECK(data.field3Value == "PEAK NORMALIZE");
-  CHECK(data.field4Label == "APPLY");
+  CHECK(data.field3Label == "OPERATION");
+  CHECK(data.field3Value.empty());
+  CHECK(data.field4Label == "SAVE");
   CHECK(data.waveformMask.size() ==
         ui2::test::kApprovedSampleEditorWaveform.size());
   CHECK(data.waveformMask.front() ==
@@ -4806,26 +4817,30 @@ TEST_CASE("UI2 Sample Editor adapter owns controller text waveform and modes") {
   ui2::UiFrameScene scene;
   REQUIRE(ui2::UiSampleEditorView::Build(data, palette, scene) ==
           ui2::UiBuildStatus::Built);
-  CHECK(FindTextCommand(scene.content.Stream(), "OP") != nullptr);
-  CHECK(FindTextCommand(scene.content.Stream(), "PEAK NORMALIZE") != nullptr);
-  CHECK(FindTextCommand(scene.content.Stream(), data.help) != nullptr);
+  CHECK(FindTextCommand(scene.content.Stream(), "OP") == nullptr);
+  CHECK(FindTextCommand(scene.content.Stream(), "OPERATION") != nullptr);
+  CHECK(FindTextCommand(scene.content.Stream(), "SAVE") != nullptr);
+  CHECK(FindTextCommand(scene.content.Stream(), data.help) == nullptr);
+  const auto *title = FindTextCommand(scene.top.Stream(), "SAMPLE EDIT");
+  REQUIRE(title != nullptr);
+  CHECK(title->bounds.width == ui2::UiFont5x7::TextWidth(11U, 2U));
 
   SampleEditorViewUi2Snapshot library = snapshot;
-  library.focus = SampleEditorViewUi2Focus::SaveAndLoad;
+  library.focus = SampleEditorViewUi2Focus::Save;
   library.projectPool = false;
   const auto libraryState = ui2::MakeUiSampleEditorControllerState(library);
   const auto libraryData = libraryState.ToViewData();
-  CHECK(libraryData.bottomActionCount == 3U);
-  CHECK(libraryData.bottomActions[1] == "SAVE&LOAD");
-  CHECK(libraryData.bottomActive == 1U);
+  CHECK(libraryData.bottomActionCount == 2U);
+  CHECK(libraryData.bottomActions[0] == "SAVE");
+  CHECK(libraryData.bottomActive == 0U);
 
   library.projectPool = true;
-  library.focus = SampleEditorViewUi2Focus::Discard;
+  library.focus = SampleEditorViewUi2Focus::Save;
   const auto poolState = ui2::MakeUiSampleEditorControllerState(library);
   const auto poolData = poolState.ToViewData();
   CHECK(poolData.bottomActionCount == 2U);
-  CHECK(poolData.bottomActions[1] == "DISCARD");
-  CHECK(poolData.bottomActive == 1U);
+  CHECK(poolData.bottomActions[0] == "SAVE");
+  CHECK(poolData.bottomActive == 0U);
 
   SampleEditorViewUi2Snapshot noMutation = snapshot;
   noMutation.fileMutationAvailable = false;
@@ -4833,18 +4848,18 @@ TEST_CASE("UI2 Sample Editor adapter owns controller text waveform and modes") {
   const auto noMutationState =
       ui2::MakeUiSampleEditorControllerState(noMutation);
   const auto noMutationData = noMutationState.ToViewData();
-  CHECK(noMutationData.field4Label.empty());
+  CHECK(noMutationData.field4Label == "SAVE");
   CHECK(noMutationData.help == "LEFT/RIGHT BROWSE (NO APPLY)");
   CHECK(noMutationData.cursor == ui2::UiSampleEditorCursor::Field3);
-  CHECK(noMutationData.bottomActionCount == 1U);
-  CHECK(noMutationData.bottomActions[0] == "DISCARD");
+  CHECK(noMutationData.bottomActionCount == 2U);
+  CHECK(noMutationData.bottomActions[0] == "TRIM");
   ui2::UiFrameScene noMutationScene;
   REQUIRE(ui2::UiSampleEditorView::Build(noMutationData, palette,
                                          noMutationScene) ==
           ui2::UiBuildStatus::Built);
   CHECK(FindTextCommand(noMutationScene.content.Stream(), "APPLY") == nullptr);
   CHECK(FindTextCommand(noMutationScene.bottom.Stream(), "SAVE") == nullptr);
-  CHECK(FindTextCommand(noMutationScene.bottom.Stream(), "DISCARD") !=
+  CHECK(FindTextCommand(noMutationScene.bottom.Stream(), "NORMALIZE") !=
         nullptr);
 }
 
@@ -5420,5 +5435,43 @@ TEST_CASE("Device Shift hint leaves no pixels after battery is restored") {
     ui2::UiFrameRenderer::RenderStatic(scene, expected, palette);
     CHECK(std::equal(surface.Pixels().begin(), surface.Pixels().end(), expected.Pixels().begin()));
     previous = current;
+  }
+}
+
+TEST_CASE("Sample and Record Shift hints redraw cleanly on press and release") {
+  const auto check = [](auto previous, auto build, auto delta) {
+    auto current = previous;
+    current.power = ui2::UiPowerState::Navigation;
+    CheckDeltaMatchesFullFrame(previous, current, build, delta);
+    CheckDeltaMatchesFullFrame(current, previous, build, delta);
+  };
+  check(ui2::UiSampleEditorViewData{}, ui2::UiSampleEditorView::Build,
+        ui2::UiSampleEditorView::RenderDelta);
+  check(ui2::UiSampleSlicesViewData{}, ui2::UiSampleSlicesView::Build,
+        ui2::UiSampleSlicesView::RenderDelta);
+  check(ui2::UiRecordViewData{}, ui2::UiRecordView::Build,
+        ui2::UiRecordView::RenderDelta);
+}
+
+TEST_CASE("Sample endpoints show Edit and the shared digit/value legend") {
+  for (const auto focus : {SampleEditorViewUi2Focus::Start, SampleEditorViewUi2Focus::End}) {
+    SampleEditorViewUi2Snapshot snapshot{};
+    snapshot.focus = focus;
+    CopyUi2SnapshotText(snapshot.start, "0000000");
+    CopyUi2SnapshotText(snapshot.end, "000007F");
+    const auto idleState = ui2::MakeUiSampleEditorControllerState(snapshot);
+    const auto heldState = ui2::MakeUiSampleEditorControllerState(snapshot, ui2::UiPowerState::BatteryNormal, {.enterHeld = true});
+    const auto idle = idleState.ToViewData();
+    const auto held = heldState.ToViewData();
+    ui2::UiPalette palette;
+    ui2::UiFrameScene scene;
+    REQUIRE(ui2::UiSampleEditorView::Build(idle, palette, scene) == ui2::UiBuildStatus::Built);
+    REQUIRE(FindTextCommand(scene.bottom.Stream(), "EDIT") != nullptr);
+    REQUIRE(ui2::UiSampleEditorView::Build(held, palette, scene) == ui2::UiBuildStatus::Built);
+    CHECK(FindTextCommand(scene.bottom.Stream(), "DIGIT") != nullptr);
+    CHECK(FindTextCommand(scene.bottom.Stream(), "VALUE") != nullptr);
+    CHECK(FindTextCommand(scene.bottom.Stream(), "EDIT") == nullptr);
+    CheckDeltaMatchesFullFrame(idle, held, ui2::UiSampleEditorView::Build, ui2::UiSampleEditorView::RenderDelta);
+    CheckDeltaMatchesFullFrame(held, idle, ui2::UiSampleEditorView::Build, ui2::UiSampleEditorView::RenderDelta);
   }
 }

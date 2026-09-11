@@ -52,6 +52,40 @@ test('Sample Import opens OS picker, renames, persists and loads the chosen WAV'
   await tap(page, 'd') // Edit
   await tap(page, 'k')
   await page.screenshot({ path: 'test-results/sample-import-editor.png' })
+  const original = await page.evaluate((p) => globalThis.__picoTrackerStorageTest.read(`/data/projects/${p}/samples/ImportedKick.wav`), project)
+  await page.locator('#picotracker-canvas').screenshot({ path: 'test-results/sample-start-edit.png' })
+  for (let i = 0; i < 6; i++) await tap(page, 'd')
+  await page.keyboard.down('k')
+  await page.waitForTimeout(120)
+  await page.locator('#picotracker-canvas').screenshot({ path: 'test-results/sample-start-digit-value.png' })
+  await tap(page, 'w') // Trim one frame from the start.
+  await page.keyboard.up('k')
+  await page.keyboard.down('c')
+  await tap(page, 'a') // Range-only edits also need an unsaved warning.
+  await page.keyboard.up('c')
+  await page.locator('#picotracker-canvas').screenshot({ path: 'test-results/sample-range-unsaved.png' })
+  await tap(page, 'k') // No: retain the edited start point.
+  await tap(page, 's') // END
+  await tap(page, 's') // OPERATION
+  await tap(page, 'k') // Trim starts immediately; no confirmation.
+  await page.waitForTimeout(500)
+  await page.keyboard.down('c')
+  await tap(page, 'a') // Unsaved edits require confirmation.
+  await page.keyboard.up('c')
+  await page.locator('#picotracker-canvas').screenshot({ path: 'test-results/sample-edit-unsaved.png' })
+  await tap(page, 'k') // No: keep editing.
+  await tap(page, 's') // SAVE
+  await tap(page, 'd') // Save As
+  await page.locator('#picotracker-canvas').screenshot({ path: 'test-results/sample-save-as.png' })
+  await tap(page, 'k')
+  await tap(page, 'w') // Keep suggested ImportedKick-copy name.
+  await tap(page, 'k')
+  await expect.poll(() => page.evaluate(() => globalThis.__picoTrackerStorageTest.exists('/data/samples/ImportedKick-copy.wav'))).toBe(true)
+  expect(await page.evaluate((p) => globalThis.__picoTrackerStorageTest.read(`/data/projects/${p}/samples/ImportedKick.wav`), project)).toEqual(original)
+  const copy = await page.evaluate(() => globalThis.__picoTrackerStorageTest.read('/data/samples/ImportedKick-copy.wav'))
+  expect(copy.length).toBe(original.length - 2)
+  await expect.poll(() => page.evaluate(() => globalThis.__picoTrackerViewsTest.modelSnapshot().sampleCount)).toBe(2)
+
   await page.evaluate(() => globalThis.__picoTrackerStorageTest.flush())
   await page.reload()
   await expect(page.locator('[data-runtime-state="ready"]')).toBeVisible({ timeout: 20000 })

@@ -939,7 +939,8 @@ TEST_CASE("UI2 Record can use a platform-managed input route") {
 
   CHECK_FALSE(Tap(controller, TrackerAction::Left).HasValue());
   CHECK_FALSE(Tap(controller, TrackerAction::Right).HasValue());
-  CHECK(Tap(controller, TrackerAction::Play).type ==
+  CHECK_FALSE(Tap(controller, TrackerAction::Play).HasValue());
+  CHECK(Tap(controller, TrackerAction::Enter).type ==
         Ui2RecordCommandType::ToggleRecording);
 }
 
@@ -1582,4 +1583,15 @@ TEST_CASE("Sample Record is available before loading and precedes Edit") {
   CHECK(controller.SampleAction() == 0U);
   Tap(controller, TrackerAction::Right); // Record on a platform without Import
   CHECK(Tap(controller, TrackerAction::Enter).value == 1);
+}
+
+TEST_CASE("Rename keeps a visible duplicate-name error until the draft changes") {
+  using namespace ui2;
+  Ui2RenameController controller;
+  controller.Begin("Recording", 20U);
+  controller.ReportNameConflict();
+  CHECK(std::string_view(controller.Snapshot().label.data()) == "NAME ALREADY EXISTS");
+  Tap(controller, TrackerAction::Option);
+  CHECK(std::string_view(controller.Snapshot().label.data()) == "NAME");
+  CHECK(std::string_view(controller.Value()) == "Recordin");
 }

@@ -1518,24 +1518,14 @@ UiApplicationRuntime::PresentSampleEditor(IUiApplicationStateSource &source,
   current.power = CurrentPowerState(source, activity.active);
   const RectI16 target =
       UiSampleEditorView::CursorTargetRect(ViewDataFor(current));
-  if (target.Empty()) {
-    if (!cursorTargetValid_ || target != cursorTarget_)
-      cursors_.Snap(UiCursorRole::Content, target, nowMs);
-    cursorTarget_ = target;
-    cursorTargetValid_ = true;
-  } else if (!cursorTargetValid_) {
-    cursors_.Snap(UiCursorRole::Content, target, nowMs);
-    cursorTarget_ = target;
-    cursorTargetValid_ = true;
-  } else if (target != cursorTarget_) {
-    cursors_.Retarget(UiCursorRole::Content, target, nowMs,
-                      kListCursorDurationMs);
-    cursorTarget_ = target;
-  }
-  current.cursorVisualRect = cursors_.Sample(UiCursorRole::Content, nowMs);
+  // Waveform and field cursors have very different sizes. Snap between them
+  // so every input edge leaves a visible selection, including rapid repeats.
+  cursors_.Snap(UiCursorRole::Content, target, nowMs);
+  cursorTarget_ = target;
+  cursorTargetValid_ = true;
+  current.cursorVisualRect = target;
   current.cursorVisualOverride = !target.Empty();
-  current.cursorInkVisible = current.cursorInkVisible && !target.Empty() &&
-                             !cursors_.Active(UiCursorRole::Content, nowMs);
+  current.cursorInkVisible = current.cursorInkVisible && !target.Empty();
 
   const bool baseChanged = !previousValid_ || !(current == previous);
   if (!baseChanged && !DialogChanged())

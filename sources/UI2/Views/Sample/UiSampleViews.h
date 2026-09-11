@@ -41,7 +41,7 @@ enum class UiSampleEditorCursor : std::uint8_t {
   Field3,
   Field4,
   Save,
-  SaveAndLoad,
+  SaveAs,
   Discard,
   None,
 };

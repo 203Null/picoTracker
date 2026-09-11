@@ -31,7 +31,7 @@ enum class Ui2SampleEditorCommandType : std::uint8_t {
   ApplyConfirmed,
   CancelApply,
   RequestSave,
-  RequestSaveAndLoad,
+  RequestSaveAs,
   RequestDiscard,
   NavigateBack,
 };
@@ -100,6 +100,10 @@ public:
   [[nodiscard]] SampleEditorViewUi2Focus Focus() const { return focus_; }
   [[nodiscard]] std::uint32_t Start() const { return start_; }
   [[nodiscard]] std::uint32_t End() const { return end_; }
+  [[nodiscard]] bool HasRangeEdits() const {
+    return active_ && waveform_.FrameCount() > 0U &&
+           (start_ != 0U || end_ != waveform_.FrameCount() - 1U);
+  }
   [[nodiscard]] std::uint16_t HeldMask() const { return input_.Mask(); }
   [[nodiscard]] Ui2SampleEditorOperation Operation() const {
     return operation_;
@@ -111,7 +115,7 @@ public:
   void SetTransactionCapabilities(bool rewriteAvailable) {
     rewriteAvailable_ = rewriteAvailable;
     if (!FocusAvailable(focus_))
-      focus_ = SampleEditorViewUi2Focus::Waveform;
+      focus_ = SampleEditorViewUi2Focus::Start;
   }
 
   [[nodiscard]] bool ReloadPath(FileSystem &fileSystem, const char *path) {
@@ -128,7 +132,7 @@ public:
     waveform_.CenterOn(0U);
     RebuildWaveform();
     if (!FocusAvailable(focus_))
-      focus_ = SampleEditorViewUi2Focus::Waveform;
+      focus_ = SampleEditorViewUi2Focus::Start;
     return waveformReady_;
   }
 
@@ -171,15 +175,31 @@ public:
     return dialogActive_ && dialogProgress_;
   }
 
+  void RequestDiscardConfirmation(TrackerAction trigger) {
+    if (!active_)
+      return;
+    dialogDiscard_ = true;
+    dialogProgress_ = false;
+    dialogSelectedAction_ = 0U;
+    dialogInput_ = {};
+    dialogReleaseGate_.Reset();
+    if (TrackerActionIsValid(trigger))
+      input_.Update(trigger, false);
+    dialogReleaseGate_.BlockUntilRelease(trigger);
+    dialogActive_ = true;
+    ++dialogInstanceId_;
+  }
+
   void RequestApplyConfirmation(Ui2SampleEditorOperation operation,
                                 std::uint32_t start, std::uint32_t end,
                                 TrackerAction trigger = TrackerAction::Count) {
     if (!active_ || !rewriteAvailable_ || end < start)
       return;
+    dialogDiscard_ = false;
     pendingOperation_ = operation;
     pendingStart_ = start;
     pendingEnd_ = end;
-    dialogSelectedAction_ = 1U; // NO is the conservative legacy default.
+    dialogSelectedAction_ = 0U; // NO is the conservative legacy default.
     dialogProgress_ = false;
     dialogProgressPercent_ = 0U;
     dialogInput_ = {};
@@ -202,18 +222,21 @@ public:
       return MakeCommand(Ui2SampleEditorCommandType::CancelApply);
     }
     if (action == TrackerAction::Left || action == TrackerAction::Right) {
-      dialogSelectedAction_ = static_cast<std::uint8_t>(
-          1U - std::min<std::uint8_t>(dialogSelectedAction_, 1U));
+      dialogSelectedAction_ = action == TrackerAction::Right ? 1U : 0U;
       return {};
     }
     if (action != TrackerAction::Enter)
       return {};
-    const bool confirmed = dialogSelectedAction_ == 0U;
+    const bool confirmed = dialogSelectedAction_ == 1U;
     dialogActive_ = false;
     dialogInput_ = {};
     dialogReleaseGate_.Reset();
     if (!confirmed)
       return {};
+    if (dialogDiscard_) {
+      dialogDiscard_ = false;
+      return MakeCommand(Ui2SampleEditorCommandType::RequestDiscard);
+    }
     Ui2SampleEditorCommand command =
         MakeCommand(Ui2SampleEditorCommandType::ApplyConfirmed);
     command.operation = pendingOperation_;
@@ -240,12 +263,20 @@ public:
       return snapshot;
     }
     snapshot.kind = UiDialogKind::Message;
+    if (dialogDiscard_) {
+      snapshot.SetTitle("Discard changes?");
+      snapshot.SetLabel("Unsaved edits will be lost");
+      snapshot.PushAction(UiDialogAction::No);
+      snapshot.PushAction(UiDialogAction::Yes);
+      snapshot.SetSelectedAction(dialogSelectedAction_, true);
+      return snapshot;
+    }
     snapshot.SetTitle(pendingOperation_ == Ui2SampleEditorOperation::Trim
                           ? "Apply TRIM?"
                           : "Apply NORMALIZE?");
     snapshot.SetLabel("Saved only after Save");
-    snapshot.PushAction(UiDialogAction::Yes);
     snapshot.PushAction(UiDialogAction::No);
+    snapshot.PushAction(UiDialogAction::Yes);
     snapshot.SetSelectedAction(dialogSelectedAction_, true);
     return snapshot;
   }
@@ -363,13 +394,10 @@ public:
       return {};
     }
 
-    if (focus_ == SampleEditorViewUi2Focus::Operation &&
-        (action == TrackerAction::Left || action == TrackerAction::Right ||
-         (enter &&
-          (action == TrackerAction::Up || action == TrackerAction::Down)))) {
-      operation_ = operation_ == Ui2SampleEditorOperation::Trim
-                       ? Ui2SampleEditorOperation::Normalize
-                       : Ui2SampleEditorOperation::Trim;
+    if (focus_ == SampleEditorViewUi2Focus::Operation && !enter && !option &&
+        (action == TrackerAction::Left || action == TrackerAction::Right)) {
+      operation_ = action == TrackerAction::Left ? Ui2SampleEditorOperation::Trim
+                                                : Ui2SampleEditorOperation::Normalize;
       return {};
     }
 
@@ -391,8 +419,9 @@ public:
       return {};
 
     switch (focus_) {
+    case SampleEditorViewUi2Focus::Operation:
     case SampleEditorViewUi2Focus::Apply: {
-      if (!FocusAvailable(focus_))
+      if (!rewriteAvailable_)
         return {};
       Ui2SampleEditorCommand command =
           MakeCommand(Ui2SampleEditorCommandType::RequestApplyOperation);
@@ -405,15 +434,14 @@ public:
       return FocusAvailable(focus_)
                  ? MakeCommand(Ui2SampleEditorCommandType::RequestSave)
                  : Ui2SampleEditorCommand{};
-    case SampleEditorViewUi2Focus::SaveAndLoad:
+    case SampleEditorViewUi2Focus::SaveAs:
       return FocusAvailable(focus_)
-                 ? MakeCommand(Ui2SampleEditorCommandType::RequestSaveAndLoad)
+                 ? MakeCommand(Ui2SampleEditorCommandType::RequestSaveAs)
                  : Ui2SampleEditorCommand{};
     case SampleEditorViewUi2Focus::Discard:
       return MakeCommand(Ui2SampleEditorCommandType::RequestDiscard);
     case SampleEditorViewUi2Focus::Start:
     case SampleEditorViewUi2Focus::End:
-    case SampleEditorViewUi2Focus::Operation:
     case SampleEditorViewUi2Focus::Waveform:
     case SampleEditorViewUi2Focus::Unknown:
       return {};
@@ -451,14 +479,12 @@ public:
   }
 
 private:
-  static constexpr std::array<SampleEditorViewUi2Focus, 8> kLibraryFocusOrder{
-      SampleEditorViewUi2Focus::Waveform,
+  static constexpr std::array<SampleEditorViewUi2Focus, 6> kLibraryFocusOrder{
       SampleEditorViewUi2Focus::Start,
       SampleEditorViewUi2Focus::End,
       SampleEditorViewUi2Focus::Operation,
-      SampleEditorViewUi2Focus::Apply,
       SampleEditorViewUi2Focus::Save,
-      SampleEditorViewUi2Focus::SaveAndLoad,
+      SampleEditorViewUi2Focus::SaveAs,
       SampleEditorViewUi2Focus::Discard,
   };
 
@@ -471,8 +497,11 @@ private:
     if (focus == SampleEditorViewUi2Focus::Apply ||
         focus == SampleEditorViewUi2Focus::Save)
       return rewriteAvailable_;
-    if (focus == SampleEditorViewUi2Focus::SaveAndLoad)
-      return rewriteAvailable_ && !projectPool_;
+    if (focus == SampleEditorViewUi2Focus::SaveAs)
+      return rewriteAvailable_;
+    if (focus == SampleEditorViewUi2Focus::Discard ||
+        focus == SampleEditorViewUi2Focus::Waveform)
+      return false;
     return focus != SampleEditorViewUi2Focus::Unknown;
   }
 
@@ -490,7 +519,7 @@ private:
     name_.fill('\0');
     waveformPacket_ = {};
     start_ = end_ = previewPlayhead_ = 0U;
-    focus_ = SampleEditorViewUi2Focus::Waveform;
+    focus_ = SampleEditorViewUi2Focus::Start;
     operation_ = Ui2SampleEditorOperation::Trim;
     selectedMarker_ = 0U;
     focusDigit_ = 0U;
@@ -503,7 +532,8 @@ private:
     dialogActive_ = false;
     dialogProgress_ = false;
     dialogProgressPercent_ = 0U;
-    dialogSelectedAction_ = 1U;
+    dialogSelectedAction_ = 0U;
+    dialogDiscard_ = false;
     pendingOperation_ = Ui2SampleEditorOperation::Trim;
     pendingStart_ = pendingEnd_ = 0U;
   }
@@ -614,12 +644,16 @@ private:
     std::array<SampleEditorViewUi2Focus, kLibraryFocusOrder.size()> order{};
     std::size_t count = 0U;
     for (SampleEditorViewUi2Focus candidate : kLibraryFocusOrder) {
+      if (candidate == SampleEditorViewUi2Focus::SaveAs)
+        continue;
       if (FocusAvailable(candidate))
         order[count++] = candidate;
     }
     std::size_t current = 0U;
     for (std::size_t index = 0U; index < count; ++index) {
-      if (order[index] == focus_) {
+      if (order[index] == focus_ ||
+          (focus_ == SampleEditorViewUi2Focus::SaveAs &&
+           order[index] == SampleEditorViewUi2Focus::Save)) {
         current = index;
         break;
       }
@@ -636,7 +670,7 @@ private:
 
   [[nodiscard]] bool IsBottomFocus() const {
     return focus_ == SampleEditorViewUi2Focus::Save ||
-           focus_ == SampleEditorViewUi2Focus::SaveAndLoad ||
+           focus_ == SampleEditorViewUi2Focus::SaveAs ||
            focus_ == SampleEditorViewUi2Focus::Discard;
   }
 
@@ -645,20 +679,10 @@ private:
       focus_ = SampleEditorViewUi2Focus::Discard;
       return;
     }
-    constexpr std::array<SampleEditorViewUi2Focus, 3> library{
-        SampleEditorViewUi2Focus::Save, SampleEditorViewUi2Focus::SaveAndLoad,
-        SampleEditorViewUi2Focus::Discard};
-    constexpr std::array<SampleEditorViewUi2Focus, 2> pool{
-        SampleEditorViewUi2Focus::Save, SampleEditorViewUi2Focus::Discard};
-    if (projectPool_) {
-      const std::size_t current = focus_ == pool[1] ? 1U : 0U;
-      focus_ = pool[(static_cast<int>(current) + delta + 2) % 2];
-    } else {
-      std::size_t current = focus_ == library[1]   ? 1U
-                            : focus_ == library[2] ? 2U
-                                                   : 0U;
-      focus_ = library[(static_cast<int>(current) + delta + 3) % 3];
-    }
+    constexpr std::array<SampleEditorViewUi2Focus, 2> actions{
+        SampleEditorViewUi2Focus::Save, SampleEditorViewUi2Focus::SaveAs};
+    const std::size_t current = focus_ == actions[1] ? 1U : 0U;
+    focus_ = actions[std::clamp<int>(static_cast<int>(current) + delta, 0, 1)];
   }
 
   Ui2SampleEditorCommand MakeCommand(Ui2SampleEditorCommandType type) const {
@@ -691,7 +715,7 @@ private:
   std::uint32_t start_ = 0U;
   std::uint32_t end_ = 0U;
   std::uint32_t previewPlayhead_ = 0U;
-  SampleEditorViewUi2Focus focus_ = SampleEditorViewUi2Focus::Waveform;
+  SampleEditorViewUi2Focus focus_ = SampleEditorViewUi2Focus::Start;
   Ui2SampleEditorOperation operation_ = Ui2SampleEditorOperation::Trim;
   Ui2SampleWaveformBuildResult lastBuild_ =
       Ui2SampleWaveformBuildResult::NotLoaded;
@@ -710,9 +734,10 @@ private:
   std::uint32_t pendingStart_ = 0U;
   std::uint32_t pendingEnd_ = 0U;
   Ui2SampleEditorOperation pendingOperation_ = Ui2SampleEditorOperation::Trim;
-  std::uint8_t dialogSelectedAction_ = 1U;
+  std::uint8_t dialogSelectedAction_ = 0U;
   std::uint8_t dialogProgressPercent_ = 0U;
   bool dialogProgress_ = false;
+  bool dialogDiscard_ = false;
   bool dialogActive_ = false;
 };
 

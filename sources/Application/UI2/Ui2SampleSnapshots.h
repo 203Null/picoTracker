@@ -19,7 +19,7 @@ enum class SampleEditorViewUi2Focus : std::uint8_t {
   Operation,
   Apply,
   Save,
-  SaveAndLoad,
+  SaveAs,
   Discard,
   Waveform,
   Unknown,

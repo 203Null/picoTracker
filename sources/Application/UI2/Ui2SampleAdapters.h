@@ -125,10 +125,9 @@ struct UiSampleEditorControllerState {
     data.name = detail::SampleCStringView(capture.name);
     data.start = detail::SampleCStringView(capture.start);
     data.end = detail::SampleCStringView(capture.end);
-    data.field3Label = "OP";
-    data.field3Value = detail::SampleCStringView(capture.operation);
-    data.field4Label =
-        capture.fileMutationAvailable ? "APPLY" : std::string_view{};
+    data.field3Label = "OPERATION";
+    data.field3Value = {};
+    data.field4Label = "SAVE";
     data.field4Value = {};
     data.help = detail::SampleCStringView(help);
     data.waveformMask = capture.waveformReady ? capture.waveform.Mask()
@@ -148,15 +147,26 @@ struct UiSampleEditorControllerState {
     data.projectPool = capture.projectPool;
     data.power = power;
     data.bottomActive = bottomActive;
-    if (!capture.fileMutationAvailable) {
-      data.bottomActions = {"DISCARD", {}, {}, {}};
+    if (capture.focus == SampleEditorViewUi2Focus::Start ||
+        capture.focus == SampleEditorViewUi2Focus::End) {
+      data.bottomActions = {"EDIT", {}, {}, {}};
       data.bottomActionCount = 1;
-    } else if (capture.projectPool) {
-      data.bottomActions = {"SAVE", "DISCARD", {}, {}};
+      data.bottomActive = 0;
+    } else if (capture.focus == SampleEditorViewUi2Focus::Operation ||
+        capture.focus == SampleEditorViewUi2Focus::Apply) {
+      data.bottomActions = {"TRIM", "NORMALIZE", {}, {}};
       data.bottomActionCount = 2;
+      data.bottomActive = detail::SampleCStringView(capture.operation) == "TRIM" ? 0U : 1U;
+    } else if (capture.focus == SampleEditorViewUi2Focus::Save ||
+               capture.focus == SampleEditorViewUi2Focus::Discard ||
+               capture.focus == SampleEditorViewUi2Focus::SaveAs) {
+      data.bottomActions = capture.fileMutationAvailable
+                               ? std::array<std::string_view, 4>{"SAVE", "SAVE AS", {}, {}}
+                               : std::array<std::string_view, 4>{"DISCARD", {}, {}, {}};
+      data.bottomActionCount = capture.fileMutationAvailable ? 2U : 1U;
     } else {
-      data.bottomActions = {"SAVE", "SAVE&LOAD", "DISCARD", {}};
-      data.bottomActionCount = 3;
+      data.bottomActions = {};
+      data.bottomActionCount = 0;
     }
     return data;
   }
@@ -208,7 +218,7 @@ inline UiSampleEditorControllerState MakeUiSampleEditorControllerState(
     if (!snapshot.fileMutationAvailable) {
       help = "APPLY UNAVAILABLE";
     } else {
-      state.cursor = UiSampleEditorCursor::Field4;
+      state.cursor = UiSampleEditorCursor::Field3;
       help = "ENTER APPLY OPERATION";
     }
     break;
@@ -216,24 +226,23 @@ inline UiSampleEditorControllerState MakeUiSampleEditorControllerState(
     if (!snapshot.fileMutationAvailable) {
       help = "SAVE UNAVAILABLE";
     } else {
-      state.cursor = UiSampleEditorCursor::Save;
+      state.cursor = UiSampleEditorCursor::Field4;
       state.bottomActive = 0;
       help = "ENTER SAVE";
     }
     break;
-  case SampleEditorViewUi2Focus::SaveAndLoad:
+  case SampleEditorViewUi2Focus::SaveAs:
     if (!snapshot.fileMutationAvailable) {
-      help = "SAVE AND LOAD UNAVAILABLE";
+      help = "SAVE AS UNAVAILABLE";
     } else {
-      state.cursor = UiSampleEditorCursor::SaveAndLoad;
-      state.bottomActive = snapshot.projectPool ? 0xFFU : 1U;
-      help = "ENTER SAVE AND LOAD";
+      state.cursor = UiSampleEditorCursor::Field4;
+      state.bottomActive = 1U;
+      help = "ENTER SAVE AS";
     }
     break;
   case SampleEditorViewUi2Focus::Discard:
-    state.cursor = UiSampleEditorCursor::Discard;
-    state.bottomActive =
-        !snapshot.fileMutationAvailable ? 0U : (snapshot.projectPool ? 1U : 2U);
+    state.cursor = UiSampleEditorCursor::Field4;
+    state.bottomActive = 0U;
     help = "ENTER DISCARD";
     break;
   case SampleEditorViewUi2Focus::Waveform:

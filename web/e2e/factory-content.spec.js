@@ -376,18 +376,13 @@ test('real oneCycAc project imports, trims, plays, and survives reload plus runt
   await tap(page, 's')
   await tap(page, 'k')
 
-  // waveform -> start; select the least-significant hex digit, then ENTER+UP
-  // changes the start frame from 0 to 1. Move through end and the default Trim
-  // operation to Apply, then select Yes in the modal.
-  await tap(page, 's')
+  // Start is selected on entry; choose the least-significant hex digit,
+  // then ENTER+UP moves it from 0 to 1. Enter on Operation starts Trim.
   for (let digit = 0; digit < 6; digit += 1) await tap(page, 'd')
   await chord(page, 'k', 'w')
   await tap(page, 's')
   await tap(page, 's')
-  await tap(page, 's')
   const beforeApply = await storageSnapshot(page)
-  await tap(page, 'k')
-  await tap(page, 'a')
   await tap(page, 'k')
   await expect.poll(
     async () => (await storageSnapshot(page)).mutationGeneration,

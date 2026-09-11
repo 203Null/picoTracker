@@ -39,7 +39,7 @@ void DrawSection(UiSceneBuilder<256, 1024> &builder, std::string_view label,
   builder.Text(label, 9, y, UiColorToken::TextColored);
   builder.Fill({static_cast<std::int16_t>(9 + width + 7),
                 static_cast<std::int16_t>(y + 3),
-                static_cast<std::int16_t>(222 - width), 1},
+                static_cast<std::int16_t>(215 - width), 1},
                UiColorToken::CursorRow);
 }
 
@@ -48,9 +48,9 @@ std::string_view Instruction(UiRecordState state) {
   case UiRecordState::Unavailable:
     return "RECORDING UNAVAILABLE";
   case UiRecordState::Armed:
-    return "PRESS PLAY TO RECORD";
+    return "PRESS ENTER TO RECORD";
   case UiRecordState::Recording:
-    return "PRESS PLAY TO STOP";
+    return "PRESS ENTER TO STOP";
   case UiRecordState::Saving:
     return "SAVING";
   }
@@ -96,14 +96,14 @@ UiBottomBarModel BottomBarFor(UiRecordState state) {
   UiBottomBarModel bottom{.kind = UiBottomBarKind::Hidden};
   if (state == UiRecordState::Armed) {
     bottom.kind = UiBottomBarKind::Actions;
-    bottom.actions.actions = {"MONITOR", "RECORD", {}, {}};
-    bottom.actions.count = 2;
-    bottom.actions.active = 1;
+    bottom.actions.actions = {"RECORD", {}, {}, {}};
+    bottom.actions.count = 1;
+    bottom.actions.active = 0;
   } else if (state == UiRecordState::Recording) {
     bottom.kind = UiBottomBarKind::Actions;
-    bottom.actions.actions = {"MONITOR", "STOP", {}, {}};
-    bottom.actions.count = 2;
-    bottom.actions.active = 1;
+    bottom.actions.actions = {"STOP", {}, {}, {}};
+    bottom.actions.count = 1;
+    bottom.actions.active = 0;
   }
   return bottom;
 }
@@ -129,15 +129,17 @@ void UiRecordView::RenderDelta(const UiRecordViewData &previous,
   if (previous.meterAvailable != current.meterAvailable ||
       previous.safeWidth != current.safeWidth ||
       previous.warningWidth != current.warningWidth) {
-    render({9, MeterY(current), 222, 14});
+    render({9, LevelLabelY(current), 222, 30});
   }
   if (previous.elapsed != current.elapsed ||
       previous.savingPercent != current.savingPercent ||
       previous.state != current.state) {
-    render({0, 128, 240, 56});
+    render({0, 109, 240, 56});
   }
-  if (previous.state != current.state)
+  if (previous.state != current.state) {
+    render({9, LevelLabelY(current), 222, 30});
     render({0, 208, 240, 32});
+  }
 
   const RectI16 oldCursor = ResolvedCursorRect(previous);
   const RectI16 newCursor = ResolvedCursorRect(current);
@@ -159,7 +161,8 @@ UiBuildStatus UiRecordView::Build(const UiRecordViewData &data, UiPalette &,
   const UiTopBarModel top{.title = "RECORD",
                           .meta = data.sourceSelectable ? data.source
                                                         : std::string_view{},
-                          .power = data.power};
+                          .power = data.power,
+                          .backNavigation = true};
   const UiBuildStatus topStatus = UiChromeRenderer::BuildTop(top, scene.top);
   if (topStatus != UiBuildStatus::Built)
     return topStatus;
@@ -175,9 +178,9 @@ UiBuildStatus UiRecordView::Build(const UiRecordViewData &data, UiPalette &,
     builder.Text("SOURCE", 9, 43, UiColorToken::TextDim);
     builder.Text(data.source, 92, 43, UiColorToken::TextNormal);
   }
-  DrawSection(builder, "LEVEL", LevelLabelY(data));
-  builder.Fill({9, MeterY(data), 222, 14}, UiColorToken::DerivedVuTrack);
-  if (data.meterAvailable) {
+  if (data.state == UiRecordState::Recording && data.meterAvailable) {
+    DrawSection(builder, "LEVEL", LevelLabelY(data));
+    builder.Fill({9, MeterY(data), 222, 14}, UiColorToken::DerivedVuTrack);
     const std::int16_t safe =
         static_cast<std::int16_t>(std::min<std::uint16_t>(data.safeWidth, 222));
     builder.Fill({9, MeterY(data), safe, 14}, UiColorToken::VuSafe);
@@ -192,7 +195,7 @@ UiBuildStatus UiRecordView::Build(const UiRecordViewData &data, UiPalette &,
   if (data.state == UiRecordState::Saving) {
     std::array<char, 6> progress{};
     FormatUiPercent100(data.savingPercent, progress);
-    builder.CenteredText(progress.data(), 120, 132, stateColor, 2);
+    builder.CenteredText(progress.data(), 120, 113, stateColor, 2);
   } else {
     const UiColorToken elapsedColor =
         data.state == UiRecordState::Recording
@@ -200,9 +203,9 @@ UiBuildStatus UiRecordView::Build(const UiRecordViewData &data, UiPalette &,
             : (data.state == UiRecordState::Unavailable
                    ? UiColorToken::TextDim
                    : UiColorToken::TextNormal);
-    builder.CenteredText(data.elapsed, 120, 132, elapsedColor, 2);
+    builder.CenteredText(data.elapsed, 120, 113, elapsedColor, 2);
   }
-  builder.CenteredText(Instruction(data.state), 120, 164, stateColor);
+  builder.CenteredText(Instruction(data.state), 120, 145, stateColor);
 
   const RectI16 cursor = ResolvedCursorRect(data);
   if (!cursor.Empty())

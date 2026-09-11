@@ -147,6 +147,8 @@ private:
   void CommitThemeName(const char *name, bool resetColors);
   void HandleFont(TrackerAction action, bool pressed);
   void HandleRename(TrackerAction action, bool pressed);
+  void SaveSampleAs(const char *name);
+  void RequestSampleEditorBack(TrackerAction trigger);
   void HandleMixer(TrackerAction action, bool pressed);
   void HandleInstrument(TrackerAction action, bool pressed);
   void HandleInstrumentLifecycle(TrackerAction action, bool pressed);
@@ -212,6 +214,7 @@ private:
     Instrument,
     Theme,
     NewTheme,
+    SampleSaveAs,
   };
   RenameTarget renameTarget_ = RenameTarget::None;
   bool instrumentBrowserActive_ = false;

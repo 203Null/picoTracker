@@ -49,7 +49,7 @@ public:
       return {};
     if (input_.Held(TrackerAction::Shift) || input_.Held(TrackerAction::Option))
       return {};
-    if (action == TrackerAction::Play)
+    if (action == TrackerAction::Enter)
       return {.type = Ui2RecordCommandType::ToggleRecording};
 
     if (!sourceSelectable_ ||

@@ -143,7 +143,7 @@ UiBuildStatus UiChromeRenderer::BuildTop(const UiTopBarModel &model,
   scene.Clear();
   BarBuilder builder(scene);
   const std::uint8_t titleScale =
-      (model.title.size() <= 7 || model.title == "FX SELECT") ? 2 : 1;
+      (model.title.size() <= 7 || model.title == "FX SELECT" || model.title == "SAMPLE EDIT") ? 2 : 1;
   builder.Text(model.title, 9, 10, UiColorToken::TextNormal, titleScale);
   if (!model.meta.empty()) {
     const std::int16_t metaX =
@@ -333,7 +333,7 @@ RectI16 UiChromeRenderer::MetaTargetRect(const UiTopBarModel &model) {
                              9 +
                              UiFont5x7::TextWidth(model.title.size(),
                                                   (model.title.size() <= 7 ||
-                                                   model.title == "FX SELECT")
+                                                   model.title == "FX SELECT" || model.title == "SAMPLE EDIT")
                                                       ? 2
                                                       : 1) +
                              7);
