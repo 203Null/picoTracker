@@ -272,7 +272,10 @@ void WasmEventManager::PumpFrame() {
 
   const double now = SDL_GetTicks64();
   if (now >= nextTick_) {
-    application.Tick(static_cast<std::uint32_t>(now));
+    // Controllers timestamp input through System::Millis(). SDL ticks start
+    // at SDL initialization, so mixing them with the system clock makes
+    // elapsed preview time wrap and hides the playhead immediately.
+    application.Tick(System::GetInstance()->Millis());
     if (application.Present() == ui2::PresentResult::Failed) {
       PicoTracker_Wasm_Fail("UI2 frame presentation failed");
       StopRuntime();
