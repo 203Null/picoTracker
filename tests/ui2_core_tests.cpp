@@ -4879,7 +4879,7 @@ TEST_CASE("UI2 Sample Slices adapter maps real markers focus and help") {
   snapshot.markers.Push(103U, Ui2WaveformMarkerKind::Slice, true);
   snapshot.markers.Push(177U, Ui2WaveformMarkerKind::Playhead, false);
   snapshot.selectedSlice = 1U;
-  snapshot.autoSliceCount = 16U;
+  snapshot.sliceCount = 16U;
   snapshot.definedMask = 0x0007U;
   snapshot.hasSample = true;
   snapshot.previewActive = true;
@@ -4896,7 +4896,7 @@ TEST_CASE("UI2 Sample Slices adapter maps real markers focus and help") {
   CHECK(data.slice == "02 / 03");
   CHECK(data.start == "0000064");
   CHECK(data.zoom == "4X");
-  CHECK(data.autoSliceCount == "16");
+  CHECK(data.sliceCount == 16U);
   REQUIRE(data.markers.size() == 3U);
   CHECK(data.markers[1].x == 103U);
   CHECK(data.markers[1].selected);

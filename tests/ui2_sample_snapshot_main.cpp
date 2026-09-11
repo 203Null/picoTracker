@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     data.cursor = ui2::UiSampleSlicesCursor::Start;
     data.start = "0000100";
     data.help = {};
-    data.autoSliceCount = "04";
+    data.sliceCount = 4;
     data.enterHeld = data.enterDigitFocus = state == "slices-digit";
     data.focusDigit = 5;
     status = ui2::UiSampleSlicesView::Build(data, palette, scene);

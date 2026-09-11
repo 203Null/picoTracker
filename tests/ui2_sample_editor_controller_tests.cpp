@@ -672,6 +672,15 @@ TEST_CASE("UI2 Sample Slices selects moves previews adds and deletes") {
   CHECK(controller.Handle(TrackerAction::Play, false).type ==
         Ui2SampleSlicesCommandType::PreviewStop);
 
+  // Enter alone keeps selection and slice count unchanged.
+  Tap(controller, TrackerAction::Enter);
+  CHECK(controller.Focus() == SampleSlicesViewUi2Focus::Waveform);
+  Tap(controller, TrackerAction::Right);
+  CHECK(controller.SelectedSlice() == 2U);
+  CHECK(controller.Focus() == SampleSlicesViewUi2Focus::Waveform);
+  Tap(controller, TrackerAction::Left);
+  CHECK(controller.SelectedSlice() == 1U);
+  Tap(controller, TrackerAction::Down);
   const Ui2SampleSlicesCommand moved =
       Chord(controller, TrackerAction::Enter, TrackerAction::Up);
   CHECK(moved.type == Ui2SampleSlicesCommandType::SetSlicePoint);
@@ -680,9 +689,11 @@ TEST_CASE("UI2 Sample Slices selects moves previews adds and deletes") {
 
   Tap(controller, TrackerAction::Up);    // Return to slice selection.
   Tap(controller, TrackerAction::Right); // slot 2
-  Tap(controller, TrackerAction::Right); // slot 3, initially undefined
-  const Ui2SampleSlicesCommand added = Tap(controller, TrackerAction::Enter);
-  CHECK(added.type == Ui2SampleSlicesCommandType::AddSlice);
+  Tap(controller, TrackerAction::Right); // Clamp to the last available slice.
+  CHECK(controller.SelectedSlice() == 2U);
+  const Ui2SampleSlicesCommand added =
+      Chord(controller, TrackerAction::Enter, TrackerAction::Right);
+  CHECK(added.type == Ui2SampleSlicesCommandType::SetSliceCount);
   CHECK((controller.DefinedMask() & 0x0008U) != 0U);
   const Ui2SampleSlicesCommand deleted =
       Chord(controller, TrackerAction::Shift, TrackerAction::Enter);
@@ -724,12 +735,21 @@ TEST_CASE(
   Chord(controller, TrackerAction::Option, TrackerAction::Up);
   CHECK(controller.Focus() == SampleSlicesViewUi2Focus::Start);
   Tap(controller, TrackerAction::Down);
+  REQUIRE(controller.Focus() == SampleSlicesViewUi2Focus::Zoom);
+  CHECK(MakeUiSampleSlicesControllerState(controller.Snapshot()).cursor ==
+        UiSampleSlicesCursor::Zoom);
+  const auto zoomBefore = waveform.ZoomLevel();
+  Tap(controller, TrackerAction::Right);
+  CHECK(waveform.ZoomLevel() == zoomBefore + 1);
+  Chord(controller, TrackerAction::Enter, TrackerAction::Down);
+  CHECK(waveform.ZoomLevel() == zoomBefore);
+  CHECK(controller.Focus() == SampleSlicesViewUi2Focus::Zoom);
   Tap(controller, TrackerAction::Down);
   Tap(controller, TrackerAction::Down);
   CHECK(controller.Focus() == SampleSlicesViewUi2Focus::AutoSlice);
 }
 
-TEST_CASE("UI2 first slice Add preserves the implicit zero boundary") {
+TEST_CASE("UI2 slice selection is bounded and Count changes the total") {
   using namespace ui2;
   SampleWaveFileSystem fileSystem;
   fileSystem.BuildPcm(32U);
@@ -737,50 +757,65 @@ TEST_CASE("UI2 first slice Add preserves the implicit zero boundary") {
   Ui2SampleSlicesController controller(waveform);
   REQUIRE(controller.OpenPath(fileSystem, "SHORT.WAV") ==
           Ui2SampleWaveformLoadResult::Loaded);
-  const auto first = Tap(controller, TrackerAction::Enter);
-  CHECK(first.type == Ui2SampleSlicesCommandType::AddSlice);
-  CHECK(first.slice == 1U);
-  CHECK(first.value == 16U);
+  CHECK(controller.Snapshot().sliceCount == 1U);
+  Tap(controller, TrackerAction::Enter);
+  Tap(controller, TrackerAction::Right);
+  CHECK(controller.SelectedSlice() == 0U);
+  CHECK(controller.DefinedMask() == 0U);
+  const auto first = Chord(controller, TrackerAction::Enter, TrackerAction::Right);
+  CHECK(first.type == Ui2SampleSlicesCommandType::SetSliceCount);
+  CHECK(first.count == 2U);
   CHECK(controller.SlicePoints()[0] == 0U);
-  CHECK(controller.DefinedMask() == 3U);
-  Tap(controller, TrackerAction::Right);
-  CHECK(Tap(controller, TrackerAction::Enter).value == 24U);
-  Tap(controller, TrackerAction::Right);
-  CHECK(Tap(controller, TrackerAction::Enter).value == 28U);
-  Tap(controller, TrackerAction::Right);
-  CHECK(Tap(controller, TrackerAction::Enter).value == 30U);
-  Tap(controller, TrackerAction::Right);
-  CHECK(Tap(controller, TrackerAction::Enter).value == 31U);
-  Tap(controller, TrackerAction::Right);
-  CHECK(Tap(controller, TrackerAction::Enter).type ==
-        Ui2SampleSlicesCommandType::OperationUnavailable);
-  CHECK(controller.DefinedMask() == 0x3FU);
+  CHECK(controller.SlicePoints()[1] == 16U);
+  for (int count = 3; count <= 16; ++count) {
+    const auto change = Chord(controller, TrackerAction::Enter, TrackerAction::Right);
+    CHECK(change.count == count);
+    CHECK(controller.Snapshot().sliceCount == count);
+  }
+  CHECK_FALSE(Chord(controller, TrackerAction::Enter, TrackerAction::Right).HasValue());
+  for (int index = 0; index < 20; ++index) Tap(controller, TrackerAction::Right);
+  CHECK(controller.SelectedSlice() == 15U);
+  Chord(controller, TrackerAction::Enter, TrackerAction::Left);
+  CHECK(controller.SelectedSlice() == 14U);
+  CHECK(controller.Snapshot().sliceCount == 15U);
+  for (int count = 0; count < 20; ++count)
+    Chord(controller, TrackerAction::Enter, TrackerAction::Left);
+  CHECK(controller.Snapshot().sliceCount == 1U);
+  CHECK(controller.SelectedSlice() == 0U);
+  CHECK(controller.DefinedMask() == 0U);
+  CHECK_FALSE(Chord(controller, TrackerAction::Enter, TrackerAction::Left).HasValue());
+  controller.ApplyEvenSlices(8);
+  for (int index = 0; index < 10; ++index) Tap(controller, TrackerAction::Right);
+  controller.ApplyEvenSlices(2);
+  CHECK(controller.SelectedSlice() == 1U);
 }
 
-TEST_CASE("UI2 Sample Slices emits auto-slice request before replacement") {
+TEST_CASE("UI2 Auto Slice keeps the current count and spaces short samples safely") {
   using namespace ui2;
-  Config::SetImportResampler(0);
   SampleWaveFileSystem fileSystem;
   fileSystem.BuildPcm(1600U);
   Ui2SampleWaveformBackend waveform;
   Ui2SampleSlicesController controller(waveform);
   REQUIRE(controller.OpenPath(fileSystem, "LOOP.WAV") ==
           Ui2SampleWaveformLoadResult::Loaded);
-
-  controller.SetFocus(SampleSlicesViewUi2Focus::AutoSliceCount);
-  const Ui2SampleSlicesCommand count = Tap(controller, TrackerAction::Right);
-  CHECK(count.type == Ui2SampleSlicesCommandType::SetAutoSliceCount);
-  CHECK(count.count == 5U);
   controller.SetFocus(SampleSlicesViewUi2Focus::AutoSlice);
-  const Ui2SampleSlicesCommand request = Tap(controller, TrackerAction::Enter);
+  const auto request = Tap(controller, TrackerAction::Enter);
   CHECK(request.type == Ui2SampleSlicesCommandType::RequestAutoSlice);
-  CHECK(request.count == 5U);
-  CHECK(controller.DefinedMask() == 0U);
-
+  CHECK(request.count == 1U);
   controller.ApplyEvenSlices(request.count);
-  CHECK(controller.DefinedMask() == 0x001FU);
+  CHECK(controller.Snapshot().sliceCount == 1U);
+  CHECK(controller.DefinedMask() == 0U);
+  controller.ApplyEvenSlices(5);
   CHECK(controller.SlicePoints()[1] == 320U);
   CHECK(controller.Snapshot().markers.count == 5U);
+  controller.Close();
+  fileSystem.BuildPcm(3U);
+  REQUIRE(controller.OpenPath(fileSystem, "TINY.WAV") ==
+          Ui2SampleWaveformLoadResult::Loaded);
+  controller.ApplyEvenSlices(16);
+  CHECK(controller.Snapshot().sliceCount == 3U);
+  CHECK(controller.SlicePoints()[1] == 1U);
+  CHECK(controller.SlicePoints()[2] == 2U);
 }
 
 TEST_CASE("UI2 Sample Slices deletion keeps slice notes contiguous") {
@@ -830,22 +865,32 @@ TEST_CASE("UI2 Sample Slices confirms replacement of existing slices") {
   CHECK(controller.DialogSnapshot().actions[0] == UiDialogAction::Cancel);
   CHECK(controller.DialogSnapshot().actions[1] == UiDialogAction::Replace);
 
-  // The opening ENTER release belongs to the dialog before another press can
-  // accept the destructive action.
+  CHECK(controller.DialogSnapshot().selectedAction == 0U);
+  // Cancel remains selected after repeated LEFT, and preserves every point.
   CHECK_FALSE(controller.HandleDialog(TrackerAction::Enter, false).HasValue());
-  const Ui2SampleSlicesCommand replace =
-      controller.HandleDialog(TrackerAction::Enter, true);
-  CHECK(replace.type == Ui2SampleSlicesCommandType::ReplaceAutoSlices);
-  CHECK(replace.count == 4U);
-  CHECK_FALSE(controller.DialogActive());
-
-  CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
-  CHECK(controller.DialogActive());
-  CHECK_FALSE(controller.HandleDialog(TrackerAction::Enter, false).HasValue());
-  CHECK_FALSE(controller.HandleDialog(TrackerAction::Left, true).HasValue());
-  CHECK_FALSE(controller.HandleDialog(TrackerAction::Left, false).HasValue());
+  for (int repeat = 0; repeat < 2; ++repeat) {
+    controller.HandleDialog(TrackerAction::Left, true);
+    controller.HandleDialog(TrackerAction::Left, false);
+  }
+  CHECK(controller.DialogSnapshot().selectedAction == 0U);
   CHECK_FALSE(controller.HandleDialog(TrackerAction::Enter, true).HasValue());
   CHECK_FALSE(controller.DialogActive());
+  CHECK(controller.SlicePoints()[1] == 400U);
+
+  CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
+  REQUIRE(controller.DialogActive());
+  controller.HandleDialog(TrackerAction::Enter, false);
+  for (int repeat = 0; repeat < 2; ++repeat) {
+    controller.HandleDialog(TrackerAction::Right, true);
+    controller.HandleDialog(TrackerAction::Right, false);
+  }
+  CHECK(controller.DialogSnapshot().selectedAction == 1U);
+  const auto replace = controller.HandleDialog(TrackerAction::Enter, true);
+  CHECK(replace.type == Ui2SampleSlicesCommandType::ReplaceAutoSlices);
+  CHECK(replace.count == 2U);
+  controller.ApplyEvenSlices(replace.count);
+  CHECK(controller.Snapshot().sliceCount == 2U);
+  CHECK(controller.SlicePoints()[1] == 800U);
   CHECK(controller.DefinedMask() == 0x0003U);
 
   const UiSampleSlicesControllerState state =
@@ -867,6 +912,7 @@ TEST_CASE("UI2 Sample Slices clamps synchronized and moved markers") {
   points[0] = 99999U;
   controller.SynchronizeSlices(points, 1U);
   CHECK(controller.SlicePoints()[0] == 31U);
+  Tap(controller, TrackerAction::Down); // START edits the selected boundary.
   for (int move = 0; move < 100; ++move)
     Chord(controller, TrackerAction::Enter, TrackerAction::Up);
   CHECK(controller.SlicePoints()[0] == 31U);

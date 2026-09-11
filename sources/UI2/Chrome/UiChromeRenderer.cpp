@@ -462,7 +462,7 @@ UiBuildStatus UiChromeRenderer::BuildBottom(const UiBottomBarModel &model,
       builder.Text(">", 228, 220, UiColorToken::DerivedTextFaint);
       break;
     }
-    if (model.selector.options.size() == 2) {
+    if (model.selector.options.size() == 2 && !model.selector.scrollLayout) {
       for (std::uint8_t index = 0; index < 2; ++index) {
         centeredOption(model.selector.options[index], index == 0 ? 60 : 180,
                        model.selector.highlightCurrent &&

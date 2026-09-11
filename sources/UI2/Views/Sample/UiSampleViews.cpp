@@ -241,12 +241,12 @@ RectI16 UiSampleSlicesView::CursorTargetRect(UiSampleSlicesCursor cursor) {
     return {7, 138, 226, 9};
   case UiSampleSlicesCursor::Start:
     return {7, 149, 226, 9};
+  case UiSampleSlicesCursor::Zoom:
+    return {7, 160, 226, 9};
   case UiSampleSlicesCursor::Waveform:
     return {7, 43, 226, 86};
-  case UiSampleSlicesCursor::AutoSliceCount:
-    return {7, 173, 226, 9};
   case UiSampleSlicesCursor::AutoSlice:
-    return {7, 184, 226, 9};
+    return {7, 173, 226, 9};
   case UiSampleSlicesCursor::None:
     return {};
   }
@@ -265,6 +265,7 @@ void UiSampleSlicesView::RenderDelta(const UiSampleSlicesViewData &previous,
     render({184, 0, 56, 34});
   if (WaveformChanged(previous, current) ||
       previous.selectedMarker != current.selectedMarker ||
+      previous.sliceCount != current.sliceCount ||
       MarkersChanged(previous.markers, current.markers)) {
     render({9, 44, 222, 84});
   }
@@ -274,12 +275,15 @@ void UiSampleSlicesView::RenderDelta(const UiSampleSlicesViewData &previous,
     render({5, 148, 230, 12});
   if (previous.zoom != current.zoom)
     render({5, 159, 230, 12});
-  if (previous.autoSliceCount != current.autoSliceCount ||
-      previous.autoSliceApplyAvailable != current.autoSliceApplyAvailable)
+  if (previous.autoSliceApplyAvailable != current.autoSliceApplyAvailable)
     render({5, 172, 230, 23});
   if (previous.help != current.help)
     render({5, 184, 230, 23});
   if (previous.bottomActive != current.bottomActive ||
+      previous.selectedMarker != current.selectedMarker ||
+      previous.sliceCount != current.sliceCount ||
+      previous.zoomLevel != current.zoomLevel ||
+      previous.maxZoomLevel != current.maxZoomLevel ||
       previous.cursor != current.cursor ||
       previous.enterHeld != current.enterHeld)
     render({0, 208, 240, 32});
@@ -310,29 +314,54 @@ UiBuildStatus UiSampleSlicesView::Build(const UiSampleSlicesViewData &data,
   bottom.actions.actions = {"ADD", "MOVE", "DELETE", {}};
   bottom.actions.count = 3;
   bottom.actions.active = std::min<std::uint8_t>(data.bottomActive, 2U);
-  if (data.cursor == UiSampleSlicesCursor::Start ||
-      data.cursor == UiSampleSlicesCursor::AutoSliceCount) {
-    bottom.kind = UiBottomBarKind::AdjustmentLegend;
-    bottom.adjustment.showCoarse = data.enterHeld;
-    bottom.adjustment.coarseStep = 1;
-    if (data.enterDigitFocus) {
-      bottom.adjustment.fineLabel = "DIGIT";
-      bottom.adjustment.coarseLabel = "VALUE";
+  if (data.cursor == UiSampleSlicesCursor::Start) {
+    bottom.actions.actions = {"EDIT", {}, {}, {}};
+    bottom.actions.count = 1;
+    bottom.actions.active = 0;
+    if (data.enterHeld) {
+      bottom.kind = UiBottomBarKind::AdjustmentLegend;
+      bottom.adjustment.coarseStep = 1;
+      if (data.enterDigitFocus) {
+        bottom.adjustment.fineLabel = "DIGIT";
+        bottom.adjustment.coarseLabel = "VALUE";
+      }
     }
+  } else if (data.cursor == UiSampleSlicesCursor::Zoom) {
+    static constexpr std::array<std::string_view, 17> zoomOptions{
+        "1X", "2X", "4X", "8X", "16X", "32X", "64X", "128X",
+        "256X", "512X", "1024X", "2048X", "4096X", "8192X",
+        "16384X", "32768X", "65536X"};
+    bottom.kind = UiBottomBarKind::Selector;
+    bottom.selector.options = std::span{zoomOptions}.first(
+        std::min<std::size_t>(data.maxZoomLevel + 1U, zoomOptions.size()));
+    bottom.selector.current = std::min(data.zoomLevel, data.maxZoomLevel);
+    bottom.selector.wrap = false;
+    bottom.selector.scrollLayout = true;
   } else if (data.cursor == UiSampleSlicesCursor::AutoSlice) {
-    bottom.actions.actions = {
-        data.autoSliceApplyAvailable ? "APPLY" : "REPLACE", {}, {}, {}};
+    bottom.actions.actions = {"EVENLY SPACE", {}, {}, {}};
     bottom.actions.count = 1;
     bottom.actions.active = 0;
   } else if (data.cursor == UiSampleSlicesCursor::Status) {
-    bottom.actions.actions = {data.bottomActive == 2   ? "DELETE"
-                              : data.bottomActive == 0 ? "ADD"
-                                                       : "EDIT",
-                              {},
-                              {},
-                              {}};
-    bottom.actions.count = 1;
-    bottom.actions.active = 0;
+    static constexpr std::array<std::string_view, 16> sliceOptions{
+        "01", "02", "03", "04", "05", "06", "07", "08",
+        "09", "10", "11", "12", "13", "14", "15", "16"};
+    if (data.bottomActive == 2) {
+      bottom.actions.actions = {"DELETE", {}, {}, {}};
+      bottom.actions.count = 1;
+      bottom.actions.active = 0;
+    } else if (data.enterHeld) {
+      bottom.kind = UiBottomBarKind::AdjustmentLegend;
+      bottom.adjustment.fineLabel = "COUNT";
+      bottom.adjustment.showCoarse = false;
+    } else {
+      bottom.kind = UiBottomBarKind::Selector;
+      bottom.selector.options = std::span{sliceOptions}.first(
+          std::clamp<std::size_t>(data.sliceCount, 1U, sliceOptions.size()));
+      bottom.selector.current = std::min<std::size_t>(
+          data.selectedMarker, bottom.selector.options.size() - 1U);
+      bottom.selector.wrap = false;
+      bottom.selector.scrollLayout = true;
+    }
   }
   const UiBuildStatus bottomStatus =
       UiChromeRenderer::BuildBottom(bottom, scene.bottom);
@@ -354,14 +383,7 @@ UiBuildStatus UiSampleSlicesView::Build(const UiSampleSlicesViewData &data,
   DrawField(builder, "SLICE", data.slice, 139);
   DrawField(builder, "START", data.start, 150);
   DrawField(builder, "ZOOM", data.zoom, 161);
-  if (data.autoSliceCount.empty()) {
-    builder.Text(data.help, 9, 188, UiColorToken::DerivedTextFaint);
-  } else {
-    DrawField(builder, "AUTO", data.autoSliceCount, 174);
-    DrawField(builder, "SLICE",
-              data.autoSliceApplyAvailable ? "APPLY" : "REPLACE", 185);
-    builder.Text(data.help, 9, 198, UiColorToken::DerivedTextFaint);
-  }
+  DrawField(builder, "AUTO SLICE", {}, 174);
   if (!waveformFocused && !cursor.Empty())
     builder.Selection(cursor);
   if (data.cursorInkVisible) {
@@ -382,14 +404,12 @@ UiBuildStatus UiSampleSlicesView::Build(const UiSampleSlicesViewData &data,
         builder.Text(data.start, 92, 150, UiColorToken::TextHighlighted);
       }
       break;
-    case UiSampleSlicesCursor::AutoSliceCount:
-      builder.Text("AUTO", 9, 174, UiColorToken::TextHighlighted);
-      builder.Text(data.autoSliceCount, 92, 174, UiColorToken::TextHighlighted);
+    case UiSampleSlicesCursor::Zoom:
+      builder.Text("ZOOM", 9, 161, UiColorToken::TextHighlighted);
+      builder.Text(data.zoom, 92, 161, UiColorToken::TextHighlighted);
       break;
     case UiSampleSlicesCursor::AutoSlice:
-      builder.Text("SLICE", 9, 185, UiColorToken::TextHighlighted);
-      builder.Text(data.autoSliceApplyAvailable ? "APPLY" : "REPLACE", 92, 185,
-                   UiColorToken::TextHighlighted);
+      builder.Text("AUTO SLICE", 9, 174, UiColorToken::TextHighlighted);
       break;
     case UiSampleSlicesCursor::Waveform:
     case UiSampleSlicesCursor::None:

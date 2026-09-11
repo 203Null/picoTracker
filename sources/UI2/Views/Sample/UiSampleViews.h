@@ -104,8 +104,8 @@ public:
 enum class UiSampleSlicesCursor : std::uint8_t {
   Status,
   Start,
+  Zoom,
   Waveform,
-  AutoSliceCount,
   AutoSlice,
   None,
 };
@@ -117,13 +117,15 @@ struct UiSampleSlicesViewData {
   std::string_view slice = "01 / 04";
   std::string_view start = "000064";
   std::string_view zoom = "1X";
-  std::string_view autoSliceCount{};
   std::string_view help = "PLAY PREVIEW  OPTION ZOOM";
   // The model only rebuilds this packet when waveformRevision changes.
   std::span<const std::uint8_t> waveformMask{};
   std::span<const UiSampleWaveformMarker> markers{};
   std::uint32_t waveformRevision = 0;
   std::uint8_t selectedMarker = 1;
+  std::uint8_t sliceCount = 4;
+  std::uint8_t zoomLevel = 0;
+  std::uint8_t maxZoomLevel = 0;
   std::uint8_t bottomActive = 1;
   UiSampleSlicesCursor cursor = UiSampleSlicesCursor::Status;
   RectI16 cursorVisualRect{};

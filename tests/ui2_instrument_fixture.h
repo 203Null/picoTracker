@@ -99,7 +99,7 @@ inline UiInstrumentViewData ApprovedInstrumentFixture(std::string_view state) {
   data.kind = UiInstrumentKind::Sample;
   data.name = "AKWF 0906";
   data.fields = {{{"SAMPLE", "AKWF 0906.WAV", 66},
-                  {"SLICES", "OFF / ADJUST", 76},
+                  {"SLICES", "OFF", 76},
                   {"VOLUME", "E5", 86},
                   {"PAN", "7F", 96},
                   {"ROOT NOTE", "C3", 106},

@@ -95,8 +95,10 @@ inline bool EqualSlicesCapture(const SampleSlicesViewUi2Snapshot &left,
          left.markers.count == right.markers.count &&
          left.focus == right.focus &&
          left.selectedSlice == right.selectedSlice &&
+         left.sliceCount == right.sliceCount &&
+         left.zoomLevel == right.zoomLevel &&
+         left.maxZoomLevel == right.maxZoomLevel &&
          left.focusDigit == right.focusDigit &&
-         left.autoSliceCount == right.autoSliceCount &&
          left.definedMask == right.definedMask &&
          left.waveformReady == right.waveformReady &&
          left.hasSample == right.hasSample &&
@@ -272,7 +274,6 @@ struct UiSampleSlicesControllerState {
   SampleSlicesViewUi2Snapshot capture{};
   std::array<UiSampleWaveformMarker, MarkerCapacity> markers{};
   std::array<char, 33> help{};
-  std::array<char, 3> autoSliceCount{};
   RectI16 cursorVisualRect{};
   UiSampleSlicesCursor cursor = UiSampleSlicesCursor::None;
   UiPowerState power = UiPowerState::BatteryNormal;
@@ -289,7 +290,6 @@ struct UiSampleSlicesControllerState {
     data.slice = detail::SampleCStringView(capture.slice);
     data.start = detail::SampleCStringView(capture.start);
     data.zoom = detail::SampleCStringView(capture.zoom);
-    data.autoSliceCount = detail::SampleCStringView(autoSliceCount);
     data.help = detail::SampleCStringView(help);
     data.waveformMask = capture.waveformReady ? capture.waveform.Mask()
                                               : std::span<const std::uint8_t>{};
@@ -297,6 +297,9 @@ struct UiSampleSlicesControllerState {
         capture.waveformReady ? capture.waveform.revision : 0U;
     data.markers = {markers.data(), markerCount};
     data.selectedMarker = capture.selectedSlice;
+    data.sliceCount = capture.sliceCount;
+    data.zoomLevel = capture.zoomLevel;
+    data.maxZoomLevel = capture.maxZoomLevel;
     data.bottomActive = bottomActive;
     data.cursor = cursor;
     data.cursorVisualRect = cursorVisualRect;
@@ -314,7 +317,7 @@ struct UiSampleSlicesControllerState {
   bool operator==(const UiSampleSlicesControllerState &other) const {
     return detail::EqualSlicesCapture(capture, other.capture) &&
            enterHeld == other.enterHeld && markers == other.markers &&
-           help == other.help && autoSliceCount == other.autoSliceCount &&
+           help == other.help &&
            cursorVisualRect == other.cursorVisualRect &&
            cursor == other.cursor && power == other.power &&
            markerCount == other.markerCount &&
@@ -334,11 +337,6 @@ inline UiSampleSlicesControllerState MakeUiSampleSlicesControllerState(
   state.markerCount =
       detail::CopySampleMarkers(snapshot.markers, state.markers);
   state.power = snapshot.previewActive ? UiPowerState::Playing : power;
-  const std::uint8_t count = std::min<std::uint8_t>(
-      snapshot.autoSliceCount,
-      static_cast<std::uint8_t>(SampleSlicesViewUi2Snapshot::SliceCapacity));
-  state.autoSliceCount = {static_cast<char>('0' + count / 10U),
-                          static_cast<char>('0' + count % 10U), '\0'};
   const std::uint16_t selectedBit = static_cast<std::uint16_t>(
       1U << std::min<std::uint8_t>(snapshot.selectedSlice, 15U));
   const bool selectedDefined = (snapshot.definedMask & selectedBit) != 0U;
@@ -353,8 +351,8 @@ inline UiSampleSlicesControllerState MakeUiSampleSlicesControllerState(
   case SampleSlicesViewUi2Focus::Start:
     state.cursor = UiSampleSlicesCursor::Start;
     break;
-  case SampleSlicesViewUi2Focus::AutoSliceCount:
-    state.cursor = UiSampleSlicesCursor::AutoSliceCount;
+  case SampleSlicesViewUi2Focus::Zoom:
+    state.cursor = UiSampleSlicesCursor::Zoom;
     break;
   case SampleSlicesViewUi2Focus::AutoSlice:
     state.cursor = UiSampleSlicesCursor::AutoSlice;

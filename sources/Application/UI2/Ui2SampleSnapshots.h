@@ -49,7 +49,7 @@ struct SampleEditorViewUi2Snapshot {
 enum class SampleSlicesViewUi2Focus : std::uint8_t {
   Waveform,
   Start,
-  AutoSliceCount,
+  Zoom,
   AutoSlice,
   Unknown,
 };
@@ -64,8 +64,10 @@ struct SampleSlicesViewUi2Snapshot {
   Ui2WaveformMarkersSnapshot<SliceCapacity + 1> markers{};
   SampleSlicesViewUi2Focus focus = SampleSlicesViewUi2Focus::Unknown;
   std::uint8_t selectedSlice = 0;
+  std::uint8_t sliceCount = 0;
+  std::uint8_t zoomLevel = 0;
+  std::uint8_t maxZoomLevel = 0;
   std::uint8_t focusDigit = 6;
-  std::uint8_t autoSliceCount = 0;
   std::uint16_t definedMask = 0;
   bool waveformReady = false;
   bool hasSample = false;

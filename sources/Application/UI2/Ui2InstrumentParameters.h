@@ -772,9 +772,9 @@ Ui2FormatInstrumentParameter(const Ui2InstrumentParameterDescriptor &descriptor,
     break;
   case Ui2InstrumentValueFormat::SliceCount:
     if (current <= 1)
-      detail::CopyText(destination, capacity, "OFF / ADJUST");
+      detail::CopyText(destination, capacity, "OFF");
     else
-      std::snprintf(destination, capacity, "%d / ADJUST", current);
+      std::snprintf(destination, capacity, "%d", current);
     break;
   case Ui2InstrumentValueFormat::SampleFilter:
     std::snprintf(destination, capacity, "LP / %02X %02X",

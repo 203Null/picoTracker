@@ -1567,24 +1567,13 @@ UiApplicationRuntime::PresentSampleSlices(IUiApplicationStateSource &source,
   current.power = CurrentPowerState(source, activity.active);
   const RectI16 target =
       UiSampleSlicesView::CursorTargetRect(ViewDataFor(current));
-  if (target.Empty()) {
-    if (!cursorTargetValid_ || target != cursorTarget_)
-      cursors_.Snap(UiCursorRole::Content, target, nowMs);
-    cursorTarget_ = target;
-    cursorTargetValid_ = true;
-  } else if (!cursorTargetValid_) {
-    cursors_.Snap(UiCursorRole::Content, target, nowMs);
-    cursorTarget_ = target;
-    cursorTargetValid_ = true;
-  } else if (target != cursorTarget_) {
-    cursors_.Retarget(UiCursorRole::Content, target, nowMs,
-                      kListCursorDurationMs);
-    cursorTarget_ = target;
-  }
-  current.cursorVisualRect = cursors_.Sample(UiCursorRole::Content, nowMs);
+  // Keep selection visible while moving between fields and digit editing.
+  cursors_.Snap(UiCursorRole::Content, target, nowMs);
+  cursorTarget_ = target;
+  cursorTargetValid_ = true;
+  current.cursorVisualRect = target;
   current.cursorVisualOverride = !target.Empty();
-  current.cursorInkVisible = current.cursorInkVisible && !target.Empty() &&
-                             !cursors_.Active(UiCursorRole::Content, nowMs);
+  current.cursorInkVisible = current.cursorInkVisible && !target.Empty();
 
   const bool baseChanged = !previousValid_ || !(current == previous);
   if (!baseChanged && !DialogChanged())

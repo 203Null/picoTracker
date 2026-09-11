@@ -859,6 +859,7 @@ void Ui2TrackerApplication::ExecuteSampleSlices(
   case Ui2SampleSlicesCommandType::NavigateBack:
     ActivatePage(samples_.returnPage);
     break;
+  case Ui2SampleSlicesCommandType::SetSliceCount:
   case Ui2SampleSlicesCommandType::DeleteSlice:
     if (sample == nullptr) {
       ShowFeedbackError("DELETE UNAVAILABLE");
@@ -881,7 +882,6 @@ void Ui2TrackerApplication::ExecuteSampleSlices(
       break;
     }
     break;
-  case Ui2SampleSlicesCommandType::SetAutoSliceCount:
   case Ui2SampleSlicesCommandType::None:
     break;
   }
