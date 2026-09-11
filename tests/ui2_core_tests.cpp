@@ -3103,6 +3103,13 @@ TEST_CASE("UI2 Drum and Stack render approved fields and contextual bottom bars"
   auto drum = ui2::test::ApprovedInstrumentFixture("drum");
   REQUIRE(ui2::UiInstrumentView::Build(drum, palette, scene) == ui2::UiBuildStatus::Built);
   REQUIRE(scene.bottomVisible);
+  const auto *voices = FindTextCommand(scene.content.Stream(), "VOICES");
+  const auto *pitchHeader = FindTextCommand(scene.content.Stream(), "PIT");
+  REQUIRE(voices != nullptr);
+  REQUIRE(pitchHeader != nullptr);
+  CHECK(voices->bounds.y == pitchHeader->bounds.y);
+  CHECK(voices->color == palette.Index(ui2::UiColorToken::TextColored));
+  CHECK(FindTextCommand(scene.content.Stream(), "DRUM")->bounds.y == 54);
   CHECK(FindTextCommand(scene.bottom.Stream(), "EDIT") != nullptr);
   CHECK(FindTextCommand(scene.bottom.Stream(), "PITCH ENVELOPE RATE") == nullptr);
   drum.adjustmentFocus = true;
@@ -3131,7 +3138,7 @@ TEST_CASE("UI2 Drum and Stack render approved fields and contextual bottom bars"
                              ui2::UiInstrumentView::RenderDelta);
   auto tail = drum;
   tail.selectedField = 12;
-  CHECK(ui2::UiInstrumentView::RevealCursor(0, tail) == 0);
+  CHECK(ui2::UiInstrumentView::RevealCursor(0, tail) == 12);
   CheckDeltaMatchesFullFrame(drum, tail, ui2::UiInstrumentView::Build,
                             ui2::UiInstrumentView::RenderDelta);
   auto stack = ui2::test::ApprovedInstrumentFixture("stack");
@@ -3150,21 +3157,21 @@ TEST_CASE("UI2 Instrument exposes fixed cursor targets for fields and OPAL "
   sample.cursor = ui2::UiInstrumentCursor::Field;
   sample.selectedField = 3;
   CHECK(ui2::UiInstrumentView::CursorTargetRect(sample) ==
-        ui2::RectI16{7, 95, 226, 9});
+        ui2::RectI16{7, 127, 226, 9});
 
   ui2::UiInstrumentViewData opal = ui2::test::ApprovedInstrumentFixture("opal");
   opal.selectedOperator = 2;
   opal.cursor = ui2::UiInstrumentCursor::Operator1;
   CHECK(ui2::UiInstrumentView::CursorTargetRect(opal) ==
-        ui2::RectI16{139, 161, 40, 9});
+        ui2::RectI16{139, 149, 40, 9});
   opal.cursor = ui2::UiInstrumentCursor::Operator2;
   CHECK(ui2::UiInstrumentView::CursorTargetRect(opal) ==
-        ui2::RectI16{185, 161, 40, 9});
+        ui2::RectI16{185, 149, 40, 9});
 
   opal.enterSubfieldFocus = true;
   opal.selectedSubfield = 2;
   CHECK(ui2::UiInstrumentView::CursorTargetRect(opal) ==
-        ui2::RectI16{200, 161, 9, 9});
+        ui2::RectI16{200, 149, 9, 9});
   ui2::UiPalette palette;
   ui2::UiFrameScene scene;
   REQUIRE(ui2::UiInstrumentView::Build(opal, palette, scene) ==
@@ -3196,6 +3203,10 @@ TEST_CASE("UI2 Instrument operator headers and approved adjustment "
   CHECK(FindTextCommand(scene.bottom.Stream(), "1") == nullptr);
   CHECK(FindTextCommand(scene.top.Stream(), "EXPERIMENTAL") == nullptr);
   REQUIRE(FindTextCommand(scene.content.Stream(), "OP 2") != nullptr);
+  const auto *operatorSection = FindTextCommand(scene.content.Stream(), "OPERATOR SETTINGS");
+  REQUIRE(operatorSection != nullptr);
+  CHECK(FindTextCommand(scene.content.Stream(), "OP 1")->bounds.y == operatorSection->bounds.y);
+  CHECK(FindTextCommand(scene.content.Stream(), "OP 2")->bounds.y == operatorSection->bounds.y);
   CHECK(FindTextCommand(scene.content.Stream(), "OP 1")->color ==
         palette.Index(ui2::UiColorToken::TextColored));
   CHECK(FindTextCommand(scene.content.Stream(), "OP 2")->color ==
@@ -5473,5 +5484,44 @@ TEST_CASE("Sample endpoints show Edit and the shared digit/value legend") {
     CHECK(FindTextCommand(scene.bottom.Stream(), "EDIT") == nullptr);
     CheckDeltaMatchesFullFrame(idle, held, ui2::UiSampleEditorView::Build, ui2::UiSampleEditorView::RenderDelta);
     CheckDeltaMatchesFullFrame(held, idle, ui2::UiSampleEditorView::Build, ui2::UiSampleEditorView::RenderDelta);
+  }
+}
+
+TEST_CASE("Instrument sections stay above their fields and scroll into view") {
+  using namespace ui2;
+  for (std::string_view name : {"sample", "midi", "sid", "drum", "stack"}) {
+    CAPTURE(name);
+    auto data = test::ApprovedInstrumentFixture(name);
+    data.cursor = UiInstrumentCursor::Field;
+    data.fieldBottom = UiInstrumentFieldBottom::Edit;
+    UiPalette palette;
+    UiFrameScene scene;
+    REQUIRE(UiInstrumentView::Build(data, palette, scene) == UiBuildStatus::Built);
+    for (const auto &section : UiInstrumentSections(data.kind)) {
+      REQUIRE(section.firstField < data.fieldCount);
+      const auto *title = FindTextCommand(scene.content.Stream(), section.title);
+      REQUIRE(title != nullptr);
+      CHECK(title->bounds.y > 60);
+      CHECK(title->bounds.Bottom() < data.fields[section.firstField].y);
+      if (section.firstField > 0)
+        CHECK(title->bounds.y > data.fields[section.firstField - 1].y + 7);
+      data.selectedField = section.firstField;
+      data.scrollOffset = UiInstrumentView::RevealCursor(300, data);
+      CHECK(title->bounds.y - data.scrollOffset >= 34);
+      CHECK(UiInstrumentView::CursorTargetRect(data).Bottom() - data.scrollOffset <= 208);
+    }
+    data.scrollOffset = 0;
+    data.selectedField = 0;
+    for (std::uint8_t index = 1; index < data.fieldCount; ++index) {
+      auto next = data;
+      next.selectedField = index;
+      next.scrollOffset = UiInstrumentView::RevealCursor(data.scrollOffset, next);
+      CheckDeltaMatchesFullFrame(data, next, UiInstrumentView::Build, UiInstrumentView::RenderDelta);
+      data = next;
+    }
+    REQUIRE(UiInstrumentView::Build(data, palette, scene) == UiBuildStatus::Built);
+    auto edited = data;
+    edited.fields[edited.selectedField].value = "7A";
+    CheckDeltaMatchesFullFrame(data, edited, UiInstrumentView::Build, UiInstrumentView::RenderDelta);
   }
 }

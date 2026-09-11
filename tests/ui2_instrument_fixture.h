@@ -4,7 +4,7 @@
 
 namespace ui2::test {
 
-inline UiInstrumentViewData ApprovedInstrumentFixture(std::string_view state) {
+inline UiInstrumentViewData InstrumentFixtureBeforeSections(std::string_view state) {
   UiInstrumentViewData data;
   data.trackNotes = {"D3", "C4", "--", "F2", "A3", "D#3", "C3", "G2"};
   data.selectedTrack = 2;
@@ -68,15 +68,13 @@ inline UiInstrumentViewData ApprovedInstrumentFixture(std::string_view state) {
   if (state == "sid") {
     data.kind = UiInstrumentKind::Sid;
     data.name = "PULSE";
-    data.fields = {{{"OSCILLATOR", "PULSEWIDTH 800", 66},
-                    {"WAVEFORM", "A", 76},
-                    {"OSC SYNC", "FALSE", 86},
-                    {"RING MOD", "FALSE", 96},
-                    {"ENV ADSR", "2282", 106},
-                    {"FILTER", "CUTOFF 1FF", 116},
-                    {"RESONANCE", "0", 126},
-                    {"MODE", "LP", 136}}};
-    data.fieldCount = 8;
+    data.fields = {{{"OSCILLATOR", "0", 66}, {"PULSEWIDTH", "800", 76},
+                    {"WAVEFORM", "PULSE", 86}, {"OSC SYNC", "NO", 96},
+                    {"RING MOD", "NO", 106}, {"ENV ADSR", "2282", 116},
+                    {"FILTER", "YES", 126}, {"CUTOFF", "1FF", 136},
+                    {"RESONANCE", "0", 146}, {"MODE", "LP", 156},
+                    {"VOLUME", "F", 166}}};
+    data.fieldCount = 11;
     return data;
   }
   if (state == "opal") {
@@ -108,8 +106,23 @@ inline UiInstrumentViewData ApprovedInstrumentFixture(std::string_view state) {
                   {"CRUSH", "16", 136},
                   {"DOWNSAMPLE", "0", 146},
                   {"FILTER", "LP / DF 1E", 156},
-                  {"LOOP", "FORWARD", 166}}};
-  data.fieldCount = 11;
+                  {"FILTER TYPE", "00", 166},
+                  {"FILTER MODE", "ORIGINAL", 176},
+                  {"INTERPOLATION", "LINEAR", 186},
+                  {"LOOP", "FORWARD", 196},
+                  {"START", "0000000", 206},
+                  {"LOOP START", "0000000", 216},
+                  {"LOOP END", "0000258", 226},
+                  {"TABLE", "--", 236},
+                  {"AUTOMATION", "NO", 246}}};
+  data.fieldCount = 19;
+  return data;
+}
+
+inline UiInstrumentViewData ApprovedInstrumentFixture(std::string_view state) {
+  auto data = InstrumentFixtureBeforeSections(state);
+  for (std::uint8_t index = 0; index < data.fieldCount; ++index)
+    data.fields[index].y = UiInstrumentSectionFieldY(data.kind, index, data.fields[index].y);
   return data;
 }
 

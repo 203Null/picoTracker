@@ -117,12 +117,12 @@ void DrawField(UiSceneBuilder<256, 1024> &builder, std::string_view label,
 }
 
 void DrawSection(UiSceneBuilder<256, 1024> &builder, std::string_view label,
-                 std::int16_t y) {
+                 std::int16_t y, std::int16_t right = 231) {
   const std::int16_t width = UiFont5x7::TextWidth(label.size());
   builder.Text(label, 9, y, UiColorToken::TextColored);
   builder.Fill({static_cast<std::int16_t>(9 + width + 7),
                 static_cast<std::int16_t>(y + 3),
-                static_cast<std::int16_t>(222 - width), 1},
+                static_cast<std::int16_t>(right - 16 - width), 1},
                UiColorToken::CursorRow);
 }
 
@@ -155,7 +155,7 @@ SelectedValueLayout SelectedValue(const UiInstrumentViewData &data) {
                                                                  : row.op2,
             .x = static_cast<std::int16_t>(
                 data.cursor == UiInstrumentCursor::Operator1 ? 144 : 190),
-            .y = static_cast<std::int16_t>(144 + data.selectedOperator * 9)};
+            .y = UiInstrumentOperatorRowY(data.selectedOperator)};
   }
   return {};
 }
@@ -219,7 +219,7 @@ RectI16 UiInstrumentView::CursorTargetRect(const UiInstrumentViewData &data) {
   case UiInstrumentCursor::Operator2:
     if (data.selectedOperator < data.operatorCount) {
       const std::int16_t y =
-          static_cast<std::int16_t>(143 + data.selectedOperator * 9);
+          static_cast<std::int16_t>(UiInstrumentOperatorRowY(data.selectedOperator) - 1);
       return {static_cast<std::int16_t>(
                   data.cursor == UiInstrumentCursor::Operator1 ? 139 : 185),
               y, 40, 9};
@@ -238,7 +238,7 @@ std::int16_t UiInstrumentView::ContentBottom(const UiInstrumentViewData &data) {
         std::max(bottom, static_cast<std::int16_t>(data.fields[index].y + 8));
   }
   for (std::uint8_t index = 0; index < data.operatorCount; ++index) {
-    bottom = std::max(bottom, static_cast<std::int16_t>(151 + index * 9));
+    bottom = std::max(bottom, static_cast<std::int16_t>(UiInstrumentOperatorRowY(index) + 7));
   }
   return bottom;
 }
@@ -246,13 +246,26 @@ std::int16_t UiInstrumentView::ContentBottom(const UiInstrumentViewData &data) {
 std::int16_t UiInstrumentView::RevealCursor(std::int16_t currentOffset,
                                             const UiInstrumentViewData &data) {
   const std::int16_t viewportBottom = BottomVisible(data) ? 208 : 240;
-  return UiVerticalList::Reveal(currentOffset, CursorTargetRect(data), 34,
+  auto target = CursorTargetRect(data);
+  if (data.cursor == UiInstrumentCursor::Field &&
+      data.selectedField < data.fieldCount) {
+    for (const auto &section : UiInstrumentSections(data.kind)) {
+      if (section.firstField != data.selectedField)
+        continue;
+      const auto sectionY = static_cast<std::int16_t>(
+          data.fields[data.selectedField].y - 12);
+      target.height += target.y - sectionY;
+      target.y = sectionY;
+      break;
+    }
+  }
+  return UiVerticalList::Reveal(currentOffset, target, 34,
                                 viewportBottom, ContentBottom(data));
 }
 
 RectI16 UiInstrumentView::FieldDamageRect(std::int16_t y) {
-  return Intersect({5, static_cast<std::int16_t>(y - 1), 230, 11},
-                   RectI16::Screen());
+  // Translate scrollable content before clipping to the screen.
+  return {5, static_cast<std::int16_t>(y - 1), 230, 11};
 }
 
 bool UiInstrumentView::RequiresFullInvalidation(
@@ -300,7 +313,7 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
       (previous.selectedSubfield != current.selectedSubfield ||
        previous.cursor != current.cursor ||
        previous.selectedField != current.selectedField))
-    render(contentRect(FieldDamageRect(66)));
+    render(contentRect(FieldDamageRect(current.fields[0].y - 12)));
 
   const RectI16 oldCursor = contentRect(ResolvedCursorRect(previous));
   const RectI16 newCursor = contentRect(ResolvedCursorRect(current));
@@ -322,7 +335,7 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
        ++index) {
     if (previous.operators[index] != current.operators[index]) {
       render(contentRect(
-          FieldDamageRect(static_cast<std::int16_t>(144 + index * 9))));
+          FieldDamageRect(UiInstrumentOperatorRowY(index))));
     }
   }
   if ((DrumCell(current) && previous.fields[current.selectedField] !=
@@ -359,7 +372,7 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
   };
   if (!contentRedrawn &&
       operatorHeader(previous.cursor) != operatorHeader(current.cursor)) {
-    render(contentRect(FieldDamageRect(132)));
+    render(contentRect(FieldDamageRect(kUiInstrumentOperatorHeaderY)));
   }
 }
 
@@ -508,28 +521,36 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
                     : UiColorToken::TextNormal,
                 data.fields[index].userData);
     }
-    DrawSection(builder, "OPERATOR SETTINGS", 120);
+    DrawSection(builder, "OPERATOR SETTINGS", kUiInstrumentOperatorHeaderY, 136);
     const bool operator2Focused = data.cursor == UiInstrumentCursor::Operator2;
-    builder.Text("OP 1", 144, 132,
+    builder.Text("OP 1", 144, kUiInstrumentOperatorHeaderY,
                  operator2Focused ? UiColorToken::TextDim
                                   : UiColorToken::TextColored);
-    builder.Text("OP 2", 190, 132,
+    builder.Text("OP 2", 190, kUiInstrumentOperatorHeaderY,
                  operator2Focused ? UiColorToken::TextColored
                                   : UiColorToken::TextDim);
     for (std::uint8_t index = 0; index < data.operatorCount; ++index) {
-      const std::int16_t y = static_cast<std::int16_t>(144 + index * 9);
+      const std::int16_t y = UiInstrumentOperatorRowY(index);
       builder.Text(data.operators[index].label, 9, y, UiColorToken::TextDim);
       builder.Text(data.operators[index].op1, 144, y, UiColorToken::TextNormal);
       builder.Text(data.operators[index].op2, 190, y, UiColorToken::TextNormal);
     }
   } else {
+    for (const auto &section : UiInstrumentSections(data.kind)) {
+      if (section.firstField >= data.fieldCount)
+        continue;
+      const bool drumVoices = data.kind == UiInstrumentKind::Drum &&
+                              section.firstField == 0;
+      DrawSection(builder, section.title, static_cast<std::int16_t>(
+          data.fields[section.firstField].y - 12), drumVoices ? 84 : 231);
+    }
     if (data.kind == UiInstrumentKind::Drum) {
-      builder.Text("DRUM", 9, 66, UiColorToken::TextDim);
+      const auto headerY = static_cast<std::int16_t>(data.fields[0].y - 12);
       constexpr std::array<std::string_view, 4> headers{"PIT", "TUN", "DEC",
                                                         "WAVE"};
       for (unsigned col = 0; col < 4; ++col)
         builder.Text(headers[col],
-                     col == 3 ? kDrumColumnX[col] : kDrumColumnX[col] - 6, 66,
+                     col == 3 ? kDrumColumnX[col] : kDrumColumnX[col] - 6, headerY,
                      DrumCell(data) && data.selectedSubfield == col
                          ? UiColorToken::TextColored
                          : UiColorToken::TextDim);
@@ -590,7 +611,7 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
                   data.cursor == UiInstrumentCursor::Operator2) &&
                  data.selectedOperator < data.operatorCount) {
         const std::int16_t y =
-            static_cast<std::int16_t>(144 + data.selectedOperator * 9);
+            UiInstrumentOperatorRowY(data.selectedOperator);
         const UiInstrumentOperatorRow &row =
             data.operators[data.selectedOperator];
         SelectedValueLayout layout;

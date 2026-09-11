@@ -12,6 +12,7 @@
 #include "UI2/Render/UiIndexedSurface.h"
 #include "UI2/Scene/UiFrameScene.h"
 #include "UI2/Views/Instrument/UiInstrumentCapacity.h"
+#include "UI2/Views/Instrument/UiInstrumentSections.h"
 
 #include <array>
 #include <cstdint>
@@ -19,15 +20,6 @@
 
 namespace ui2 {
 
-enum class UiInstrumentKind : std::uint8_t {
-  None,
-  Sample,
-  Midi,
-  Sid,
-  Opal,
-  Drum,
-  Stack
-};
 enum class UiInstrumentCursor : std::uint8_t {
   None,
   Name,

@@ -9,6 +9,7 @@
 #include "Application/Instruments/I_Instrument.h"
 #include "Application/Instruments/SampleInstrumentParameterLimits.h"
 #include "Application/UI2/Controllers/Ui2InstrumentController.h"
+#include "UI2/Views/Instrument/UiInstrumentSections.h"
 
 #include <algorithm>
 #include <array>
@@ -341,37 +342,37 @@ inline constexpr std::array<Ui2InstrumentParameterDescriptor, 3>
     };
 
 inline constexpr std::array<Ui2InstrumentParameterDescriptor, 6> kOpalOperator1{
-    Parameter("LEVEL", FourCC::OPALInstrumentOp1Level, 0, 63, 1, 1, 144, 2,
+    Parameter("LEVEL", FourCC::OPALInstrumentOp1Level, 0, 63, 1, 1, UiInstrumentOperatorRowY(0), 2,
               Ui2InstrumentValueFormat::Hex),
     Parameter("MULTIPLIER", FourCC::OPALInstrumentOp1Multiplier, 0, 15, 1, 1,
-              153, 1, Ui2InstrumentValueFormat::Hex),
-    Parameter("A/D/S/R", FourCC::OPALInstrumentOp1ADSR, 0, 0xFFFF, 1, 0x10, 162,
+              UiInstrumentOperatorRowY(1), 1, Ui2InstrumentValueFormat::Hex),
+    Parameter("A/D/S/R", FourCC::OPALInstrumentOp1ADSR, 0, 0xFFFF, 1, 0x10, UiInstrumentOperatorRowY(2),
               4, Ui2InstrumentValueFormat::Hex, true, false, true,
               FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-    Parameter("SHAPE", FourCC::OPALInstrumentOp1WaveShape, 0, 7, 1, 1, 171, 0,
+    Parameter("SHAPE", FourCC::OPALInstrumentOp1WaveShape, 0, 7, 1, 1, UiInstrumentOperatorRowY(3), 0,
               Ui2InstrumentValueFormat::OpalWave),
     Parameter("TR/VB/SU/KSR", FourCC::OPALInstrumentOp1TremVibSusKSR, 0, 15, 1,
-              1, 180, 4, Ui2InstrumentValueFormat::Bitmask, false, false, true,
+              1, UiInstrumentOperatorRowY(4), 4, Ui2InstrumentValueFormat::Bitmask, false, false, true,
               FourCC::Default, false, Ui2InstrumentSubfieldMode::Bit),
     Parameter("KEYSCALE", FourCC::OPALInstrumentOp1KeyScaleLevel, 0, 3, 1, 1,
-              189, 0, Ui2InstrumentValueFormat::OpalKeyscale),
+              UiInstrumentOperatorRowY(5), 0, Ui2InstrumentValueFormat::OpalKeyscale),
 };
 
 inline constexpr std::array<Ui2InstrumentParameterDescriptor, 6> kOpalOperator2{
-    Parameter("LEVEL", FourCC::OPALInstrumentOp2Level, 0, 63, 1, 1, 144, 2,
+    Parameter("LEVEL", FourCC::OPALInstrumentOp2Level, 0, 63, 1, 1, UiInstrumentOperatorRowY(0), 2,
               Ui2InstrumentValueFormat::Hex),
     Parameter("MULTIPLIER", FourCC::OPALInstrumentOp2Multiplier, 0, 15, 1, 1,
-              153, 1, Ui2InstrumentValueFormat::Hex),
-    Parameter("A/D/S/R", FourCC::OPALInstrumentOp2ADSR, 0, 0xFFFF, 1, 0x10, 162,
+              UiInstrumentOperatorRowY(1), 1, Ui2InstrumentValueFormat::Hex),
+    Parameter("A/D/S/R", FourCC::OPALInstrumentOp2ADSR, 0, 0xFFFF, 1, 0x10, UiInstrumentOperatorRowY(2),
               4, Ui2InstrumentValueFormat::Hex, true, false, true,
               FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
-    Parameter("SHAPE", FourCC::OPALInstrumentOp2WaveShape, 0, 7, 1, 1, 171, 0,
+    Parameter("SHAPE", FourCC::OPALInstrumentOp2WaveShape, 0, 7, 1, 1, UiInstrumentOperatorRowY(3), 0,
               Ui2InstrumentValueFormat::OpalWave),
     Parameter("TR/VB/SU/KSR", FourCC::OPALInstrumentOp2TremVibSusKSR, 0, 15, 1,
-              1, 180, 4, Ui2InstrumentValueFormat::Bitmask, false, false, true,
+              1, UiInstrumentOperatorRowY(4), 4, Ui2InstrumentValueFormat::Bitmask, false, false, true,
               FourCC::Default, false, Ui2InstrumentSubfieldMode::Bit),
     Parameter("KEYSCALE", FourCC::OPALInstrumentOp2KeyScaleLevel, 0, 3, 1, 1,
-              189, 0, Ui2InstrumentValueFormat::OpalKeyscale),
+              UiInstrumentOperatorRowY(5), 0, Ui2InstrumentValueFormat::OpalKeyscale),
 };
 
 static_assert(kSampleParameters.size() <= kUiInstrumentMaximumFields);
@@ -468,6 +469,9 @@ Ui2InstrumentFieldParameter(InstrumentType type, std::uint8_t index,
   case IT_LAST:
     break;
   }
+  if (descriptor.Valid())
+    descriptor.y = UiInstrumentSectionFieldY(
+        static_cast<UiInstrumentKind>(type), index, descriptor.y);
   return descriptor;
 }
 

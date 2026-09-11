@@ -1,0 +1,67 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+#pragma once
+
+#include <array>
+#include <cstdint>
+#include <span>
+#include <string_view>
+
+namespace ui2 {
+
+enum class UiInstrumentKind : std::uint8_t {
+  None, Sample, Midi, Sid, Opal, Drum, Stack
+};
+
+inline constexpr std::int16_t kUiInstrumentOperatorHeaderY = 120;
+[[nodiscard]] constexpr std::int16_t UiInstrumentOperatorRowY(std::uint8_t row) {
+  return kUiInstrumentOperatorHeaderY + 12 + row * 9;
+}
+
+struct UiInstrumentSection {
+  std::string_view title;
+  std::uint8_t firstField;
+};
+
+namespace detail {
+inline constexpr std::array<UiInstrumentSection, 6> kSampleSections{{
+    {"SOURCE", 0}, {"LEVEL & PITCH", 2}, {"CHARACTER", 6},
+    {"FILTER", 9}, {"PLAYBACK", 12}, {"MODULATION", 17}}};
+inline constexpr std::array<UiInstrumentSection, 2> kMidiSections{{
+    {"OUTPUT", 0}, {"MODULATION", 4}}};
+inline constexpr std::array<UiInstrumentSection, 3> kSidSections{{
+    {"OSCILLATOR", 0}, {"ENVELOPE", 5}, {"FILTER & OUTPUT", 6}}};
+inline constexpr std::array<UiInstrumentSection, 2> kDrumSections{{
+    {"VOICES", 0}, {"KIT", 12}}};
+inline constexpr std::array<UiInstrumentSection, 4> kStackSections{{
+    {"OSCILLATOR", 0}, {"TONE", 4}, {"ENVELOPE", 7}, {"MODULATION", 11}}};
+} // namespace detail
+
+[[nodiscard]] constexpr std::span<const UiInstrumentSection>
+UiInstrumentSections(UiInstrumentKind kind) {
+  switch (kind) {
+  case UiInstrumentKind::Sample: return detail::kSampleSections;
+  case UiInstrumentKind::Midi: return detail::kMidiSections;
+  case UiInstrumentKind::Sid: return detail::kSidSections;
+  case UiInstrumentKind::Drum: return detail::kDrumSections;
+  case UiInstrumentKind::Stack: return detail::kStackSections;
+  // OPAL retains its general/operator layout; NONE has no parameters.
+  case UiInstrumentKind::Opal:
+  case UiInstrumentKind::None: return {};
+  }
+  return {};
+}
+
+// Parameter order and identity stay unchanged. This shared spacing is used by
+// parameter capture, cursor placement, scrolling, and snapshot fixtures.
+[[nodiscard]] constexpr std::int16_t UiInstrumentSectionFieldY(
+    UiInstrumentKind kind, std::uint8_t field, std::int16_t ungroupedY) {
+  for (const auto &section : UiInstrumentSections(kind)) {
+    if (section.firstField <= field)
+      // The drum column labels share the Voices divider instead of adding
+      // another row above the table.
+      ungroupedY += kind == UiInstrumentKind::Drum && section.firstField == 0 ? 4 : 16;
+  }
+  return ungroupedY;
+}
+
+} // namespace ui2
