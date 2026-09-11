@@ -69,7 +69,7 @@ public:
       return {.type = Ui2ProjectLifecycleCommandType::NewProject};
     project_.fill('\0');
     Show(Purpose::ConfirmNew, "Create a new project and",
-         "   lose all changes?", UiDialogAction::Yes, UiDialogAction::No, 2U,
+         "   lose all changes?", UiDialogAction::No, UiDialogAction::Yes, 2U,
          false, trigger);
     return {};
   }
@@ -86,7 +86,7 @@ public:
     if (!dirty)
       return Command(Ui2ProjectLifecycleCommandType::LoadProject);
     Show(Purpose::ConfirmLoad, "Load song and lose changes?", {},
-         UiDialogAction::Yes, UiDialogAction::No, 2U, false, trigger);
+         UiDialogAction::No, UiDialogAction::Yes, 2U, false, trigger);
     return {};
   }
 
@@ -106,7 +106,7 @@ public:
       return {};
     }
     Show(Purpose::ConfirmDelete, "Delete selected project?", project_.data(),
-         UiDialogAction::Yes, UiDialogAction::No, 2U, true, trigger);
+         UiDialogAction::No, UiDialogAction::Yes, 2U, true, trigger);
     return {};
   }
 
@@ -115,7 +115,7 @@ public:
     if (!CopyProject(project))
       return;
     Show(Purpose::ConfirmOverwrite, "Overwrite EXISTING project?", {},
-         UiDialogAction::Ok, UiDialogAction::Cancel, 2U, false, trigger);
+         UiDialogAction::Cancel, UiDialogAction::Ok, 2U, false, trigger);
   }
 
   void RequestThemeOverwrite(const char *theme,
@@ -123,7 +123,7 @@ public:
     if (!CopyProject(theme))
       return;
     Show(Purpose::ConfirmThemeOverwrite, "Theme already exists", "Overwrite?",
-         UiDialogAction::Yes, UiDialogAction::No, 2U, false, trigger);
+         UiDialogAction::No, UiDialogAction::Yes, 2U, false, trigger);
   }
 
   void RequestPurgeUnusedSamples(bool audioActive,
@@ -269,7 +269,7 @@ private:
       ShowInfo("Not while running!", nullptr, false, trigger);
       return;
     }
-    Show(purpose, prompt, {}, UiDialogAction::Yes, UiDialogAction::No, 2U,
+    Show(purpose, prompt, {}, UiDialogAction::No, UiDialogAction::Yes, 2U,
          false, trigger);
   }
 
@@ -292,9 +292,8 @@ private:
     actions_[0] = first;
     actions_[1] = second;
     actionCount_ = std::min<std::uint8_t>(count, actions_.size());
-    // MessageBox has always selected the last button. For destructive
-    // confirmations that is NO/CANCEL, so key repeat cannot accept data loss.
-    selectedAction_ = static_cast<std::uint8_t>(actionCount_ - 1U);
+    // Negative action is on the left and remains the default.
+    selectedAction_ = 0U;
     input_ = {};
     releaseGate_.BlockUntilRelease(trigger);
     ++instanceId_;
@@ -305,7 +304,7 @@ private:
       return;
     const int count = actionCount_;
     selectedAction_ = static_cast<std::uint8_t>(
-        (count + static_cast<int>(selectedAction_) + delta) % count);
+        std::clamp<int>(static_cast<int>(selectedAction_) + delta, 0, count - 1));
   }
 
   Ui2ProjectLifecycleCommand

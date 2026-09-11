@@ -20,19 +20,19 @@ void CheckHeldEnterIsReleasedBeforeDialogInput(
     ui2::Ui2ProjectLifecycleCommandType expected) {
   REQUIRE(controller.Active());
   REQUIRE(controller.Snapshot().actionCount == 2U);
-  CHECK(controller.Snapshot().selectedAction == 1U);
+  CHECK(controller.Snapshot().selectedAction == 0U);
 
   // This is the platform repeat pulse from the ENTER press that opened the
   // dialog. It must neither accept the conservative default nor close it.
   CHECK_FALSE(controller.Handle(TrackerAction::Enter, true).HasValue());
   CHECK(controller.Active());
-  CHECK(controller.Snapshot().selectedAction == 1U);
-  CHECK_FALSE(controller.Handle(TrackerAction::Left, true).HasValue());
-  CHECK_FALSE(controller.Handle(TrackerAction::Left, false).HasValue());
-  CHECK(controller.Snapshot().selectedAction == 1U);
+  CHECK(controller.Snapshot().selectedAction == 0U);
+  CHECK_FALSE(controller.Handle(TrackerAction::Right, true).HasValue());
+  CHECK_FALSE(controller.Handle(TrackerAction::Right, false).HasValue());
+  CHECK(controller.Snapshot().selectedAction == 0U);
   CHECK_FALSE(controller.Handle(TrackerAction::Enter, false).HasValue());
 
-  CHECK_FALSE(Tap(controller, TrackerAction::Left).HasValue());
+  CHECK_FALSE(Tap(controller, TrackerAction::Right).HasValue());
   CHECK(Tap(controller, TrackerAction::Enter).type == expected);
   CHECK_FALSE(controller.Active());
 }
@@ -53,15 +53,15 @@ TEST_CASE("UI2 project lifecycle confirms dirty New with safe default") {
   CHECK(Text(dialog.title) == "Create a new project and");
   CHECK(Text(dialog.label) == "   lose all changes?");
   REQUIRE(dialog.actionCount == 2U);
-  CHECK(dialog.actions[0] == UiDialogAction::Yes);
-  CHECK(dialog.actions[1] == UiDialogAction::No);
-  CHECK(dialog.selectedAction == 1U);
+  CHECK(dialog.actions[0] == UiDialogAction::No);
+  CHECK(dialog.actions[1] == UiDialogAction::Yes);
+  CHECK(dialog.selectedAction == 0U);
 
   CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
   CHECK_FALSE(controller.Active());
 
   controller.RequestNew(true, false);
-  Tap(controller, TrackerAction::Left);
+  Tap(controller, TrackerAction::Right);
   CHECK(Tap(controller, TrackerAction::Enter).type ==
         Ui2ProjectLifecycleCommandType::NewProject);
 }
@@ -82,8 +82,8 @@ TEST_CASE("UI2 project lifecycle preserves confirmed Load payload") {
   using namespace ui2;
   Ui2ProjectLifecycleController controller;
   CHECK_FALSE(controller.RequestLoad("RESTORE-ME", true, false).HasValue());
-  CHECK(controller.Snapshot().selectedAction == 1U);
-  Tap(controller, TrackerAction::Left);
+  CHECK(controller.Snapshot().selectedAction == 0U);
+  Tap(controller, TrackerAction::Right);
   const Ui2ProjectLifecycleCommand load = Tap(controller, TrackerAction::Enter);
   CHECK(load.type == Ui2ProjectLifecycleCommandType::LoadProject);
   CHECK(std::string_view(load.project.data()) == "RESTORE-ME");
@@ -104,8 +104,8 @@ TEST_CASE("UI2 project lifecycle protects current project from Delete") {
   CHECK(Text(dialog.title) == "Delete selected project?");
   CHECK(Text(dialog.label) == "OLD");
   CHECK(dialog.labelUserText);
-  CHECK(dialog.selectedAction == 1U);
-  Tap(controller, TrackerAction::Left);
+  CHECK(dialog.selectedAction == 0U);
+  Tap(controller, TrackerAction::Right);
   const Ui2ProjectLifecycleCommand remove =
       Tap(controller, TrackerAction::Enter);
   CHECK(remove.type == Ui2ProjectLifecycleCommandType::DeleteProject);
@@ -118,10 +118,10 @@ TEST_CASE("UI2 project lifecycle requires explicit overwrite selection") {
   controller.RequestOverwrite("EXISTING");
   const Ui2DialogSnapshot dialog = controller.Snapshot();
   REQUIRE(dialog.actionCount == 2U);
-  CHECK(dialog.actions[0] == UiDialogAction::Ok);
-  CHECK(dialog.actions[1] == UiDialogAction::Cancel);
-  CHECK(dialog.selectedAction == 1U);
-  Tap(controller, TrackerAction::Left);
+  CHECK(dialog.actions[0] == UiDialogAction::Cancel);
+  CHECK(dialog.actions[1] == UiDialogAction::Ok);
+  CHECK(dialog.selectedAction == 0U);
+  Tap(controller, TrackerAction::Right);
   const Ui2ProjectLifecycleCommand overwrite =
       Tap(controller, TrackerAction::Enter);
   CHECK(overwrite.type == Ui2ProjectLifecycleCommandType::OverwriteProject);
@@ -137,13 +137,13 @@ TEST_CASE("UI2 theme overwrite reuses conservative lifecycle confirmation") {
   CHECK(Text(dialog.title) == "Theme already exists");
   CHECK(Text(dialog.label) == "Overwrite?");
   REQUIRE(dialog.actionCount == 2U);
-  CHECK(dialog.actions[0] == UiDialogAction::Yes);
-  CHECK(dialog.actions[1] == UiDialogAction::No);
-  CHECK(dialog.selectedAction == 1U);
+  CHECK(dialog.actions[0] == UiDialogAction::No);
+  CHECK(dialog.actions[1] == UiDialogAction::Yes);
+  CHECK(dialog.selectedAction == 0U);
 
   CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
   controller.RequestThemeOverwrite("DEFAULT");
-  Tap(controller, TrackerAction::Left);
+  Tap(controller, TrackerAction::Right);
   const Ui2ProjectLifecycleCommand overwrite =
       Tap(controller, TrackerAction::Enter);
   CHECK(overwrite.type == Ui2ProjectLifecycleCommandType::OverwriteTheme);
@@ -218,15 +218,15 @@ TEST_CASE("UI2 project lifecycle confirms sample purge with safe default") {
   CHECK(Text(dialog.title) == "Remove unused samples?");
   CHECK(Text(dialog.label).empty());
   REQUIRE(dialog.actionCount == 2U);
-  CHECK(dialog.actions[0] == UiDialogAction::Yes);
-  CHECK(dialog.actions[1] == UiDialogAction::No);
-  CHECK(dialog.selectedAction == 1U);
+  CHECK(dialog.actions[0] == UiDialogAction::No);
+  CHECK(dialog.actions[1] == UiDialogAction::Yes);
+  CHECK(dialog.selectedAction == 0U);
 
   CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
   CHECK_FALSE(controller.Active());
 
   controller.RequestPurgeUnusedSamples(false);
-  Tap(controller, TrackerAction::Left);
+  Tap(controller, TrackerAction::Right);
   CHECK(Tap(controller, TrackerAction::Enter).type ==
         Ui2ProjectLifecycleCommandType::PurgeUnusedSamples);
 }
@@ -238,8 +238,8 @@ TEST_CASE("UI2 project lifecycle confirms instrument purge and blocks playback")
   controller.RequestPurgeUnusedInstruments(false);
   REQUIRE(controller.Active());
   CHECK(Text(controller.Snapshot().title) == "Remove unused instruments?");
-  CHECK(controller.Snapshot().selectedAction == 1U);
-  Tap(controller, TrackerAction::Left);
+  CHECK(controller.Snapshot().selectedAction == 0U);
+  Tap(controller, TrackerAction::Right);
   CHECK(Tap(controller, TrackerAction::Enter).type ==
         Ui2ProjectLifecycleCommandType::PurgeUnusedInstruments);
 

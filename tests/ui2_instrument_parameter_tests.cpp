@@ -1242,9 +1242,9 @@ TEST_CASE(
   const Ui2DialogSnapshot dialog = controller.Snapshot();
   CHECK(std::string_view(dialog.title.data()) == "Change Instrument");
   CHECK(std::string_view(dialog.label.data()) == "Lose settings?");
-  CHECK(dialog.actions[0] == UiDialogAction::Yes);
-  CHECK(dialog.actions[1] == UiDialogAction::No);
-  CHECK(dialog.selectedAction == 1U);
+  CHECK(dialog.actions[0] == UiDialogAction::No);
+  CHECK(dialog.actions[1] == UiDialogAction::Yes);
+  CHECK(dialog.selectedAction == 0U);
   CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
 }
 
@@ -1259,7 +1259,7 @@ TEST_CASE(
 
   CHECK_FALSE(
       controller.RequestTypeChange(IT_OPAL, IT_MIDI, true, false).HasValue());
-  Tap(controller, TrackerAction::Left);
+  Tap(controller, TrackerAction::Right);
   const auto confirmed = Tap(controller, TrackerAction::Enter);
   REQUIRE(confirmed.type == Ui2InstrumentLifecycleCommandType::ApplyType);
   CHECK(confirmed.instrumentType == IT_OPAL);
@@ -1274,20 +1274,20 @@ TEST_CASE("UI2 Instrument type dialog ignores the held trigger until release") {
                                      TrackerAction::Right)
                   .HasValue());
   REQUIRE(controller.Active());
-  CHECK(controller.Snapshot().selectedAction == 1U); // NO
+  CHECK(controller.Snapshot().selectedAction == 0U); // NO
 
   // A platform repeat pulse from the RIGHT press that opened the dialog must
   // not move the conservative default to YES.
   CHECK_FALSE(controller.Handle(TrackerAction::Right, true).HasValue());
-  CHECK(controller.Snapshot().selectedAction == 1U);
+  CHECK(controller.Snapshot().selectedAction == 0U);
   CHECK_FALSE(controller.Handle(TrackerAction::Left, true).HasValue());
   CHECK_FALSE(controller.Handle(TrackerAction::Left, false).HasValue());
-  CHECK(controller.Snapshot().selectedAction == 1U);
+  CHECK(controller.Snapshot().selectedAction == 0U);
   CHECK_FALSE(controller.Handle(TrackerAction::Right, false).HasValue());
 
   // Once released, a deliberate direction press still changes the choice.
-  CHECK_FALSE(Tap(controller, TrackerAction::Left).HasValue());
-  CHECK(controller.Snapshot().selectedAction == 0U); // YES
+  CHECK_FALSE(Tap(controller, TrackerAction::Right).HasValue());
+  CHECK(controller.Snapshot().selectedAction == 1U); // YES
 }
 
 TEST_CASE("UI2 Instrument export overwrite requires explicit YES") {
@@ -1297,20 +1297,20 @@ TEST_CASE("UI2 Instrument export overwrite requires explicit YES") {
   REQUIRE(controller.Active());
   const Ui2DialogSnapshot dialog = controller.Snapshot();
   CHECK(std::string_view(dialog.title.data()) == "Overwrite existing file?");
-  CHECK(dialog.actions[0] == UiDialogAction::Yes);
-  CHECK(dialog.actions[1] == UiDialogAction::No);
-  CHECK(dialog.selectedAction == 1U);
+  CHECK(dialog.actions[0] == UiDialogAction::No);
+  CHECK(dialog.actions[1] == UiDialogAction::Yes);
+  CHECK(dialog.selectedAction == 0U);
   CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
 
   controller.RequestExportOverwrite(TrackerAction::Enter);
   CHECK_FALSE(controller.Handle(TrackerAction::Enter, true).HasValue());
   REQUIRE(controller.Active());
-  CHECK(controller.Snapshot().selectedAction == 1U);
+  CHECK(controller.Snapshot().selectedAction == 0U);
   CHECK_FALSE(controller.Handle(TrackerAction::Left, true).HasValue());
   CHECK_FALSE(controller.Handle(TrackerAction::Left, false).HasValue());
-  CHECK(controller.Snapshot().selectedAction == 1U);
+  CHECK(controller.Snapshot().selectedAction == 0U);
   CHECK_FALSE(controller.Handle(TrackerAction::Enter, false).HasValue());
-  Tap(controller, TrackerAction::Left);
+  Tap(controller, TrackerAction::Right);
   const auto overwrite = Tap(controller, TrackerAction::Enter);
   CHECK(overwrite.type == Ui2InstrumentLifecycleCommandType::OverwriteExport);
 }

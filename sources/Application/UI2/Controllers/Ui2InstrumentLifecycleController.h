@@ -63,15 +63,15 @@ public:
               .instrumentType = requested};
 
     requested_ = requested;
-    Show(Purpose::ConfirmTypeChange, UiDialogAction::Yes, UiDialogAction::No,
+    Show(Purpose::ConfirmTypeChange, UiDialogAction::No, UiDialogAction::Yes,
          2U);
     BlockUntilRelease(trigger);
     return {};
   }
 
   void RequestExportOverwrite(TrackerAction trigger = TrackerAction::Count) {
-    Show(Purpose::ConfirmExportOverwrite, UiDialogAction::Yes,
-         UiDialogAction::No, 2U);
+    Show(Purpose::ConfirmExportOverwrite, UiDialogAction::No,
+         UiDialogAction::Yes, 2U);
     BlockUntilRelease(trigger);
   }
 
@@ -139,9 +139,8 @@ private:
     actions_[0] = first;
     actions_[1] = second;
     actionCount_ = count;
-    // Legacy MessageBox selects its last action, so destructive type changes
-    // open on NO and key repeat cannot discard settings.
-    selectedAction_ = static_cast<std::uint8_t>(count - 1U);
+    // Negative action is on the left and remains the default.
+    selectedAction_ = 0U;
     input_ = {};
     releaseGate_.Reset();
     ++instanceId_;
@@ -156,7 +155,7 @@ private:
       return;
     const int count = actionCount_;
     selectedAction_ = static_cast<std::uint8_t>(
-        (count + static_cast<int>(selectedAction_) + delta) % count);
+        std::clamp<int>(static_cast<int>(selectedAction_) + delta, 0, count - 1));
   }
 
   Purpose purpose_ = Purpose::None;

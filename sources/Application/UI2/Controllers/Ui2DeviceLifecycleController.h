@@ -50,7 +50,7 @@ public:
     }
     // MessageBox historically focuses its last button. Keeping NO last and
     // selected means opening the dialog can never reboot the device.
-    Show(Purpose::ConfirmBootloader, UiDialogAction::Yes, UiDialogAction::No,
+    Show(Purpose::ConfirmBootloader, UiDialogAction::No, UiDialogAction::Yes,
          2U, trigger);
   }
 
@@ -106,7 +106,7 @@ private:
     actions_[0] = first;
     actions_[1] = second;
     actionCount_ = actionCount;
-    selectedAction_ = static_cast<std::uint8_t>(actionCount_ - 1U);
+    selectedAction_ = 0U;
     input_ = {};
     releaseGate_.BlockUntilRelease(trigger);
     ++instanceId_;
@@ -117,7 +117,7 @@ private:
       return;
     const int count = actionCount_;
     selectedAction_ = static_cast<std::uint8_t>(
-        (count + static_cast<int>(selectedAction_) + delta) % count);
+        std::clamp<int>(static_cast<int>(selectedAction_) + delta, 0, count - 1));
   }
 
   Purpose purpose_ = Purpose::None;

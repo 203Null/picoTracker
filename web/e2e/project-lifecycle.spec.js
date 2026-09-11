@@ -128,7 +128,7 @@ test('real session Save As, Browser Load/Delete, dirty confirmation, and New res
   await tap(page, 'k')
   await expectModel(page, { projectName: projectB, tempo: 141 })
   await tap(page, 'k')
-  await tap(page, 'a')
+  await tap(page, 'd')
   await tap(page, 'k')
   await expectModel(page, { projectName: projectA, tempo: 139, playerRunning: false })
 
@@ -145,7 +145,7 @@ test('real session Save As, Browser Load/Delete, dirty confirmation, and New res
   await tap(page, 'k')
   await expect.poll(() => projectExists(page, projectB)).toBe(true)
   await tap(page, 'k')
-  await tap(page, 'a')
+  await tap(page, 'd')
   await tap(page, 'k')
   await expect.poll(() => projectExists(page, projectB), { timeout: 10_000 }).toBe(false)
 

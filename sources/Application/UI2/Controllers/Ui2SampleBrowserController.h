@@ -209,7 +209,7 @@ public:
       return;
     std::snprintf(pendingDelete_.data(), pendingDelete_.size(), "%s", filename);
     dialogActive_ = true;
-    dialogSelectedAction_ = 1U; // NO is the conservative legacy default.
+    dialogSelectedAction_ = 0U; // NO is the conservative legacy default.
     dialogInput_ = {};
     // This controller owns both browser and dialog input. Transfer the opener
     // to the dialog so its later release cannot remain latched in the browser.
@@ -224,13 +224,12 @@ public:
         !dialogReleaseGate_.Update(action, pressed) || !pressed)
       return {};
     if (action == TrackerAction::Left || action == TrackerAction::Right) {
-      dialogSelectedAction_ = static_cast<std::uint8_t>(
-          1U - std::min<std::uint8_t>(dialogSelectedAction_, 1U));
+      dialogSelectedAction_ = action == TrackerAction::Right ? 1U : 0U;
       return {};
     }
     if (action != TrackerAction::Enter)
       return {};
-    const bool confirmed = dialogSelectedAction_ == 0U;
+    const bool confirmed = dialogSelectedAction_ == 1U;
     dialogActive_ = false;
     dialogInput_ = {};
     dialogReleaseGate_.Reset();
@@ -251,8 +250,8 @@ public:
     snapshot.kind = UiDialogKind::Message;
     snapshot.SetTitle("Remove sample?");
     snapshot.SetUserLabel(pendingDelete_.data());
-    snapshot.PushAction(UiDialogAction::Yes);
     snapshot.PushAction(UiDialogAction::No);
+    snapshot.PushAction(UiDialogAction::Yes);
     snapshot.SetSelectedAction(dialogSelectedAction_, true);
     return snapshot;
   }
@@ -629,7 +628,7 @@ private:
   Ui2ControllerInputState input_{};
   std::uint8_t depth_ = 0U;
   std::uint8_t selectedAction_ = 0U;
-  std::uint8_t dialogSelectedAction_ = 1U;
+  std::uint8_t dialogSelectedAction_ = 0U;
   Ui2SampleBrowserMode mode_ = Ui2SampleBrowserMode::ProjectPool;
   bool active_ = false;
   bool previewHeld_ = false;

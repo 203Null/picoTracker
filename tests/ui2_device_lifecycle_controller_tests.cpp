@@ -62,9 +62,9 @@ TEST_CASE("UI2 Device firmware confirmation defaults to NO") {
   CHECK(Text(dialog.title) == "Reboot and lose changes?");
   CHECK(Text(dialog.label).empty());
   REQUIRE(dialog.actionCount == 2U);
-  CHECK(dialog.actions[0] == UiDialogAction::Yes);
-  CHECK(dialog.actions[1] == UiDialogAction::No);
-  CHECK(dialog.selectedAction == 1U);
+  CHECK(dialog.actions[0] == UiDialogAction::No);
+  CHECK(dialog.actions[1] == UiDialogAction::Yes);
+  CHECK(dialog.selectedAction == 0U);
 
   CHECK_FALSE(Tap(controller, TrackerAction::Enter).HasValue());
   CHECK_FALSE(controller.Active());
@@ -77,16 +77,16 @@ TEST_CASE("UI2 Device dialogs wait for the opening ENTER release") {
   SUBCASE("firmware confirmation") {
     controller.RequestUpdateFirmware(false, TrackerAction::Enter);
     REQUIRE(controller.Active());
-    CHECK(controller.Snapshot().selectedAction == 1U);
+    CHECK(controller.Snapshot().selectedAction == 0U);
 
     CHECK_FALSE(controller.Handle(TrackerAction::Enter, true).HasValue());
-    CHECK_FALSE(controller.Handle(TrackerAction::Left, true).HasValue());
-    CHECK_FALSE(controller.Handle(TrackerAction::Left, false).HasValue());
+    CHECK_FALSE(controller.Handle(TrackerAction::Right, true).HasValue());
+    CHECK_FALSE(controller.Handle(TrackerAction::Right, false).HasValue());
     CHECK(controller.Active());
-    CHECK(controller.Snapshot().selectedAction == 1U);
+    CHECK(controller.Snapshot().selectedAction == 0U);
     CHECK_FALSE(controller.Handle(TrackerAction::Enter, false).HasValue());
 
-    CHECK_FALSE(Tap(controller, TrackerAction::Left).HasValue());
+    CHECK_FALSE(Tap(controller, TrackerAction::Right).HasValue());
     CHECK(Tap(controller, TrackerAction::Enter).type ==
           Ui2DeviceLifecycleCommandType::EnterBootloader);
   }
@@ -115,7 +115,7 @@ TEST_CASE("UI2 Device firmware service runs only an explicit YES command") {
   CHECK(system.bootloaderRequests == 0);
 
   controller.RequestUpdateFirmware(false);
-  Tap(controller, TrackerAction::Left);
+  Tap(controller, TrackerAction::Right);
   const Ui2DeviceLifecycleCommand command =
       Tap(controller, TrackerAction::Enter);
   REQUIRE(command.type == Ui2DeviceLifecycleCommandType::EnterBootloader);

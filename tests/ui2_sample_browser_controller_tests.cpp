@@ -584,7 +584,7 @@ TEST_CASE("UI2 Sample Browser delete confirmation defaults to NO") {
   controller.RequestDeleteConfirmation(request.filename.data());
   REQUIRE(controller.DialogActive());
   const Ui2DialogSnapshot dialog = controller.DialogSnapshot();
-  CHECK(dialog.selectedAction == 1U);
+  CHECK(dialog.selectedAction == 0U);
   CHECK(std::string_view(dialog.label.data()) == "AKWF.WAV");
   CHECK(dialog.labelUserText);
   CHECK(controller.HandleDialog(TrackerAction::Enter, true).type ==
@@ -593,8 +593,8 @@ TEST_CASE("UI2 Sample Browser delete confirmation defaults to NO") {
   CHECK_FALSE(controller.DialogActive());
 
   controller.RequestDeleteConfirmation("AKWF.WAV");
-  controller.HandleDialog(TrackerAction::Left, true);
-  controller.HandleDialog(TrackerAction::Left, false);
+  controller.HandleDialog(TrackerAction::Right, true);
+  controller.HandleDialog(TrackerAction::Right, false);
   const Ui2SampleBrowserCommand confirmed =
       controller.HandleDialog(TrackerAction::Enter, true);
   CHECK(confirmed.type == Ui2SampleBrowserCommandType::DeleteConfirmed);
@@ -618,18 +618,18 @@ TEST_CASE("UI2 Sample Browser delete dialog waits for its ENTER release") {
 
   CHECK(controller.HandleDialog(TrackerAction::Enter, true).type ==
         Ui2SampleBrowserCommandType::None);
-  CHECK(controller.HandleDialog(TrackerAction::Left, true).type ==
+  CHECK(controller.HandleDialog(TrackerAction::Right, true).type ==
         Ui2SampleBrowserCommandType::None);
-  CHECK(controller.HandleDialog(TrackerAction::Left, false).type ==
+  CHECK(controller.HandleDialog(TrackerAction::Right, false).type ==
         Ui2SampleBrowserCommandType::None);
   CHECK(controller.DialogActive());
-  CHECK(controller.DialogSnapshot().selectedAction == 1U);
+  CHECK(controller.DialogSnapshot().selectedAction == 0U);
   CHECK(controller.HandleDialog(TrackerAction::Enter, false).type ==
         Ui2SampleBrowserCommandType::None);
 
-  CHECK(controller.HandleDialog(TrackerAction::Left, true).type ==
+  CHECK(controller.HandleDialog(TrackerAction::Right, true).type ==
         Ui2SampleBrowserCommandType::None);
-  CHECK(controller.HandleDialog(TrackerAction::Left, false).type ==
+  CHECK(controller.HandleDialog(TrackerAction::Right, false).type ==
         Ui2SampleBrowserCommandType::None);
   const Ui2SampleBrowserCommand confirmed =
       controller.HandleDialog(TrackerAction::Enter, true);
@@ -657,8 +657,8 @@ TEST_CASE("UI2 Sample Browser clears modifier releases owned by its dialog") {
   controller.HandleDialog(TrackerAction::Option, false);
   controller.Handle(TrackerAction::Option, false);
 
-  controller.HandleDialog(TrackerAction::Left, true); // YES
-  controller.HandleDialog(TrackerAction::Left, false);
+  controller.HandleDialog(TrackerAction::Right, true); // YES
+  controller.HandleDialog(TrackerAction::Right, false);
   REQUIRE(controller.HandleDialog(TrackerAction::Enter, true).type ==
           Ui2SampleBrowserCommandType::DeleteConfirmed);
   controller.Handle(TrackerAction::Enter, false);
