@@ -100,11 +100,13 @@ void Ui2TrackerApplication::ExecuteSampleBrowser(
   SamplePool *pool = SamplePool::GetInstance();
 
   if (command.type == Ui2SampleBrowserCommandType::PreviewStop) {
+    samples_.browser.StopPreview();
     if (player != nullptr && !player->IsRunning() && player->IsPlaying())
       player->StopStreaming();
     return;
   }
   if (command.type == Ui2SampleBrowserCommandType::ModeChanged) {
+    samples_.browser.StopPreview();
     if (player != nullptr && !player->IsRunning() && player->IsPlaying())
       player->StopStreaming();
     return;
@@ -431,7 +433,7 @@ bool Ui2TrackerApplication::OpenSampleSlices(const char *path,
 void Ui2TrackerApplication::HandleSampleEditor(TrackerAction action,
                                                bool pressed) {
   // Reject before the controller latches PLAY; otherwise a blocked preview
-  // would leave its local `playing` visual true until a later release.
+  // would leave its local `playing` visual true without an audio owner.
   if (action == TrackerAction::Play && pressed) {
     Player *player = Player::GetInstance();
     if (player == nullptr || player->IsRunning())
@@ -755,7 +757,8 @@ void Ui2TrackerApplication::ExecuteSampleEditor(
 
 void Ui2TrackerApplication::HandleSampleSlices(TrackerAction action,
                                                bool pressed) {
-  if (action == TrackerAction::Play && pressed) {
+  if (action == TrackerAction::Play && pressed &&
+      !samples_.slices.IsPreviewing()) {
     Player *player = Player::GetInstance();
     SampleInstrument *sample = CurrentSampleInstrument(session_);
     if (player == nullptr || player->IsRunning()) {
@@ -907,7 +910,7 @@ void Ui2TrackerApplication::UpdateSamplePreview(std::uint32_t nowMs) {
   if (samples_.preview.kind == SamplePreviewKind::None ||
       samples_.preview.rate == 0U || samples_.preview.frames == 0U)
     return;
-  // A non-looping editor stream can reach EOF while PLAY is still held.
+  // A non-looping editor stream clears its toggle state when it reaches EOF.
   // Legacy SampleEditorView observed Player::IsPlaying() and cleared its
   // visual state at that point; keep UI2's power state synchronized too.
   if (samples_.preview.kind == SamplePreviewKind::EditorStream) {
@@ -928,6 +931,8 @@ void Ui2TrackerApplication::UpdateSamplePreview(std::uint32_t nowMs) {
   if (samples_.preview.singleCycle && span != 0U) {
     playhead = static_cast<std::uint32_t>(start + advanced % span);
   } else if (advanced >= span) {
+    // Slice audio follows the instrument's loop mode. Reaching the end of
+    // this one-pass indicator must not stop a looping preview.
     playhead = end;
     visible = false;
   } else {

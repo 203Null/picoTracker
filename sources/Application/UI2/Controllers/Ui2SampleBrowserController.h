@@ -75,7 +75,7 @@ public:
 
   void Close() {
     active_ = false;
-    previewHeld_ = false;
+    previewActive_ = false;
     toggleChordLatched_ = false;
     openFailed_ = false;
     input_ = {};
@@ -91,6 +91,8 @@ public:
   }
 
   [[nodiscard]] bool Active() const { return active_; }
+  [[nodiscard]] bool IsPreviewing() const { return previewActive_; }
+  void StopPreview() { previewActive_ = false; }
   [[nodiscard]] Ui2SampleBrowserMode Mode() const { return mode_; }
   void SetNavigationHeld(bool held) { input_.SetNavigationHeld(held); }
   [[nodiscard]] bool DialogActive() const { return dialogActive_; }
@@ -113,13 +115,10 @@ public:
       return {};
     }
 
+    const bool repeatedPress = pressed && input_.Held(action);
     if (!input_.Update(action, pressed))
       return {};
     if (!pressed) {
-      if (action == TrackerAction::Play && previewHeld_) {
-        previewHeld_ = false;
-        return {.type = Ui2SampleBrowserCommandType::PreviewStop};
-      }
       if ((input_.Mask() & ToggleChordMask()) != ToggleChordMask())
         toggleChordLatched_ = false;
       return {};
@@ -143,15 +142,21 @@ public:
     }
 
     if (action == TrackerAction::Play) {
-      if (!HasFileSelection())
+      if (repeatedPress)
         return {};
-      if (input_.Held(TrackerAction::Shift) &&
+      if (HasFileSelection() && input_.Held(TrackerAction::Shift) &&
           mode_ == Ui2SampleBrowserMode::Library)
         return MakeSelected(Ui2SampleBrowserCommandType::Import);
+      if (previewActive_) {
+        StopPreview();
+        return {.type = Ui2SampleBrowserCommandType::PreviewStop};
+      }
+      if (!HasFileSelection())
+        return {};
       Ui2SampleBrowserCommand command =
           MakeSelected(Ui2SampleBrowserCommandType::PreviewStart);
       command.singleCycle = IsSelectedSingleCycle();
-      previewHeld_ = command.filename[0] != '\0';
+      previewActive_ = command.filename[0] != '\0';
       return command;
     }
 
@@ -631,7 +636,7 @@ private:
   std::uint8_t dialogSelectedAction_ = 0U;
   Ui2SampleBrowserMode mode_ = Ui2SampleBrowserMode::ProjectPool;
   bool active_ = false;
-  bool previewHeld_ = false;
+  bool previewActive_ = false;
   bool toggleChordLatched_ = false;
   bool dialogActive_ = false;
   bool openFailed_ = false;

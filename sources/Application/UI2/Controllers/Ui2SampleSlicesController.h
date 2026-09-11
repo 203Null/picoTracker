@@ -185,16 +185,16 @@ public:
   void StartPreview(std::uint32_t sample) {
     if (!active_)
       return;
-    previewHeld_ = true;
     previewActive_ = true;
     previewPlayhead_ = sample;
     previewPlayheadVisible_ = true;
   }
 
   // Preview ownership also ends on page transitions and application-level
-  // stops, not only on the matching PLAY release.
+  // stops, as well as on a second PLAY tap.
+  [[nodiscard]] bool IsPreviewing() const { return previewActive_; }
+
   void StopPreview() {
-    previewHeld_ = false;
     previewActive_ = false;
     previewPlayhead_ = 0U;
     previewPlayheadVisible_ = false;
@@ -204,18 +204,18 @@ public:
     const bool repeatedPress = pressed && input_.Held(action);
     if (!active_ || !input_.Update(action, pressed))
       return {};
-    if (!pressed) {
-      if (action == TrackerAction::Play && previewHeld_) {
-        Ui2SampleSlicesCommand command =
-            MakeCommand(Ui2SampleSlicesCommandType::PreviewStop);
+    if (!pressed)
+      return {};
+
+    if (action == TrackerAction::Play) {
+      if (repeatedPress)
+        return {};
+      if (previewActive_) {
+        const auto command = MakeCommand(Ui2SampleSlicesCommandType::PreviewStop);
         StopPreview();
         return command;
       }
-      return {};
-    }
-
-    if (action == TrackerAction::Play) {
-      if (repeatedPress || previewHeld_ || waveform_.FrameCount() == 0U)
+      if (waveform_.FrameCount() == 0U)
         return {};
       if (IsDefined(selectedSlice_) && !IsPreviewable(selectedSlice_))
         return {};
@@ -457,7 +457,7 @@ private:
     focusDigit_ = 6U;
     focus_ = SampleSlicesViewUi2Focus::Waveform;
     lastBuild_ = Ui2SampleWaveformBuildResult::NotLoaded;
-    active_ = waveformReady_ = previewHeld_ = previewActive_ = false;
+    active_ = waveformReady_ = previewActive_ = false;
     previewPlayheadVisible_ = false;
     dialogActive_ = false;
     dialogSelectedAction_ = 0U;
@@ -722,7 +722,6 @@ private:
       Ui2SampleWaveformBuildResult::NotLoaded;
   bool active_ = false;
   bool waveformReady_ = false;
-  bool previewHeld_ = false;
   bool previewActive_ = false;
   bool previewPlayheadVisible_ = false;
   bool dialogActive_ = false;

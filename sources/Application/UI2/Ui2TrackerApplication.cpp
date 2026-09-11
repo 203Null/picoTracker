@@ -989,11 +989,14 @@ void Ui2TrackerApplication::HandleBrowser(TrackerAction action, bool pressed) {
     return;
   }
   if (samples_.browser.Active()) {
+    Player *player = Player::GetInstance();
+    if (player == nullptr || player->IsRunning() || !player->IsPlaying())
+      samples_.browser.StopPreview();
     ExecuteSampleBrowser(samples_.browser.Handle(action, pressed));
     return;
   }
   // Project Browser keeps the global transport available. Sample Browser is
-  // deliberately excluded above because PLAY there owns press/release sample
+  // deliberately excluded above because PLAY there toggles sample
   // preview instead of sequencer transport.
   if (action == TrackerAction::Play) {
     if (pressed) {

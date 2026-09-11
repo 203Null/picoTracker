@@ -128,7 +128,7 @@ public:
     end_ = waveform_.FrameCount() - 1U;
     selectedMarker_ = 0U;
     focusDigit_ = 0U;
-    previewHeld_ = playing_ = previewPlayheadVisible_ = false;
+    playing_ = previewPlayheadVisible_ = false;
     waveform_.CenterOn(0U);
     RebuildWaveform();
     if (!FocusAvailable(focus_))
@@ -303,17 +303,17 @@ public:
   void StartPreview(std::uint32_t sample) {
     if (!active_)
       return;
-    previewHeld_ = true;
     playing_ = true;
     previewPlayhead_ = sample;
     previewPlayheadVisible_ = true;
   }
 
   // Audio can stop outside Handle() (end-of-file, page transition, shutdown).
-  // Clear the held-preview projection as one operation so a later key-up does
-  // not emit a second stop and the top bar cannot remain in PLAYING state.
+  // Clear the preview projection so the next PLAY tap starts a fresh preview
+  // and the top bar cannot remain in PLAYING state.
+  [[nodiscard]] bool IsPreviewing() const { return playing_; }
+
   void StopPreview() {
-    previewHeld_ = false;
     playing_ = false;
     previewPlayhead_ = 0U;
     previewPlayheadVisible_ = false;
@@ -324,19 +324,17 @@ public:
     if (!active_ || !input_.Update(action, pressed))
       return {};
 
-    if (!pressed) {
-      if (action == TrackerAction::Play && previewHeld_) {
-        Ui2SampleEditorCommand command =
-            MakeCommand(Ui2SampleEditorCommandType::PreviewStop);
+    if (!pressed)
+      return {};
+
+    if (action == TrackerAction::Play) {
+      if (repeatedPress)
+        return {};
+      if (playing_) {
+        const auto command = MakeCommand(Ui2SampleEditorCommandType::PreviewStop);
         StopPreview();
         return command;
       }
-      return {};
-    }
-
-    if (action == TrackerAction::Play) {
-      if (repeatedPress || previewHeld_)
-        return {};
       StartPreview(start_);
       Ui2SampleEditorCommand command =
           MakeCommand(Ui2SampleEditorCommandType::PreviewStart);
@@ -524,7 +522,7 @@ private:
     selectedMarker_ = 0U;
     focusDigit_ = 0U;
     projectPool_ = active_ = waveformReady_ = false;
-    previewHeld_ = playing_ = previewPlayheadVisible_ = false;
+    playing_ = previewPlayheadVisible_ = false;
     lastBuild_ = Ui2SampleWaveformBuildResult::NotLoaded;
     rewriteAvailable_ = false;
     dialogInput_ = {};
@@ -724,7 +722,6 @@ private:
   bool projectPool_ = false;
   bool active_ = false;
   bool waveformReady_ = false;
-  bool previewHeld_ = false;
   bool playing_ = false;
   bool previewPlayheadVisible_ = false;
   bool rewriteAvailable_ = false;

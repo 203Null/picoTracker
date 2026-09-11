@@ -273,8 +273,13 @@ TEST_CASE("UI2 Sample Browser inherits Shift when returning from editor") {
   controller.SetNavigationHeld(false);
   CHECK(controller.Handle(TrackerAction::Play, true).type ==
         Ui2SampleBrowserCommandType::PreviewStart);
-  CHECK(controller.Handle(TrackerAction::Play, false).type ==
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, true).HasValue());
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, false).HasValue());
+  CHECK(controller.IsPreviewing());
+  CHECK(controller.Handle(TrackerAction::Play, true).type ==
         Ui2SampleBrowserCommandType::PreviewStop);
+  CHECK_FALSE(controller.IsPreviewing());
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, false).HasValue());
 }
 
 TEST_CASE("UI2 Sample Browser keeps project pool flat and root-addressed") {
@@ -400,8 +405,13 @@ TEST_CASE("UI2 Sample Browser previews, imports, and restores pool mode") {
       controller.Handle(TrackerAction::Play, true);
   CHECK(preview.type == Ui2SampleBrowserCommandType::PreviewStart);
   CHECK(std::strcmp(preview.filename.data(), "AKWF.WAV") == 0);
-  CHECK(controller.Handle(TrackerAction::Play, false).type ==
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, true).HasValue());
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, false).HasValue());
+  CHECK(controller.IsPreviewing());
+  CHECK(controller.Handle(TrackerAction::Play, true).type ==
         Ui2SampleBrowserCommandType::PreviewStop);
+  CHECK_FALSE(controller.IsPreviewing());
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, false).HasValue());
 
   Tap(controller, TrackerAction::Right); // approved IMPORT action
   CHECK(Tap(controller, TrackerAction::Enter).type ==
@@ -421,6 +431,27 @@ TEST_CASE("UI2 Sample Browser previews, imports, and restores pool mode") {
   CHECK(controller.Mode() == Ui2SampleBrowserMode::ProjectPool);
   controller.Handle(TrackerAction::Option, false);
   controller.Handle(TrackerAction::Shift, false);
+}
+
+TEST_CASE("UI2 Sample Browser stops preview from a directory and restarts after EOF") {
+  using namespace ui2;
+  SampleBrowserFileSystem fileSystem;
+  Ui2SampleBrowserController controller;
+  REQUIRE(controller.OpenLibrary("DEMO"));
+  REQUIRE(Tap(controller, TrackerAction::Play).type ==
+          Ui2SampleBrowserCommandType::PreviewStart);
+  Tap(controller, TrackerAction::Down); // DRUMS directory
+  CHECK(Tap(controller, TrackerAction::Play).type ==
+        Ui2SampleBrowserCommandType::PreviewStop);
+  CHECK_FALSE(controller.IsPreviewing());
+  CHECK_FALSE(Tap(controller, TrackerAction::Play).HasValue());
+
+  Tap(controller, TrackerAction::Up);
+  REQUIRE(Tap(controller, TrackerAction::Play).type ==
+          Ui2SampleBrowserCommandType::PreviewStart);
+  controller.StopPreview(); // Audio transport reports natural EOF.
+  CHECK(Tap(controller, TrackerAction::Play).type ==
+        Ui2SampleBrowserCommandType::PreviewStart);
 }
 
 TEST_CASE("UI2 Sample Browser accepts held-direction repeat pulses") {
@@ -497,8 +528,13 @@ TEST_CASE("UI2 Sample Browser refreshes a rewritten FAT entry and restores its "
   CHECK(preview.type == Ui2SampleBrowserCommandType::PreviewStart);
   CHECK(std::strcmp(preview.filename.data(), "S11.WAV") == 0);
   CHECK(preview.singleCycle);
-  CHECK(controller.Handle(TrackerAction::Play, false).type ==
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, true).HasValue());
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, false).HasValue());
+  CHECK(controller.IsPreviewing());
+  CHECK(controller.Handle(TrackerAction::Play, true).type ==
         Ui2SampleBrowserCommandType::PreviewStop);
+  CHECK_FALSE(controller.IsPreviewing());
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, false).HasValue());
 }
 
 TEST_CASE("UI2 Sample Browser option edit requests confirmed pool deletion") {

@@ -317,8 +317,13 @@ TEST_CASE("UI2 Sample Editor exposes real endpoints markers zoom and preview") {
   CHECK(preview.end == 511U);
   CHECK(preview.singleCycle);
   CHECK(controller.Snapshot().playing);
-  CHECK(controller.Handle(TrackerAction::Play, false).type ==
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, true).HasValue());
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, false).HasValue());
+  CHECK(controller.IsPreviewing());
+  CHECK(controller.Handle(TrackerAction::Play, true).type ==
         Ui2SampleEditorCommandType::PreviewStop);
+  CHECK_FALSE(controller.IsPreviewing());
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, false).HasValue());
 
   controller.SetFocus(SampleEditorViewUi2Focus::End);
   const Ui2SampleEditorCommand moved =
@@ -373,8 +378,13 @@ TEST_CASE("UI2 sample controllers clear preview state after an external stop") {
   CHECK_FALSE(editor.Handle(TrackerAction::Play, false).HasValue());
   CHECK(editor.Handle(TrackerAction::Play, true).type ==
         Ui2SampleEditorCommandType::PreviewStart);
-  CHECK(editor.Handle(TrackerAction::Play, false).type ==
+  CHECK_FALSE(editor.Handle(TrackerAction::Play, true).HasValue());
+  CHECK_FALSE(editor.Handle(TrackerAction::Play, false).HasValue());
+  CHECK(editor.IsPreviewing());
+  CHECK(editor.Handle(TrackerAction::Play, true).type ==
         Ui2SampleEditorCommandType::PreviewStop);
+  CHECK_FALSE(editor.IsPreviewing());
+  CHECK_FALSE(editor.Handle(TrackerAction::Play, false).HasValue());
 
   editor.Close();
   Ui2SampleSlicesController slices(waveform);
@@ -390,8 +400,13 @@ TEST_CASE("UI2 sample controllers clear preview state after an external stop") {
   CHECK_FALSE(slices.Handle(TrackerAction::Play, false).HasValue());
   CHECK(slices.Handle(TrackerAction::Play, true).type ==
         Ui2SampleSlicesCommandType::PreviewStart);
-  CHECK(slices.Handle(TrackerAction::Play, false).type ==
+  CHECK_FALSE(slices.Handle(TrackerAction::Play, true).HasValue());
+  CHECK_FALSE(slices.Handle(TrackerAction::Play, false).HasValue());
+  CHECK(slices.IsPreviewing());
+  CHECK(slices.Handle(TrackerAction::Play, true).type ==
         Ui2SampleSlicesCommandType::PreviewStop);
+  CHECK_FALSE(slices.IsPreviewing());
+  CHECK_FALSE(slices.Handle(TrackerAction::Play, false).HasValue());
 }
 
 TEST_CASE("UI2 Sample Editor keeps operation browsing read-only") {
@@ -669,8 +684,13 @@ TEST_CASE("UI2 Sample Slices selects moves previews adds and deletes") {
   // frame of the following slice.
   CHECK(preview.end == 511U);
   CHECK_FALSE(preview.singleCycle);
-  CHECK(controller.Handle(TrackerAction::Play, false).type ==
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, true).HasValue());
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, false).HasValue());
+  CHECK(controller.IsPreviewing());
+  CHECK(controller.Handle(TrackerAction::Play, true).type ==
         Ui2SampleSlicesCommandType::PreviewStop);
+  CHECK_FALSE(controller.IsPreviewing());
+  CHECK_FALSE(controller.Handle(TrackerAction::Play, false).HasValue());
 
   // Enter alone keeps selection and slice count unchanged.
   Tap(controller, TrackerAction::Enter);
@@ -943,6 +963,9 @@ TEST_CASE("UI2 Sample Slices rejects terminal zero-length previews") {
   controller.Handle(TrackerAction::Play, false);
 
   Tap(controller, TrackerAction::Right);
+  // Even an unplayable selection must allow stopping the previous preview.
+  CHECK(Tap(controller, TrackerAction::Play).type ==
+        Ui2SampleSlicesCommandType::PreviewStop);
   const Ui2SampleSlicesCommand preview =
       controller.Handle(TrackerAction::Play, true);
   CHECK_FALSE(preview.HasValue());
