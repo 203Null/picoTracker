@@ -54,34 +54,34 @@ void DrawSelectedInk(UiSceneBuilder<256, 1024> &builder,
                      const UiProjectViewData &data) {
   switch (data.cursor) {
   case UiProjectCursor::Name:
-    builder.Text("NAME", 9, 42, UiColorToken::TextHighlighted);
-    builder.UserText(data.name, 92, 42, UiColorToken::TextHighlighted);
+    builder.Text("NAME", 9, 54, UiColorToken::TextHighlighted);
+    builder.UserText(data.name, 92, 54, UiColorToken::TextHighlighted);
     break;
   case UiProjectCursor::Tempo:
-    builder.Text("TEMPO", 9, 70, UiColorToken::TextHighlighted);
-    builder.Text(data.tempo, 92, 70, UiColorToken::TextHighlighted);
+    builder.Text("TEMPO", 9, 82, UiColorToken::TextHighlighted);
+    builder.Text(data.tempo, 92, 82, UiColorToken::TextHighlighted);
     break;
   case UiProjectCursor::Transpose:
-    builder.Text("TRANSPOSE", 9, 81, UiColorToken::TextHighlighted);
-    builder.Text(data.transpose, 92, 81, UiColorToken::TextHighlighted);
+    builder.Text("TRANSPOSE", 9, 93, UiColorToken::TextHighlighted);
+    builder.Text(data.transpose, 92, 93, UiColorToken::TextHighlighted);
     break;
   case UiProjectCursor::Scale:
-    builder.Text("SCALE", 9, 92, UiColorToken::TextHighlighted);
-    builder.Text(data.scale, 92, 92, UiColorToken::TextHighlighted);
+    builder.Text("SCALE", 9, 104, UiColorToken::TextHighlighted);
+    builder.Text(data.scale, 92, 104, UiColorToken::TextHighlighted);
     break;
   case UiProjectCursor::Root:
-    builder.Text("ROOT", 9, 103, UiColorToken::TextHighlighted);
-    builder.Text(data.root, 92, 103, UiColorToken::TextHighlighted);
+    builder.Text("ROOT", 9, 115, UiColorToken::TextHighlighted);
+    builder.Text(data.root, 92, 115, UiColorToken::TextHighlighted);
     break;
   case UiProjectCursor::SamplePool:
   case UiProjectCursor::Samples:
-    builder.Text("SAMPLES", 9, 132, UiColorToken::TextHighlighted);
+    builder.Text("SAMPLES", 9, 144, UiColorToken::TextHighlighted);
     break;
   case UiProjectCursor::Instruments:
-    builder.Text("INSTRUMENTS", 9, 143, UiColorToken::TextHighlighted);
+    builder.Text("INSTRUMENTS", 9, 155, UiColorToken::TextHighlighted);
     break;
   case UiProjectCursor::Render:
-    builder.Text("RENDER", 9, 172, UiColorToken::TextHighlighted);
+    builder.Text("RENDER", 9, 184, UiColorToken::TextHighlighted);
     break;
   }
 }
@@ -91,22 +91,22 @@ void DrawSelectedInk(UiSceneBuilder<256, 1024> &builder,
 RectI16 UiProjectView::CursorTargetRect(UiProjectCursor cursor) {
   switch (cursor) {
   case UiProjectCursor::Name:
-    return {7, 41, 226, 9};
+    return {7, 53, 226, 9};
   case UiProjectCursor::Tempo:
-    return {7, 69, 226, 9};
+    return {7, 81, 226, 9};
   case UiProjectCursor::Transpose:
-    return {7, 80, 226, 9};
+    return {7, 92, 226, 9};
   case UiProjectCursor::Scale:
-    return {7, 91, 226, 9};
+    return {7, 103, 226, 9};
   case UiProjectCursor::Root:
-    return {7, 102, 226, 9};
+    return {7, 114, 226, 9};
   case UiProjectCursor::SamplePool:
   case UiProjectCursor::Samples:
-    return {7, 131, 226, 9};
+    return {7, 143, 226, 9};
   case UiProjectCursor::Instruments:
-    return {7, 142, 226, 9};
+    return {7, 154, 226, 9};
   case UiProjectCursor::Render:
-    return {7, 171, 226, 9};
+    return {7, 183, 226, 9};
   }
   return {};
 }
@@ -134,15 +134,15 @@ void UiProjectView::RenderDelta(const UiProjectViewData &previous,
   if (contentRedrawn)
     render({0, 34, 240, 174});
   if (!contentRedrawn && previous.name != current.name)
-    render(contentRect(FieldDamageRect(42)));
+    render(contentRect(FieldDamageRect(54)));
   if (!contentRedrawn && previous.tempo != current.tempo)
-    render(contentRect(FieldDamageRect(70)));
+    render(contentRect(FieldDamageRect(82)));
   if (!contentRedrawn && previous.transpose != current.transpose)
-    render(contentRect(FieldDamageRect(81)));
+    render(contentRect(FieldDamageRect(93)));
   if (!contentRedrawn && previous.scale != current.scale)
-    render(contentRect(FieldDamageRect(92)));
+    render(contentRect(FieldDamageRect(104)));
   if (!contentRedrawn && previous.root != current.root)
-    render(contentRect(FieldDamageRect(103)));
+    render(contentRect(FieldDamageRect(115)));
 
   const RectI16 oldCursor = contentRect(ResolvedCursorRect(previous));
   const RectI16 newCursor = contentRect(ResolvedCursorRect(current));
@@ -252,18 +252,19 @@ UiBuildStatus UiProjectView::Build(const UiProjectViewData &data, UiPalette &,
     return bottomStatus;
 
   UiSceneBuilder<256, 1024> builder(scene.content);
-  builder.Text("NAME", 9, 42, UiColorToken::TextDim);
-  builder.UserText(data.name, 92, 42, UiColorToken::TextNormal);
-  DrawSection(builder, "PLAYBACK", 58);
-  DrawField(builder, "TEMPO", data.tempo, 70);
-  DrawField(builder, "TRANSPOSE", data.transpose, 81);
-  DrawField(builder, "SCALE", data.scale, 92);
-  DrawField(builder, "ROOT", data.root, 103);
-  DrawSection(builder, "CLEANUP", 120);
-  DrawField(builder, "SAMPLES", {}, 132);
-  DrawField(builder, "INSTRUMENTS", {}, 143);
-  DrawSection(builder, "EXPORT", 160);
-  DrawField(builder, "RENDER", {}, 172);
+  DrawSection(builder, "PROJECT", 42);
+  builder.Text("NAME", 9, 54, UiColorToken::TextDim);
+  builder.UserText(data.name, 92, 54, UiColorToken::TextNormal);
+  DrawSection(builder, "PLAYBACK", 70);
+  DrawField(builder, "TEMPO", data.tempo, 82);
+  DrawField(builder, "TRANSPOSE", data.transpose, 93);
+  DrawField(builder, "SCALE", data.scale, 104);
+  DrawField(builder, "ROOT", data.root, 115);
+  DrawSection(builder, "CLEANUP", 132);
+  DrawField(builder, "SAMPLES", {}, 144);
+  DrawField(builder, "INSTRUMENTS", {}, 155);
+  DrawSection(builder, "EXPORT", 172);
+  DrawField(builder, "RENDER", {}, 184);
   builder.Selection(ResolvedCursorRect(data));
   if (data.cursorInkVisible)
     DrawSelectedInk(builder, data);
