@@ -1,11 +1,14 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 
 #include "IOSAudioDriver.h"
+#include "Services/Audio/MonoPcmCapture.h"
 
 #include <TargetConditionals.h>
+#include <os/log.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdio>
 #include <span>
 #include <thread>
 
@@ -176,6 +179,16 @@ bool IOSAudioDriver::BeginInputCapture(
   inputCapacityFrames_ = destination.size();
   inputCapturedFrames_.store(0U, std::memory_order_release);
   inputDestination_.store(destination.data(), std::memory_order_release);
+  inputLargestBlock_.store(0);
+  inputRenderErrors_.store(0);
+  inputMissingFrames_.store(0);
+  inputShortBlocks_.store(0);
+  inputShortFrames_.store(0);
+  inputInvalidFloats_.store(0);
+  inputClippedSamples_.store(0);
+  inputTimelineDiscontinuities_.store(0);
+  inputLastError_.store(noErr);
+  inputHasSampleTime_ = false;
   if (!ConfigureInput(true))
     return false;
   inputCaptureGate_.Start();
@@ -199,6 +212,27 @@ std::size_t IOSAudioDriver::CapturedInputFrames() const noexcept {
 
 std::uint16_t IOSAudioDriver::InputPeak() const noexcept {
   return inputPeak_.load(std::memory_order_acquire);
+}
+
+void IOSAudioDriver::LogInputCaptureStats() const {
+  // Called after the capture callback drains, never from the audio thread.
+  std::array<char, 384> text{};
+  FormatInputCaptureStats(text);
+  os_log(OS_LOG_DEFAULT, "NullPerator capture: %{public}s", text.data());
+}
+
+void IOSAudioDriver::FormatInputCaptureStats(std::span<char> output) const {
+  if (output.empty())
+    return;
+  std::snprintf(output.data(), output.size(),
+                "frames=%zu max_block=%u errors=%u last_error=%d missing=%u "
+                "short_blocks=%u short_frames=%u invalid_floats=%u "
+                "clipped=%u discontinuities=%u\n",
+                CapturedInputFrames(), inputLargestBlock_.load(),
+                inputRenderErrors_.load(), static_cast<int>(inputLastError_.load()),
+                inputMissingFrames_.load(), inputShortBlocks_.load(),
+                inputShortFrames_.load(), inputInvalidFloats_.load(),
+                inputClippedSamples_.load(), inputTimelineDiscontinuities_.load());
 }
 
 OSStatus IOSAudioDriver::Render(void *context,
@@ -244,52 +278,76 @@ void IOSAudioDriver::PullInput(AudioUnitRenderActionFlags *flags,
   (void)timestamp;
   (void)frames;
 #else
-  const bool monitoring = inputMonitoring_.load(std::memory_order_acquire);
+  (void)flags;
   // Acquire before AudioUnitRender: an old callback cannot copy microphone
   // data into a new take after Stop/Begin changes the destination.
   WorkerGate<1>::Guard capture(inputCaptureGate_, 0);
   const bool capturing = static_cast<bool>(capture);
-  if ((!monitoring && !capturing) || unit_ == nullptr || timestamp == nullptr ||
-      frames == 0U || frames > inputScratch_.size()) {
-    if (!monitoring && !capturing)
+  if (!capturing || unit_ == nullptr || timestamp == nullptr || frames == 0U) {
+    if (!capturing)
       inputPeak_.store(0U, std::memory_order_release);
     return;
+  }
+  inputLargestBlock_.store(std::max(inputLargestBlock_.load(), frames));
+  if ((timestamp->mFlags & kAudioTimeStampSampleTimeValid) != 0) {
+    if (inputHasSampleTime_ &&
+        std::abs(timestamp->mSampleTime - inputExpectedSampleTime_) > 0.5)
+      inputTimelineDiscontinuities_.fetch_add(1);
+    inputExpectedSampleTime_ = timestamp->mSampleTime + frames;
+    inputHasSampleTime_ = true;
   }
 
   AudioBufferList input{};
   input.mNumberBuffers = 1U;
   input.mBuffers[0].mNumberChannels = 1U;
   input.mBuffers[0].mDataByteSize = frames * sizeof(float);
-  input.mBuffers[0].mData = inputScratch_.data();
-  if (AudioUnitRender(unit_, flags, timestamp, 1U, frames, &input) != noErr) {
-    inputPeak_.store(0U, std::memory_order_release);
-    return;
+  // RemoteIO owns buffers sized for its current route and sample conversion.
+  // Its maximum callback size may change; a fixed 4096-frame buffer dropped
+  // larger callbacks and spliced nonadjacent input blocks together.
+  input.mBuffers[0].mData = nullptr;
+  AudioUnitRenderActionFlags inputFlags = 0;
+  const OSStatus status =
+      AudioUnitRender(unit_, &inputFlags, timestamp, 1U, frames, &input);
+  const bool silent = status == noErr &&
+                      (inputFlags & kAudioUnitRenderAction_OutputIsSilence) != 0;
+  std::span<const float> source;
+  if (status == noErr && !silent && input.mBuffers[0].mData != nullptr)
+    source = {static_cast<const float *>(input.mBuffers[0].mData),
+              std::min<std::size_t>(frames,
+                  input.mBuffers[0].mDataByteSize / sizeof(float))};
+  // With rate conversion, a successful RemoteIO render can return fewer
+  // valid frames than requested. Concatenate those frames; padding the tail
+  // introduced periodic one-sample zeros (clicks) into the saved recording.
+  const bool failed = status != noErr || (!silent && source.empty());
+  if (failed) {
+    inputRenderErrors_.fetch_add(1);
+    inputLastError_.store(status == noErr ? kAudio_ParamError : status);
+    inputMissingFrames_.fetch_add(frames);
+  } else if (!silent && source.size() < frames) {
+    inputShortBlocks_.fetch_add(1);
+    inputShortFrames_.fetch_add(frames - source.size());
   }
-
-  std::uint16_t peak = 0U;
-  for (UInt32 index = 0U; index < frames; ++index) {
-    const float clamped = std::clamp(inputScratch_[index], -1.0F, 1.0F);
-    const auto sample = static_cast<std::int16_t>(
-        std::lrint(clamped * (clamped < 0.0F ? 32768.0F : 32767.0F)));
-    inputPcmScratch_[index] = sample;
-    const std::uint16_t magnitude = static_cast<std::uint16_t>(
-        sample == INT16_MIN ? INT16_MAX : std::abs(sample));
-    peak = std::max(peak, magnitude);
-  }
-  inputPeak_.store(peak, std::memory_order_release);
-
-  if (!capturing)
-    return;
   std::int16_t *destination = inputDestination_.load(std::memory_order_acquire);
   const std::size_t offset =
       inputCapturedFrames_.load(std::memory_order_relaxed);
-  const std::size_t count =
+  const std::size_t capacity =
       std::min<std::size_t>(frames, inputCapacityFrames_ - offset);
+  MonoPcmCaptureStats stats;
   if (destination != nullptr) {
-    std::copy_n(inputPcmScratch_.data(), count, destination + offset);
+    if (failed || silent) {
+      // Actual render failures retain their elapsed duration, with a logged
+      // error. Successful partial input never follows this silence path.
+      std::fill_n(destination + offset, capacity, std::int16_t{0});
+      stats.frames = capacity;
+    } else {
+      stats = CopyMonoPcmCapture(source, {destination + offset, capacity});
+    }
   }
-  inputCapturedFrames_.store(offset + count, std::memory_order_release);
-  if (offset + count >= inputCapacityFrames_)
+  inputPeak_.store(stats.peak, std::memory_order_release);
+  inputClippedSamples_.fetch_add(stats.clipped);
+  inputInvalidFloats_.fetch_add(stats.invalid);
+  inputCapturedFrames_.store(offset + stats.frames, std::memory_order_release);
+  if (offset + stats.frames >= inputCapacityFrames_)
     inputCaptureGate_.Stop();
 #endif
 }
@@ -329,6 +387,10 @@ bool IOSAudioDriver::ConfigureInput(bool enabled) noexcept {
     success = AudioUnitSetProperty(unit_, kAudioUnitProperty_StreamFormat,
                                    kAudioUnitScope_Output, 1, &format,
                                    sizeof(format)) == noErr;
+    UInt32 allocate = 1U;
+    success = AudioUnitSetProperty(unit_, kAudioUnitProperty_ShouldAllocateBuffer,
+                                   kAudioUnitScope_Output, 1, &allocate,
+                                   sizeof(allocate)) == noErr && success;
   }
   success = AudioUnitInitialize(unit_) == noErr && success;
   if (restart)

@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 
 #include "Application/Audio/RecordingPlatform.h"
+#include "Application/Persistency/PersistenceConstants.h"
 
 #include "Adapters/ios/audio/IOSAudio.h"
 #include "Adapters/ios/audio/IOSAudioDriver.h"
@@ -13,6 +14,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 #include <thread>
 #include <vector>
 
@@ -98,6 +100,19 @@ void FinishCaptureAndSave() {
   awaitingPermission = false;
   driver->EndInputCapture();
   const std::size_t frames = neverStarted ? 0U : driver->CapturedInputFrames();
+  if (!neverStarted) {
+    driver->LogInputCaptureStats();
+    // Keep the latest take's counters readable through the app container;
+    // retrieving iOS unified logs otherwise requires host admin privileges.
+    if (FileSystem *fs = FileSystem::GetInstance()) {
+      std::array<char, 384> text{};
+      driver->FormatInputCaptureStats(text);
+      if (auto file = fs->Open(RECORDINGS_DIR "/.capture-diagnostics.txt", "wb")) {
+        (void)file->Write(text.data(), 1, static_cast<int>(std::strlen(text.data())));
+        (void)file->Sync();
+      }
+    }
+  }
   elapsedMs.store(static_cast<std::uint32_t>((frames * 1000ULL) / kSampleRate),
                   std::memory_order_release);
   JoinCompletedSavingThread();

@@ -41,6 +41,8 @@ public:
   [[nodiscard]] bool IsInputCapturing() const noexcept;
   [[nodiscard]] std::size_t CapturedInputFrames() const noexcept;
   [[nodiscard]] std::uint16_t InputPeak() const noexcept;
+  void LogInputCaptureStats() const;
+  void FormatInputCaptureStats(std::span<char> output) const;
 
 private:
   bool ConfigureInput(bool enabled) noexcept;
@@ -60,8 +62,17 @@ private:
   std::atomic<bool> started_{false};
   std::atomic<bool> active_{false};
   std::atomic<std::uint64_t> consumedFrames_{0U};
-  std::array<float, 4096> inputScratch_{};
-  std::array<std::int16_t, 4096> inputPcmScratch_{};
+  std::atomic<std::uint32_t> inputLargestBlock_{0};
+  std::atomic<std::uint32_t> inputRenderErrors_{0};
+  std::atomic<std::uint32_t> inputMissingFrames_{0};
+  std::atomic<std::uint32_t> inputShortBlocks_{0};
+  std::atomic<std::uint32_t> inputShortFrames_{0};
+  std::atomic<std::uint32_t> inputInvalidFloats_{0};
+  std::atomic<std::uint32_t> inputClippedSamples_{0};
+  std::atomic<std::uint32_t> inputTimelineDiscontinuities_{0};
+  std::atomic<OSStatus> inputLastError_{noErr};
+  double inputExpectedSampleTime_ = 0;
+  bool inputHasSampleTime_ = false;
   std::atomic<bool> inputAvailable_{false};
   std::atomic<bool> inputMonitoring_{false};
   WorkerGate<1> inputCaptureGate_;

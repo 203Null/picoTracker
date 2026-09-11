@@ -26,6 +26,7 @@ add_executable(picoTracker_tests
   groove_telemetry_tests.cpp
   wavheader_tests.cpp
   wasm_audio_tests.cpp
+  mono_pcm_capture_tests.cpp
   record_streamer_tests.cpp
   wasm_application_snapshot_tests.cpp
   wasm_midi_tests.cpp
