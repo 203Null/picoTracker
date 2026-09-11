@@ -15,8 +15,14 @@
 
 namespace ui2 {
 namespace {
-// PIT's left edge aligns with TYPE's value at x=92.
-constexpr std::array<std::int16_t, 4> kDrumColumnX{98, 125, 152, 175};
+// Table headers align with TYPE's value; numeric cells sit under the middle letter.
+constexpr std::array<std::int16_t, 4> kColumnHeaderX{92, 119, 146, 175};
+constexpr std::array<std::string_view, 4> kDrumHeaders{"PIT", "TUN", "DEC", "WAVE"};
+constexpr std::array<std::string_view, 4> kSidEnvelopeHeaders{"ATK", "DEC", "SUS", "REL"};
+bool SidEnvelopeField(const UiInstrumentViewData &data, std::uint8_t index) {
+  return data.kind == UiInstrumentKind::Sid && index == 5 &&
+         index < data.fieldCount && data.fields[index].value.size() == 4;
+}
 constexpr std::array<std::string_view, 8> kDrumWaves{
     "P12.5", "P25", "P50", "TRI", "GB", "NES", "SN", "WHITE"};
 unsigned DrumWaveIndex(std::string_view value) {
@@ -25,11 +31,24 @@ unsigned DrumWaveIndex(std::string_view value) {
   const char c = value[3];
   return (c <= '9' ? c - '0' : c - 'A' + 10) & 7;
 }
-bool DrumCell(const UiInstrumentViewData &data) {
-  return data.kind == UiInstrumentKind::Drum &&
-         data.cursor == UiInstrumentCursor::Field && data.selectedField < 12 &&
-         data.selectedField < data.fieldCount &&
-         data.fields[data.selectedField].value.size() >= 4;
+bool ColumnField(const UiInstrumentViewData &data, std::uint8_t index) {
+  return (data.kind == UiInstrumentKind::Drum && index < 12 &&
+          index < data.fieldCount && data.fields[index].value.size() >= 4) ||
+         SidEnvelopeField(data, index);
+}
+bool ColumnCell(const UiInstrumentViewData &data) {
+  return data.cursor == UiInstrumentCursor::Field &&
+         ColumnField(data, data.selectedField);
+}
+std::int16_t ColumnValueX(UiInstrumentKind kind, unsigned col) {
+  return kColumnHeaderX[col] +
+         (kind == UiInstrumentKind::Drum && col == 3 ? 0 : 6);
+}
+std::string_view ColumnValue(UiInstrumentKind kind, std::string_view value,
+                             unsigned col) {
+  return kind == UiInstrumentKind::Drum && col == 3
+             ? kDrumWaves[DrumWaveIndex(value)]
+             : value.substr(col, 1);
 }
 
 constexpr std::array<std::string_view, kUiInstrumentTypeCount> kTypeOptions{
@@ -126,6 +145,7 @@ void DrawSection(UiSceneBuilder<256, 1024> &builder, std::string_view label,
                UiColorToken::CursorRow);
 }
 
+
 struct SelectedValueLayout {
   std::string_view text{};
   std::int16_t x = 0;
@@ -137,11 +157,10 @@ SelectedValueLayout SelectedValue(const UiInstrumentViewData &data) {
   if (data.cursor == UiInstrumentCursor::Field &&
       data.selectedField < data.fieldCount) {
     const UiInstrumentField &field = data.fields[data.selectedField];
-    if (DrumCell(data)) {
+    if (ColumnCell(data)) {
       const auto col = std::min<unsigned>(data.selectedSubfield, 3);
-      return {.text = col == 3 ? kDrumWaves[DrumWaveIndex(field.value)]
-                               : field.value.substr(col, 1),
-              .x = kDrumColumnX[col],
+      return {.text = ColumnValue(data.kind, field.value, col),
+              .x = ColumnValueX(data.kind, col),
               .y = field.y};
     }
     return {
@@ -162,7 +181,7 @@ SelectedValueLayout SelectedValue(const UiInstrumentViewData &data) {
 
 bool SelectedSubfield(const UiInstrumentViewData &data,
                       SelectedValueLayout &layout, std::uint8_t &textIndex) {
-  if (DrumCell(data)) {
+  if (ColumnCell(data)) {
     layout = SelectedValue(data);
     textIndex = 0;
     return !layout.text.empty();
@@ -180,9 +199,7 @@ bool SelectedSubfield(const UiInstrumentViewData &data,
 
 bool BottomVisible(const UiInstrumentViewData &data) {
   return data.numberFocus || data.adjustmentFocus ||
-         (data.kind == UiInstrumentKind::Drum &&
-          data.cursor == UiInstrumentCursor::Field &&
-          data.selectedField < 12U) ||
+         ColumnCell(data) ||
          data.cursor == UiInstrumentCursor::Name ||
          data.cursor == UiInstrumentCursor::Type ||
          data.fieldBottom != UiInstrumentFieldBottom::Hidden;
@@ -198,7 +215,7 @@ RectI16 UiInstrumentView::CursorTargetRect(const UiInstrumentViewData &data) {
                                       textIndex * UiFont5x7::kAdvance - 2),
             static_cast<std::int16_t>(layout.y - 1),
             static_cast<std::int16_t>(
-                (DrumCell(data) ? UiFont5x7::TextWidth(layout.text.size())
+                (ColumnCell(data) ? UiFont5x7::TextWidth(layout.text.size())
                                 : UiFont5x7::kGlyphWidth) +
                 4),
             9};
@@ -309,11 +326,13 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
   }
   if (!contentRedrawn && previous.name != current.name)
     render(contentRect(FieldDamageRect(42)));
-  if (!contentRedrawn && current.kind == UiInstrumentKind::Drum &&
+  const std::uint8_t columnHeaderField =
+      current.kind == UiInstrumentKind::Sid ? 5 : 0;
+  if (!contentRedrawn && ColumnField(current, columnHeaderField) &&
       (previous.selectedSubfield != current.selectedSubfield ||
        previous.cursor != current.cursor ||
        previous.selectedField != current.selectedField))
-    render(contentRect(FieldDamageRect(current.fields[0].y - 12)));
+    render(contentRect(FieldDamageRect(current.fields[columnHeaderField].y - 12)));
 
   const RectI16 oldCursor = contentRect(ResolvedCursorRect(previous));
   const RectI16 newCursor = contentRect(ResolvedCursorRect(current));
@@ -338,7 +357,7 @@ void UiInstrumentView::RenderDelta(const UiInstrumentViewData &previous,
           FieldDamageRect(UiInstrumentOperatorRowY(index))));
     }
   }
-  if ((DrumCell(current) && previous.fields[current.selectedField] !=
+  if ((ColumnCell(current) && previous.fields[current.selectedField] !=
                                 current.fields[current.selectedField]) ||
       previous.selectedSubfield != current.selectedSubfield ||
       previous.enterSubfieldFocus != current.enterSubfieldFocus ||
@@ -408,9 +427,10 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     bottom.selector.options = kTypeOptions;
     bottom.selector.current = static_cast<std::uint8_t>(data.kind);
     bottom.selector.wrap = true;
-  } else if (DrumCell(data)) {
+  } else if (ColumnCell(data)) {
     const auto col = std::min<unsigned>(data.selectedSubfield, 3);
-    if (col == 3 && data.enterSubfieldFocus) {
+    if (data.kind == UiInstrumentKind::Drum && col == 3 &&
+        data.enterSubfieldFocus) {
       bottom.kind = UiBottomBarKind::Selector;
       bottom.selector.options = kDrumWaves;
       bottom.selector.current =
@@ -422,7 +442,7 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
       bottom.actions.count = 1;
     }
   } else if (data.enterSubfieldFocus) {
-    // ADSR, sample offsets and bit fields navigate a component horizontally;
+    // Packed hex and bit fields navigate a component horizontally;
     // UP/DOWN edits that component, matching the FX parameter interaction.
     bottom.kind = UiBottomBarKind::AdjustmentLegend;
     bottom.adjustment.fineLabel = "DIGIT";
@@ -479,7 +499,7 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
       .fineStep = data.adjustmentFineStep,
       .coarseStep = data.adjustmentCoarseStep,
       .coarseOctave = data.adjustmentNote,
-      .hexadecimal = DrumCell(data),
+      .hexadecimal = ColumnCell(data),
       .fineLabel =
           data.adjustmentNote ? std::string_view("NOTE") : std::string_view{},
       .coarseLabel =
@@ -539,31 +559,27 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
     for (const auto &section : UiInstrumentSections(data.kind)) {
       if (section.firstField >= data.fieldCount)
         continue;
-      const bool drumVoices = data.kind == UiInstrumentKind::Drum &&
-                              section.firstField == 0;
-      DrawSection(builder, section.title, static_cast<std::int16_t>(
-          data.fields[section.firstField].y - 12), drumVoices ? 84 : 231);
-    }
-    if (data.kind == UiInstrumentKind::Drum) {
-      const auto headerY = static_cast<std::int16_t>(data.fields[0].y - 12);
-      constexpr std::array<std::string_view, 4> headers{"PIT", "TUN", "DEC",
-                                                        "WAVE"};
-      for (unsigned col = 0; col < 4; ++col)
-        builder.Text(headers[col],
-                     col == 3 ? kDrumColumnX[col] : kDrumColumnX[col] - 6, headerY,
-                     DrumCell(data) && data.selectedSubfield == col
-                         ? UiColorToken::TextColored
-                         : UiColorToken::TextDim);
+      const bool columns = ColumnField(data, section.firstField);
+      const auto headerY = static_cast<std::int16_t>(
+          data.fields[section.firstField].y - 12);
+      DrawSection(builder, section.title, headerY, columns ? 84 : 231);
+      if (columns) {
+        const auto &headers = data.kind == UiInstrumentKind::Drum
+                                  ? kDrumHeaders : kSidEnvelopeHeaders;
+        for (unsigned col = 0; col < kColumnHeaderX.size(); ++col)
+          builder.Text(headers[col], kColumnHeaderX[col], headerY,
+                       ColumnCell(data) && data.selectedSubfield == col
+                           ? UiColorToken::TextColored : UiColorToken::TextDim);
+      }
     }
     for (std::uint8_t index = 0; index < data.fieldCount; ++index) {
-      if (data.kind == UiInstrumentKind::Drum && index < 12 &&
-          data.fields[index].value.size() >= 4) {
+      if (ColumnField(data, index)) {
         const auto &field = data.fields[index];
         builder.Text(field.label, 9, field.y, UiColorToken::TextDim);
-        for (unsigned col = 0; col < 4; ++col)
-          builder.Text(col == 3 ? kDrumWaves[DrumWaveIndex(field.value)]
-                                : field.value.substr(col, 1),
-                       kDrumColumnX[col], field.y, UiColorToken::TextNormal);
+        for (unsigned col = 0; col < kColumnHeaderX.size(); ++col)
+          builder.Text(ColumnValue(data.kind, field.value, col),
+                       ColumnValueX(data.kind, col), field.y,
+                       UiColorToken::TextNormal);
         continue;
       }
       DrawField(builder, data.fields[index].label, data.fields[index].value,
@@ -593,7 +609,7 @@ UiBuildStatus UiInstrumentView::Build(const UiInstrumentViewData &data,
         SelectedValueLayout layout;
         std::uint8_t textIndex = 0U;
         if (SelectedSubfield(data, layout, textIndex)) {
-          builder.Text(DrumCell(data) ? layout.text
+          builder.Text(ColumnCell(data) ? layout.text
                                       : layout.text.substr(textIndex, 1),
                        static_cast<std::int16_t>(
                            layout.x + textIndex * UiFont5x7::kAdvance),

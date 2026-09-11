@@ -20,6 +20,7 @@ inline constexpr std::int16_t kUiInstrumentOperatorHeaderY = 120;
 struct UiInstrumentSection {
   std::string_view title;
   std::uint8_t firstField;
+  std::int16_t leadingSpace = 16;
 };
 
 namespace detail {
@@ -29,9 +30,10 @@ inline constexpr std::array<UiInstrumentSection, 6> kSampleSections{{
 inline constexpr std::array<UiInstrumentSection, 2> kMidiSections{{
     {"OUTPUT", 0}, {"MODULATION", 4}}};
 inline constexpr std::array<UiInstrumentSection, 3> kSidSections{{
-    {"OSCILLATOR", 0}, {"ENVELOPE", 5}, {"FILTER & OUTPUT", 6}}};
+    // Match Drum's 16 px gap above the table and 19 px gap below its last row.
+    {"OSCILLATOR", 0}, {"ENVELOPE", 5, 18}, {"FILTER & OUTPUT", 6, 21}}};
 inline constexpr std::array<UiInstrumentSection, 2> kDrumSections{{
-    {"VOICES", 0}, {"KIT", 12}}};
+    {"VOICES", 0, 4}, {"KIT", 12}}};
 inline constexpr std::array<UiInstrumentSection, 4> kStackSections{{
     {"OSCILLATOR", 0}, {"TONE", 4}, {"ENVELOPE", 7}, {"MODULATION", 11}}};
 } // namespace detail
@@ -57,9 +59,7 @@ UiInstrumentSections(UiInstrumentKind kind) {
     UiInstrumentKind kind, std::uint8_t field, std::int16_t ungroupedY) {
   for (const auto &section : UiInstrumentSections(kind)) {
     if (section.firstField <= field)
-      // The drum column labels share the Voices divider instead of adding
-      // another row above the table.
-      ungroupedY += kind == UiInstrumentKind::Drum && section.firstField == 0 ? 4 : 16;
+      ungroupedY += section.leadingSpace;
   }
   return ungroupedY;
 }

@@ -727,12 +727,13 @@ UiApplicationActivityState Ui2NativeApplicationStateSource::CaptureInstrument(
       (instrument_.HeldMask() & TrackerActionBit(TrackerAction::Enter)) == 0U)
     state.fieldBottom = UiInstrumentFieldBottom::Edit;
   state.selectedSubfield = instrument_.Subfield();
-  if (type == IT_DRUM && cursor.kind == Ui2InstrumentCursorKind::Field &&
-      cursor.index < 12) {
+  if (Ui2InstrumentCellMode(activeSubfields.mode) &&
+      cursor.kind == Ui2InstrumentCursorKind::Field) {
+    const bool wave = type == IT_DRUM && state.selectedSubfield == 3;
     state.enterSubfieldFocus =
-        state.selectedSubfield == 3 && instrument_.EnterSubfieldFocus();
+        wave && instrument_.EnterSubfieldFocus();
     state.adjustmentFocus =
-        !state.numberFocus && state.selectedSubfield != 3 &&
+        !state.numberFocus && !wave &&
         (instrument_.HeldMask() & TrackerActionBit(TrackerAction::Enter)) != 0;
     state.adjustmentFineStep = 1;
     state.adjustmentCoarseStep = 16;

@@ -3180,6 +3180,79 @@ TEST_CASE("UI2 Instrument exposes fixed cursor targets for fields and OPAL "
   CHECK(FindTextCommand(scene.bottom.Stream(), "VALUE") != nullptr);
 }
 
+TEST_CASE("UI2 SID envelope headers, values and cell cursors match Drum") {
+  using namespace ui2;
+  auto data = test::ApprovedInstrumentFixture("sid");
+  data.cursor = UiInstrumentCursor::Field;
+  data.selectedField = 5;
+  data.fieldBottom = UiInstrumentFieldBottom::Edit;
+  data.fields[5].value = "1234";
+  UiPalette palette;
+  UiFrameScene scene;
+  REQUIRE(UiInstrumentView::Build(data, palette, scene) == UiBuildStatus::Built);
+  const auto *section = FindTextCommand(scene.content.Stream(), "ENVELOPE");
+  REQUIRE(section != nullptr);
+  CHECK(FindTextCommand(scene.content.Stream(), "1234") == nullptr);
+
+  constexpr std::array<std::string_view, 4> headers{"ATK", "DEC", "SUS", "REL"};
+  UiFrameScene drumScene;
+  const auto drum = test::ApprovedInstrumentFixture("drum");
+  REQUIRE(UiInstrumentView::Build(drum,
+                                  palette, drumScene) == UiBuildStatus::Built);
+  const auto *voices = FindTextCommand(drumScene.content.Stream(), "VOICES");
+  const auto *kit = FindTextCommand(drumScene.content.Stream(), "KIT");
+  const auto *filter = FindTextCommand(scene.content.Stream(), "FILTER & OUTPUT");
+  REQUIRE(voices != nullptr);
+  REQUIRE(kit != nullptr);
+  REQUIRE(filter != nullptr);
+  CHECK(section->bounds.y - data.fields[4].y == voices->bounds.y - 54);
+  CHECK(data.fields[5].y - section->bounds.y == drum.fields[0].y - voices->bounds.y);
+  CHECK(filter->bounds.y - data.fields[5].y == kit->bounds.y - drum.fields[11].y);
+  constexpr std::array<std::string_view, 4> drumHeaders{"PIT", "TUN", "DEC", "WAVE"};
+  auto previous = data;
+  for (std::uint8_t col = 0; col < headers.size(); ++col) {
+    const auto *header = FindTextCommand(scene.content.Stream(), headers[col]);
+    const auto *value = FindTextCommand(scene.content.Stream(),
+                                        data.fields[5].value.substr(col, 1));
+    REQUIRE(header != nullptr);
+    REQUIRE(value != nullptr);
+    const auto *drumHeader = FindTextCommand(drumScene.content.Stream(), drumHeaders[col]);
+    REQUIRE(drumHeader != nullptr);
+    CHECK(header->bounds.x == drumHeader->bounds.x);
+    CHECK(header->bounds.y == section->bounds.y);
+    CHECK(value->bounds.x == header->bounds.x + 6);
+    CHECK(value->bounds.y == data.fields[5].y);
+    data.selectedSubfield = col;
+    CHECK(UiInstrumentView::CursorTargetRect(data) ==
+          RectI16{static_cast<std::int16_t>(value->bounds.x - 2),
+                  static_cast<std::int16_t>(value->bounds.y - 1), 9, 9});
+    CheckDeltaMatchesFullFrame(previous, data, UiInstrumentView::Build,
+                               UiInstrumentView::RenderDelta);
+    UiFrameScene selectedScene;
+    REQUIRE(UiInstrumentView::Build(data, palette, selectedScene) == UiBuildStatus::Built);
+    CHECK(FindTextCommand(selectedScene.content.Stream(), headers[col])->color ==
+          palette.Index(UiColorToken::TextColored));
+    previous = data;
+  }
+  data.adjustmentFocus = true;
+  data.adjustmentFineStep = 1;
+  data.adjustmentCoarseStep = 16;
+  CheckDeltaMatchesFullFrame(previous, data, UiInstrumentView::Build,
+                             UiInstrumentView::RenderDelta);
+  previous = data;
+  data.fields[5].value = "ABCD";
+  CheckDeltaMatchesFullFrame(previous, data, UiInstrumentView::Build,
+                             UiInstrumentView::RenderDelta);
+  previous = data;
+  data.adjustmentFocus = false;
+  CheckDeltaMatchesFullFrame(previous, data, UiInstrumentView::Build,
+                             UiInstrumentView::RenderDelta);
+  previous = data;
+  data.selectedField = 4;
+  CheckDeltaMatchesFullFrame(previous, data, UiInstrumentView::Build,
+                             UiInstrumentView::RenderDelta);
+}
+
 TEST_CASE("UI2 Instrument operator headers and approved adjustment "
           "legend stay semantic") {
   ui2::UiPalette palette;

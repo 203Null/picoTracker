@@ -1077,7 +1077,7 @@ TEST_CASE("UI2 every instrument parameter stays within declared edit bounds") {
     const auto spec = Ui2InstrumentSubfields(descriptor);
     if (descriptor.format == Ui2InstrumentValueFormat::Hex &&
         descriptor.width >= 3U &&
-        spec.mode != Ui2InstrumentSubfieldMode::DrumCell) {
+        !Ui2InstrumentCellMode(spec.mode)) {
       CHECK(spec.mode == Ui2InstrumentSubfieldMode::HexDigit);
       CHECK(spec.count == descriptor.width);
     }
@@ -1099,6 +1099,33 @@ TEST_CASE("UI2 every instrument parameter stays within declared edit bounds") {
       check(Ui2InstrumentOperatorParameter(row, false));
       check(Ui2InstrumentOperatorParameter(row, true));
     }
+  }
+}
+
+TEST_CASE("UI2 SID envelope cells edit independently like Drum numeric cells") {
+  using namespace ui2;
+  const auto envelope = Ui2InstrumentFieldParameter(IT_SID, 5);
+  const auto spec = Ui2InstrumentSubfields(envelope);
+  REQUIRE(spec.mode == Ui2InstrumentSubfieldMode::HexCell);
+  REQUIRE(spec.count == 4);
+  for (std::uint8_t col = 0; col < spec.count; ++col) {
+    const unsigned shift = (3 - col) * 4;
+    const int mask = 15 << shift;
+    const int current = 0x1234;
+    const auto adjust = [&](int value, Ui2InstrumentValueDirection direction) {
+      return Ui2AdjustInstrumentSubfieldParameter(envelope, value, spec.mode,
+                                                 col, direction);
+    };
+    CHECK(adjust(current, Ui2InstrumentValueDirection::Right) ==
+          current + (1 << shift));
+    CHECK(adjust(current, Ui2InstrumentValueDirection::Left) ==
+          current - (1 << shift));
+    CHECK(adjust(current, Ui2InstrumentValueDirection::Up) == (current | mask));
+    CHECK(adjust(current, Ui2InstrumentValueDirection::Down) == (current & ~mask));
+    CHECK(adjust(current | mask, Ui2InstrumentValueDirection::Right) ==
+          (current | mask));
+    CHECK(adjust(current & ~mask, Ui2InstrumentValueDirection::Left) ==
+          (current & ~mask));
   }
 }
 

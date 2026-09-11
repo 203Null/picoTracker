@@ -49,7 +49,14 @@ enum class Ui2InstrumentSubfieldMode : std::uint8_t {
   HexDigit,
   DrumCell,
   Bit,
+  HexCell,
 };
+
+[[nodiscard]] constexpr bool
+Ui2InstrumentCellMode(Ui2InstrumentSubfieldMode mode) {
+  return mode == Ui2InstrumentSubfieldMode::DrumCell ||
+         mode == Ui2InstrumentSubfieldMode::HexCell;
+}
 
 enum class Ui2InstrumentCommandType : std::uint8_t {
   None,
@@ -187,7 +194,7 @@ public:
     } else if (subfield_ >= subfieldCount_) {
       // Big-hex and bitmask fields enter on their right-most component, just
       // like the legacy fixed-capacity fields.
-      subfield_ = mode == Ui2InstrumentSubfieldMode::DrumCell
+      subfield_ = Ui2InstrumentCellMode(mode)
                       ? 0U
                       : static_cast<std::uint8_t>(subfieldCount_ - 1U);
     }
@@ -316,13 +323,13 @@ public:
 
     if (action == TrackerAction::Up) {
       if (cursor_.MovePrevious() &&
-          subfieldMode_ != Ui2InstrumentSubfieldMode::DrumCell)
+          !Ui2InstrumentCellMode(subfieldMode_))
         ResetSubfield();
       return {};
     }
     if (action == TrackerAction::Down) {
       if (cursor_.MoveNext() &&
-          subfieldMode_ != Ui2InstrumentSubfieldMode::DrumCell)
+          !Ui2InstrumentCellMode(subfieldMode_))
         ResetSubfield();
       return {};
     }
@@ -457,7 +464,7 @@ private:
       return command;
     }
     if (cursor.kind == Ui2InstrumentCursorKind::Field) {
-      if (subfieldMode_ == Ui2InstrumentSubfieldMode::DrumCell) {
+      if (Ui2InstrumentCellMode(subfieldMode_)) {
         subfield_ =
             static_cast<std::uint8_t>(std::clamp<int>(subfield_ + delta, 0, 3));
         return {};
@@ -495,7 +502,7 @@ private:
       return {};
     }
     if (subfieldMode_ != Ui2InstrumentSubfieldMode::None &&
-        subfieldMode_ != Ui2InstrumentSubfieldMode::DrumCell &&
+        !Ui2InstrumentCellMode(subfieldMode_) &&
         subfieldCount_ > 0U) {
       if (direction == Ui2InstrumentValueDirection::Left) {
         if (subfield_ > 0U)

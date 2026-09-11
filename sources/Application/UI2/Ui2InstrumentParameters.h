@@ -315,7 +315,7 @@ inline constexpr std::array<Ui2InstrumentParameterDescriptor, 11>
                   106, 0, Ui2InstrumentValueFormat::Boolean),
         Parameter("ENV ADSR", FourCC::SIDInstrumentADSR, 0, 0xFFFF, 1, 0x10,
                   116, 4, Ui2InstrumentValueFormat::Hex, true, false, true,
-                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexDigit),
+                  FourCC::Default, false, Ui2InstrumentSubfieldMode::HexCell),
         Parameter("FILTER", FourCC::SIDInstrumentFilterOn, 0, 1, 1, 1, 126, 0,
                   Ui2InstrumentValueFormat::Boolean),
         Parameter("CUTOFF", FourCC::SIDInstrument1FilterCut, 0, 0x7FF, 1, 0x10,
@@ -644,7 +644,7 @@ Ui2AdjustInstrumentParameter(const Ui2InstrumentParameterDescriptor &descriptor,
     Ui2InstrumentSubfieldMode mode, std::uint8_t leftToRightSubfield,
     Ui2InstrumentValueDirection direction) {
   const Ui2InstrumentSubfieldSpec spec = Ui2InstrumentSubfields(descriptor);
-  if (mode == Ui2InstrumentSubfieldMode::DrumCell && mode == spec.mode &&
+  if (Ui2InstrumentCellMode(mode) && mode == spec.mode &&
       leftToRightSubfield < 4 &&
       direction != Ui2InstrumentValueDirection::None) {
     const unsigned shift = (3 - leftToRightSubfield) * 4;
@@ -653,8 +653,10 @@ Ui2AdjustInstrumentParameter(const Ui2InstrumentParameterDescriptor &descriptor,
                       direction == Ui2InstrumentValueDirection::Left;
     const bool coarse = direction == Ui2InstrumentValueDirection::Up ||
                         direction == Ui2InstrumentValueDirection::Down;
-    const int step = leftToRightSubfield == 3 ? 1 : (coarse ? 16 : 1);
-    const int next = leftToRightSubfield == 3
+    const bool wave = mode == Ui2InstrumentSubfieldMode::DrumCell &&
+                      leftToRightSubfield == 3;
+    const int step = wave ? 1 : (coarse ? 16 : 1);
+    const int next = wave
                          ? ((value % 8) + (down ? -1 : 1) + 8) % 8
                          : std::clamp(value + (down ? -step : step), 0, 15);
     return (current & ~(15 << shift)) | (next << shift);

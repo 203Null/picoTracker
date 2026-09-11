@@ -1115,26 +1115,29 @@ TEST_CASE("UI2 Instrument Enter moves a bounded component cursor") {
         Ui2InstrumentCommandType::CommitValueEdits);
 }
 
-TEST_CASE("UI2 Drum cells navigate normally and edit on held Enter") {
+TEST_CASE("UI2 table cells navigate normally and edit on held Enter") {
   using namespace ui2;
-  Ui2InstrumentController controller(0, 0, 13, 0,
-                                     {Ui2InstrumentCursorKind::Field, 0});
-  controller.ConfigureValueSubfields(Ui2InstrumentSubfieldMode::DrumCell, 4);
-  CHECK(controller.Subfield() == 0);
-  CHECK_FALSE(Tap(controller, TrackerAction::Right).HasValue());
-  CHECK(controller.Subfield() == 1);
-  Tap(controller, TrackerAction::Down);
-  controller.ConfigureValueSubfields(Ui2InstrumentSubfieldMode::DrumCell, 4);
-  CHECK(controller.Cursor().index == 1);
-  CHECK(controller.Subfield() == 1);
-  controller.Handle(TrackerAction::Enter, true);
-  const auto adjust = Tap(controller, TrackerAction::Right);
-  CHECK(adjust.type == Ui2InstrumentCommandType::AdjustField);
-  CHECK(adjust.subfield == 1);
-  CHECK(adjust.direction == Ui2InstrumentValueDirection::Right);
-  CHECK(controller.Subfield() == 1);
-  CHECK(controller.Handle(TrackerAction::Enter, false).type ==
-        Ui2InstrumentCommandType::CommitValueEdits);
+  for (auto mode : {Ui2InstrumentSubfieldMode::DrumCell,
+                    Ui2InstrumentSubfieldMode::HexCell}) {
+    Ui2InstrumentController controller(0, 0, 13, 0,
+                                       {Ui2InstrumentCursorKind::Field, 0});
+    controller.ConfigureValueSubfields(mode, 4);
+    CHECK(controller.Subfield() == 0);
+    CHECK_FALSE(Tap(controller, TrackerAction::Right).HasValue());
+    CHECK(controller.Subfield() == 1);
+    Tap(controller, TrackerAction::Down);
+    controller.ConfigureValueSubfields(mode, 4);
+    CHECK(controller.Cursor().index == 1);
+    CHECK(controller.Subfield() == 1);
+    controller.Handle(TrackerAction::Enter, true);
+    const auto adjust = Tap(controller, TrackerAction::Right);
+    CHECK(adjust.type == Ui2InstrumentCommandType::AdjustField);
+    CHECK(adjust.subfield == 1);
+    CHECK(adjust.direction == Ui2InstrumentValueDirection::Right);
+    CHECK(controller.Subfield() == 1);
+    CHECK(controller.Handle(TrackerAction::Enter, false).type ==
+          Ui2InstrumentCommandType::CommitValueEdits);
+  }
 }
 
 TEST_CASE("UI2 Groove owns sixteen wrapping rows outside selection mode") {
