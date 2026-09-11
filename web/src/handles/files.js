@@ -272,6 +272,24 @@ export function createFilesHandle(module, storage, options = {}) {
         }
       })
     },
+    async saveRecording(path, bytes) {
+      if (path !== '/data/recordings/REC01.wav' || !(bytes instanceof Uint8Array) ||
+          bytes.length < 44 || bytes.length > 44 + 44100 * 30 * 2) {
+        throw new Error('Invalid recording file')
+      }
+      return mutate('recording-save', async () => {
+        ensureDirectory('/data/recordings')
+        const temporary = '/data/recordings/.REC01.wav.pending'
+        try {
+          FS.writeFile(temporary, bytes)
+          FS.rename(temporary, path)
+        } catch (error) {
+          try { if (exists(FS, temporary)) FS.unlink(temporary) }
+          catch (cleanupError) { throw failClosed(error, [cleanupError]) }
+          throw error
+        }
+      })
+    },
     async uploadFiles(files, destination = dataRoot) {
       return mutate('files-upload', async () => {
         destination = pathFor(destination); if (!directory(FS, destination)) throw new Error('Upload destination is not a directory')

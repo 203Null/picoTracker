@@ -1,3 +1,4 @@
+import { createRecordingHandle } from './recording.js'
 import { createInputBridge } from './input.js'
 import { createAudioBridge } from './audio.js'
 import { createFilesHandle } from './files.js'
@@ -271,6 +272,7 @@ export async function createRuntime(options = {}) {
   let viewsTestHandle = null
   let midiTestHandle = null
   let runtimeTestHandle = null
+  let recording = null
   let files = null
   let hostFolder = null
   let trace = null
@@ -313,6 +315,7 @@ export async function createRuntime(options = {}) {
   function quiesceDiagnostics() {
     if (diagnosticsQuiesced) return
     diagnosticsQuiesced = true
+    void recording?.dispose()
     try {
       // Keep the accumulated log store available to the recovery UI while
       // preventing its browser-main polling loop from touching failed WASM.
@@ -325,6 +328,7 @@ export async function createRuntime(options = {}) {
 
   async function terminateWorkers() {
     quiesceDiagnostics()
+    await recording?.dispose()
     if (!module.PThread) throw new Error('Emscripten PThread runtime API is unavailable')
     module.PThread.terminateAllThreads()
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -363,6 +367,8 @@ export async function createRuntime(options = {}) {
     }
 
     files = module.FS ? createFilesHandle(module, storage) : null
+    recording = files ? createRecordingHandle(files) : null
+    module.nullPeratorRecording = recording
     hostFolder = files ? createHostFolderManager({ browser: files.createHostSyncEndpoint() }) : null
     // Permission restoration only queries the persisted handle. It never makes
     // a browser permission request during automatic runtime startup.
@@ -444,6 +450,7 @@ export async function createRuntime(options = {}) {
       quiesceDiagnostics()
     },
     async requestShutdown() {
+      await recording?.dispose()
       module._PicoTracker_Wasm_RequestShutdown()
       await waitForShutdown()
     },

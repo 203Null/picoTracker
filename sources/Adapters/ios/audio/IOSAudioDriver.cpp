@@ -32,7 +32,7 @@ bool IOSAudioDriver::InitDriver() {
     return false;
   }
 
-  UInt32 enabled = 1U;
+  UInt32 enabled = 0U;
   if (AudioUnitSetProperty(unit_, kAudioOutputUnitProperty_EnableIO,
                            kAudioUnitScope_Input, 1, &enabled,
                            sizeof(enabled)) != noErr) {
@@ -66,12 +66,7 @@ bool IOSAudioDriver::InitDriver() {
     return false;
   }
 
-  AudioStreamBasicDescription inputFormat = format;
-  inputFormat.mChannelsPerFrame = 1;
-  if (AudioUnitSetProperty(unit_, kAudioUnitProperty_StreamFormat,
-                           kAudioUnitScope_Output, 1, &inputFormat,
-                           sizeof(inputFormat)) != noErr ||
-      AudioUnitInitialize(unit_) != noErr) {
+  if (AudioUnitInitialize(unit_) != noErr) {
     CloseDriver();
     return false;
   }
@@ -164,8 +159,7 @@ bool IOSAudioDriver::InputAvailable() const noexcept {
 }
 
 void IOSAudioDriver::SetInputMonitoring(bool enabled) noexcept {
-  inputMonitoring_.store(enabled && InputAvailable(),
-                         std::memory_order_release);
+  inputMonitoring_.store(false, std::memory_order_release);
   if (!enabled && !inputCaptureGate_.IsRunning())
     inputPeak_.store(0U, std::memory_order_release);
 }
@@ -182,6 +176,8 @@ bool IOSAudioDriver::BeginInputCapture(
   inputCapacityFrames_ = destination.size();
   inputCapturedFrames_.store(0U, std::memory_order_release);
   inputDestination_.store(destination.data(), std::memory_order_release);
+  if (!ConfigureInput(true))
+    return false;
   inputCaptureGate_.Start();
   return true;
 }
@@ -190,6 +186,7 @@ void IOSAudioDriver::EndInputCapture() noexcept {
   inputCaptureGate_.Stop();
   while (!inputCaptureGate_.IsIdle())
     std::this_thread::yield();
+  (void)ConfigureInput(false);
 }
 
 bool IOSAudioDriver::IsInputCapturing() const noexcept {
@@ -294,5 +291,60 @@ void IOSAudioDriver::PullInput(AudioUnitRenderActionFlags *flags,
   inputCapturedFrames_.store(offset + count, std::memory_order_release);
   if (offset + count >= inputCapacityFrames_)
     inputCaptureGate_.Stop();
+#endif
+}
+
+extern "C" bool NullPeratorIOSSetRecordingSession(bool recording);
+
+bool IOSAudioDriver::ConfigureInput(bool enabled) noexcept {
+#if TARGET_OS_SIMULATOR
+  (void)enabled;
+  return false;
+#else
+  if (inputEnabled_ == enabled)
+    return true;
+  if (unit_ == nullptr)
+    return false;
+  const bool restart = started_.load(std::memory_order_acquire);
+  AudioOutputUnitStop(unit_);
+  AudioUnitUninitialize(unit_);
+  bool success = NullPeratorIOSSetRecordingSession(enabled);
+  UInt32 value = enabled ? 1U : 0U;
+  success = AudioUnitSetProperty(unit_, kAudioOutputUnitProperty_EnableIO,
+                                 kAudioUnitScope_Input, 1, &value,
+                                 sizeof(value)) == noErr &&
+            success;
+  if (enabled && success) {
+    AudioStreamBasicDescription format{};
+    format.mSampleRate = 44100.0;
+    format.mFormatID = kAudioFormatLinearPCM;
+    format.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked |
+                          kAudioFormatFlagIsNonInterleaved |
+                          kAudioFormatFlagsNativeEndian;
+    format.mFramesPerPacket = 1;
+    format.mChannelsPerFrame = 1;
+    format.mBitsPerChannel = 32;
+    format.mBytesPerFrame = sizeof(float);
+    format.mBytesPerPacket = sizeof(float);
+    success = AudioUnitSetProperty(unit_, kAudioUnitProperty_StreamFormat,
+                                   kAudioUnitScope_Output, 1, &format,
+                                   sizeof(format)) == noErr;
+  }
+  success = AudioUnitInitialize(unit_) == noErr && success;
+  if (restart)
+    success = AudioOutputUnitStart(unit_) == noErr && success;
+  inputEnabled_ = enabled;
+  if (!success && enabled)
+    (void)ConfigureInput(false);
+  if (!success && !enabled) {
+    // Never leave an input unit running after an unsuccessful teardown.
+    AudioOutputUnitStop(unit_);
+    AudioUnitUninitialize(unit_);
+    AudioComponentInstanceDispose(unit_);
+    unit_ = nullptr;
+    started_.store(false, std::memory_order_release);
+    inputAvailable_.store(false, std::memory_order_release);
+  }
+  return success;
 #endif
 }

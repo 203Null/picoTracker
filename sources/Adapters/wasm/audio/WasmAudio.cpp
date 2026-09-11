@@ -607,25 +607,6 @@ void WasmAudio::OnProcessorCreated(bool success) noexcept {
 #endif
 }
 
-void Record(void *) {}
-bool StartRecording(const char *, std::uint8_t, std::uint32_t) { return false; }
-void StopRecording() {}
-void RequestStopRecording() {}
-bool WaitForRecordingStop(std::uint32_t) { return true; }
-void FinishStopRecording() {}
-void StartMonitoring() {}
-void StopMonitoring() {}
-void SetInputSource(RecordSource) {}
-bool IsRecordingInputSelectable() { return false; }
-bool IsRecordingAvailable() { return false; }
-bool IsRecordingActive() { return false; }
-bool IsMonitoringActive() { return false; }
-bool IsSavingRecording() { return false; }
-std::uint8_t GetSavingProgressPercent() { return 0; }
-bool DidLastRecordingCaptureAudio() { return false; }
-std::uint32_t GetRecordingElapsedMilliseconds() { return 0U; }
-std::uint16_t GetRecordingInputPeak() { return 0U; }
-
 void WasmAudio_BootstrapBrowserMain() noexcept {
   WasmAudio::BootstrapBrowserMain();
 }

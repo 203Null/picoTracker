@@ -326,11 +326,9 @@ final class NativeCommandBridge: NSObject, WKScriptMessageHandlerWithReply {
         if command == "activateAudio" {
             do {
                 let session = AVAudioSession.sharedInstance()
-                try session.setCategory(
-                    .playAndRecord,
-                    mode: .default,
-                    options: [.defaultToSpeaker, .allowAirPlay, .allowBluetoothHFP]
-                )
+                if session.category != .playAndRecord {
+                    try session.setCategory(.playback, mode: .default, options: [])
+                }
                 try session.setActive(true)
                 replyHandler(["ok": true], nil)
             } catch {

@@ -6,6 +6,7 @@
 #include "ProductVersion.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cstdint>
 #include <dispatch/dispatch.h>
 #include <memory>
@@ -18,15 +19,36 @@ NSString *Base64(const std::uint8_t *bytes, std::size_t size) {
 }
 } // namespace
 
-extern "C" void NullPeratorIOSRequestRecordPermission() {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    AVAudioApplication *application = AVAudioApplication.sharedInstance;
-    if (application.recordPermission ==
-        AVAudioApplicationRecordPermissionUndetermined) {
-      [AVAudioApplication
-          requestRecordPermissionWithCompletionHandler:^(BOOL) {}];
-    }
-  });
+extern "C" int NullPeratorIOSRecordPermission() {
+  const auto permission = AVAudioApplication.sharedInstance.recordPermission;
+  if (permission == AVAudioApplicationRecordPermissionGranted)
+    return 1;
+  if (permission == AVAudioApplicationRecordPermissionDenied)
+    return -1;
+  static std::atomic<bool> requested{false};
+  if (!requested.exchange(true)) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [AVAudioApplication requestRecordPermissionWithCompletionHandler:^(BOOL){
+      }];
+    });
+  }
+  return 0;
+}
+
+extern "C" bool NullPeratorIOSSetRecordingSession(bool recording) {
+  AVAudioSession *session = AVAudioSession.sharedInstance;
+  NSError *error = nil;
+  const AVAudioSessionCategoryOptions options =
+      recording ? AVAudioSessionCategoryOptionDefaultToSpeaker |
+                      AVAudioSessionCategoryOptionAllowBluetoothHFP
+                : 0;
+  return [session setCategory:recording ? AVAudioSessionCategoryPlayAndRecord
+                                        : AVAudioSessionCategoryPlayback
+                         mode:AVAudioSessionModeDefault
+                      options:options
+                        error:&error] &&
+         [session setPreferredSampleRate:44100 error:&error] &&
+         [session setActive:YES error:&error];
 }
 
 @implementation NullPeratorNativeBridge {

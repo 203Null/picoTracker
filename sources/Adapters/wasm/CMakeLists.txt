@@ -43,6 +43,7 @@ add_library(platform_audio
   audio/AudioWorklet.cpp
   audio/OutputResampler.cpp
   audio/WasmAudio.cpp
+  audio/WasmRecordingPlatform.cpp
   audio/WasmAudioDriver.cpp)
 target_include_directories(platform_audio PUBLIC "${PROJECT_SOURCE_DIR}")
 target_link_libraries(platform_audio PUBLIC platform_snapshot)

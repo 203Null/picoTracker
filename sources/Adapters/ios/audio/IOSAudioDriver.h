@@ -43,6 +43,8 @@ public:
   [[nodiscard]] std::uint16_t InputPeak() const noexcept;
 
 private:
+  bool ConfigureInput(bool enabled) noexcept;
+  bool inputEnabled_ = false;
   static OSStatus Render(void *context, AudioUnitRenderActionFlags *flags,
                          const AudioTimeStamp *timestamp, UInt32, UInt32 frames,
                          AudioBufferList *buffers);

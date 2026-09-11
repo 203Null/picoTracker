@@ -16,7 +16,7 @@
 #include <thread>
 #include <vector>
 
-extern "C" void NullPeratorIOSRequestRecordPermission();
+extern "C" int NullPeratorIOSRecordPermission();
 
 namespace {
 
@@ -28,6 +28,7 @@ std::vector<std::int16_t> captureBuffer;
 std::array<char, 512> recordingPath{};
 std::thread savingThread;
 std::atomic<bool> recording{false};
+bool awaitingPermission = false;
 std::atomic<bool> saving{false};
 std::atomic<bool> lastSavedAudio{false};
 std::atomic<std::uint8_t> savingProgress{0U};
@@ -93,8 +94,10 @@ void FinishCaptureAndSave() {
     lastSavedAudio.store(false, std::memory_order_release);
     return;
   }
+  const bool neverStarted = awaitingPermission;
+  awaitingPermission = false;
   driver->EndInputCapture();
-  const std::size_t frames = driver->CapturedInputFrames();
+  const std::size_t frames = neverStarted ? 0U : driver->CapturedInputFrames();
   elapsedMs.store(static_cast<std::uint32_t>((frames * 1000ULL) / kSampleRate),
                   std::memory_order_release);
   JoinCompletedSavingThread();
@@ -109,6 +112,18 @@ void FinishCaptureAndSave() {
 
 void FinishFullCaptureIfNeeded() {
   IOSAudioDriver *driver = Driver();
+  if (recording.load(std::memory_order_acquire) && awaitingPermission) {
+    const int permission = NullPeratorIOSRecordPermission();
+    if (permission == 0)
+      return;
+    if (permission > 0 && driver != nullptr &&
+        driver->BeginInputCapture(captureBuffer)) {
+      awaitingPermission = false;
+      return;
+    }
+    FinishCaptureAndSave();
+    return;
+  }
   if (recording.load(std::memory_order_acquire) && driver != nullptr &&
       !driver->IsInputCapturing())
     FinishCaptureAndSave();
@@ -172,7 +187,10 @@ bool StartRecording(const char *filename, std::uint8_t,
   savingProgress.store(0U, std::memory_order_release);
   elapsedMs.store(0U, std::memory_order_release);
   driver->SetInputMonitoring(false);
-  if (!driver->BeginInputCapture(captureBuffer)) {
+  const int permission = NullPeratorIOSRecordPermission();
+  awaitingPermission = permission == 0;
+  if (permission < 0 ||
+      (permission > 0 && !driver->BeginInputCapture(captureBuffer))) {
     captureBuffer.clear();
     return false;
   }
@@ -207,16 +225,8 @@ bool WaitForRecordingStop(std::uint32_t timeoutMs) {
 
 void FinishStopRecording() { JoinCompletedSavingThread(); }
 
-void StartMonitoring() {
-  if (recording.load(std::memory_order_acquire) ||
-      saving.load(std::memory_order_acquire))
-    return;
-  if (IOSAudioDriver *driver = Driver();
-      driver != nullptr && driver->InputAvailable()) {
-    NullPeratorIOSRequestRecordPermission();
-    driver->SetInputMonitoring(true);
-  }
-}
+// Merely visiting Record must not open the microphone or request permission.
+void StartMonitoring() {}
 
 void StopMonitoring() {
   if (IOSAudioDriver *driver = Driver(); driver != nullptr)
@@ -233,6 +243,8 @@ bool DidLastRecordingCaptureAudio() {
 }
 
 std::uint32_t GetRecordingElapsedMilliseconds() {
+  if (awaitingPermission)
+    return 0U;
   IOSAudioDriver *driver = Driver();
   if (recording.load(std::memory_order_acquire) && driver != nullptr) {
     return static_cast<std::uint32_t>(

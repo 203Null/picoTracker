@@ -7,6 +7,7 @@ const distRoot = resolve(webRoot, process.argv[2] ?? 'dist')
 
 const requiredFiles = [
   'index.html',
+  'worklets/microphone.js',
   'oracle.html',
   '_headers',
   'THIRD_PARTY_NOTICES.md',
